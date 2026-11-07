@@ -65,7 +65,10 @@ export function buildDocument(bodyHtml, settings) {
   let fontCss = "";
   if (print.fonts?.bodyFile) {
     const name = print.fonts.body || "BookBody";
-    fontCss = `@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyFile))}"); font-display: block; }
+    // 굵은 글씨 파일(bodyBoldFile)이 있으면 700으로 따로 등록(없으면 브라우저가 가짜 굵게를 만듦)
+    const bold = print.fonts.bodyBoldFile
+      ? `\n@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyBoldFile))}"); font-weight: 700; font-display: block; }` : "";
+    fontCss = `@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyFile))}"); font-weight: ${print.fonts.bodyBoldFile ? 400 : "normal"}; font-display: block; }${bold}
 :root { --font-body: "${esc(name)}", "Noto Serif KR", serif; }`;
   } else if (print.fonts?.body) {
     fontCss = `:root { --font-body: "${esc(print.fonts.body)}", "Noto Serif KR", serif; }`;

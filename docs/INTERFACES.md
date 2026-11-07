@@ -49,7 +49,7 @@ type PrintConfig = {
   theme: string; palette: Palette; paper: Paper;
   series?: { label: string[]; tag?: string };
   logo?: string;                       // 책 폴더 기준 경로
-  fonts?: { body?: string; bodyFile?: string };
+  fonts?: { body?: string; bodyFile?: string; bodyBoldFile?: string };
   omitSections: string[]; headingNumbers: boolean;
   problemNumber: "000" | "0"; chapterStart: "right" | "any";
   sideColumn: "outside" | "left";

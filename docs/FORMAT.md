@@ -38,7 +38,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
     "paper": "a4",
     "series": { "label": ["PHYSICS", "LECTURE NOTES"], "tag": "JUHYUNG" },
     "logo": "images/logo.png",
-    "fonts": { "body": "KoPub World Batang Light", "bodyFile": "fonts/KoPubWorldBatangLight.ttf" },
+    "fonts": { "body": "KoPubWorld Batang", "bodyFile": "../../fonts/KoPubWorld_Batang_Light.ttf", "bodyBoldFile": "../../fonts/KoPubWorld_Batang_Bold.ttf" },
     "omitSections": ["실험으로 확인하기", "직접 해 보기"],
     "headingNumbers": true,
     "problemNumber": "000",
@@ -55,7 +55,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
 | `paper` | `"a4"` \| `"a4-bleed"` | `"a4"` | 판형. 인쇄할 때 바꿀 수 있음(5절) |
 | `series` | 객체 | 없음 | 왼쪽 쪽 머리말의 시리즈 글씨와 이름 태그 |
 | `logo` | 그림 경로 | 없음 | 오른쪽 쪽 머리말 로고 |
-| `fonts.body` | 글꼴 이름 | Noto Serif KR | 본문 글꼴. `bodyFile`이 있으면 그 파일을 불러옴 |
+| `fonts.body` | 글꼴 이름 | Noto Serif KR | 본문 글꼴. `bodyFile`(보통 굵기)과 `bodyBoldFile`(굵은 글씨)이 있으면 그 파일을 불러옴. 경로는 책 폴더 기준(저장소의 `fonts/`는 `../../fonts/…`) |
 | `omitSections` | 제목 목록 | `[]` | 인쇄에서 **제목째 통으로** 뺄 절의 제목(3-3절) |
 | `headingNumbers` | 참/거짓 | `true` | 절 제목 앞 번호 자동(`1.`, `(1)`) |
 | `problemNumber` | `"000"` \| `"0"` | `"000"` | 문항 번호 모양(`001` 또는 `1`) |

@@ -10,7 +10,7 @@
  * @property {Paper} paper
  * @property {{label:string[], tag?:string}} [series]
  * @property {string} [logo]
- * @property {{body?:string, bodyFile?:string}} [fonts]
+ * @property {{body?:string, bodyFile?:string, bodyBoldFile?:string}} [fonts]
  * @property {string[]} omitSections
  * @property {boolean} headingNumbers
  * @property {"000"|"0"} problemNumber
