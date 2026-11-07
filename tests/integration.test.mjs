@@ -1,5 +1,5 @@
 // 통합 시험: 견본 책 → render(renderBook) → layout(buildDocument, 미리보기) → PDF
-// 교사용·학생용(A4). 결과물: out/integration/
+// 교사용·학생용 × A4·도련판. 결과물: out/integration/
 // 확인: 쪽 크기, 대체 글꼴 없음, 두 판의 쪽수와 문항 쪽 같음, 학생용 PDF에 정답·해설·교사 메모 글자 없음, 기대 경고
 import fs from "node:fs";
 import path from "node:path";
@@ -33,11 +33,11 @@ const resolveAsset = (src) => (exists(src) ? `http://localhost:${PORT}/samples/s
 const readSvg = (src) => (src.endsWith(".svg") && exists(src) ? fs.readFileSync(path.join(BOOK_DIR, src), "utf8") : null);
 
 const ALLOWED_FONT = /^(KaTeX_|NotoSerifKR|Pretendard|Rajdhani|RubikGlitch|Wallpoet)/;
-const SIZE = { a4: [210, 297] };
+const SIZE = { a4: [210, 297], "a4-bleed": [216, 303] };
 
 const t = await openBrowser({ port: PORT });
 const results = {};
-for (const paper of ["a4"]) {
+for (const paper of ["a4", "a4-bleed"]) {
   for (const edition of ["teacher", "student"]) {
     const name = `book-${edition}-${paper}`;
     const r = renderBook(book, { edition, resolveAsset, readSvg });
@@ -66,7 +66,7 @@ for (const paper of ["a4"]) {
 // 견본의 정전기 장 002번은 일부러 해설이 단을 넘치게 만든 문항(solution-overflow 시험용)이다.
 // 그 문항부터는 교사용 쪽이 밀리는 것이 정상이므로, 그 앞까지만 두 판이 같은지 본다.
 const INTENDED_OVERFLOW = "pr-2-1-002";
-for (const paper of ["a4"]) {
+for (const paper of ["a4", "a4-bleed"]) {
   const T = results[`book-teacher-${paper}`], S = results[`book-student-${paper}`];
   if (!T || !S) continue;
   // 문항이 처음 나오는 쪽

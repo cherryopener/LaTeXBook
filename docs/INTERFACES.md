@@ -42,7 +42,7 @@
 /** 편집기 판 */
 type Edition = "teacher" | "student";
 type Palette = "teal" | "red";
-type Paper = "a4";   // 도련판은 만들지 않음(인쇄소가 처리)
+type Paper = "a4" | "a4-bleed";   // 재단선판은 만들지 않음(인쇄소가 처리)
 
 /** book.json의 print 칸에 기본값을 채운 것 (FORMAT.md 1-1절) */
 type PrintConfig = {
@@ -272,5 +272,5 @@ class ConflictError extends Error { remote: { text: string; sha: string } }
 
 - `npm test` → `tests/run-all.mjs`가 `tests/*.test.mjs`를 모두 돌립니다. 각 시험 파일은 실패하면 `process.exit(1)`.
 - 브라우저 시험은 `tests/lib/browser.mjs`의 `openBrowser()`를 씁니다. 저장소 폴더를 로컬 서버로 띄우고, CDN 주소를 `node_modules`로 연결합니다(이 작업 환경은 CDN 접속이 막혀 있음).
-- **합격 기준**: `samples/sample-book/`이 교사용·학생용 모두에서 오류 없이 처리되고, 각 모듈의 시험이 통과할 것.
+- **합격 기준**: `samples/sample-book/`이 교사용·학생용, A4·도련판 모두에서 오류 없이 처리되고, 각 모듈의 시험이 통과할 것.
 - 시험 결과물(PDF, 그림)은 `out/`(커밋 제외)에 만듭니다.
