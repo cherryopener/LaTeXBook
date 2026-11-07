@@ -30,7 +30,7 @@ export function renderBook(book, opts = {}) {
       if (one && one !== ci + 1) return null;
       const r = renderChapterImpl(ch.source ?? "", { ...base, partNo: P, chapterNo: ci + 1, chapterSeq: seqBase + ci + 1, palette, print });
       for (const w of r.warnings) warnings.push(ch.path ? { ...w, path: ch.path } : w);
-      return { no: ci + 1, ...r };
+      return { no: ci + 1, seq: seqBase + ci + 1, ...r };
     }).filter(Boolean);
     if (!one) {
       toc.push({ part: P, title: partTitle });
@@ -38,12 +38,12 @@ export function renderBook(book, opts = {}) {
         `<section class="part-cover" id="part-${P}" data-palette="${esc(palette)}" data-part="${P}">\n` +
         `<div class="part-no">${String(P).padStart(2, "0")}</div>\n<h1 class="part-title">${esc(partTitle)}</h1>\n</section>`,
         `<section class="part-toc" data-palette="${esc(palette)}" data-part="${P}">\n<ol>` +
-        chapters.map((c) => `<li><span class="toc-no">${c.no}.</span> ${esc(c.meta.title)}</li>`).join("") +
+        chapters.map((c) => `<li><span class="toc-no">${c.seq}.</span> ${esc(c.meta.title)}</li>`).join("") +
         `</ol>\n</section>`,
       );
     }
     for (const c of chapters) {
-      toc.push({ part: P, chapter: c.no, title: c.meta.title });
+      toc.push({ part: P, chapter: c.no, seq: c.seq, title: c.meta.title });
       html.push(c.html);
     }
   });
@@ -68,7 +68,7 @@ function bookFront(book, print, toc, resolveAsset = (s) => s) {
   const item = (cls, href, no, title) =>
     `<li class="${cls}"><a href="#${href}"><span class="toc-no">${esc(no)}</span><span class="toc-title">${esc(title)}</span><span class="toc-fill"></span></a></li>`;
   const items = toc.map((t) => t.chapter
-    ? item("toc-chapter", `ch-${t.part}-${t.chapter}`, `${t.chapter}`, t.title)
+    ? item("toc-chapter", `ch-${t.part}-${t.chapter}`, `${t.seq ?? t.chapter}`, t.title)
     : item("toc-part", `part-${t.part}`, String(t.part).padStart(2, "0"), t.title)).join("");
   return `<section class="book-front" data-palette="${esc(print.palette ?? "teal")}">\n` +
     `${art}\n` +

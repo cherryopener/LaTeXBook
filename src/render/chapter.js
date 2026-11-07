@@ -294,7 +294,7 @@ export function renderChapterImpl(source, ctx = {}) {
     `<header class="chapter-head" data-mode="${mode}"><nav class="tabs">` +
     `<span class="tab tab-theory${mode === "theory" ? " on" : ""}">THEORY</span>` +
     `<span class="tab tab-problems${mode === "problems" ? " on" : ""}">PROBLEMS</span></nav>` +
-    `<div class="band"><span class="chapter-no">${C}</span><h1 class="chapter-title">${esc(title)}</h1></div></header>`;
+    `<div class="band"><span class="chapter-no">${ctx.chapterSeq ?? C}</span><h1 class="chapter-title">${esc(title)}</h1></div></header>`;
 
   // 문항 처리를 위해 개념 구간을 먼저 변환(그림·SVG 순서가 원고 순서와 같게)
   const theoryHtml = mdastToHtml(txAll(theory, { section: "theory" }));

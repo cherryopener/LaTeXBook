@@ -198,7 +198,10 @@ for (const edition of ["teacher", "student"]) {
   ok(h.includes('<h1 class="part-title">운동과 힘</h1>') && h.includes('<h1 class="part-title">전기</h1>'), `${edition}: 부 제목`);
   ok(h.includes('<section class="part-toc" data-palette="red" data-part="1">\n<ol><li><span class="toc-no">1.</span> 속도와 가속도</li><li><span class="toc-no">2.</span> 힘과 운동</li></ol>'), `${edition}: 부 목차`);
   eq(all(h, /<section class="chapter" id="([^"]+)"/g), ["ch-1-1", "ch-1-2", "ch-2-1"], `${edition}: 장 3개`);
-  eq(r.toc, [{ part: 1, title: "운동과 힘" }, { part: 1, chapter: 1, title: "속도와 가속도" }, { part: 1, chapter: 2, title: "힘과 운동" }, { part: 2, title: "전기" }, { part: 2, chapter: 1, title: "정전기" }], `${edition}: toc`);
+  eq(r.toc, [{ part: 1, title: "운동과 힘" }, { part: 1, chapter: 1, seq: 1, title: "속도와 가속도" }, { part: 1, chapter: 2, seq: 2, title: "힘과 운동" }, { part: 2, title: "전기" }, { part: 2, chapter: 1, seq: 3, title: "정전기" }], `${edition}: toc`);
+  // 장 번호는 책 전체로 이어진다(사용자 결정 2026-11-07): 전기 부의 첫 장이 3
+  ok(/id="ch-2-1"[\s\S]*?<span class="chapter-no">3<\/span>/.test(h), `${edition}: 2부 첫 장 번호 3`);
+  ok(h.includes('<li><span class="toc-no">3.</span> 정전기</li>'), `${edition}: 부 목차의 장 번호 이어짐`);
   eq(r.warnings.map((w) => [w.code, w.path]), [["missing-image", "2-electricity/01-charge.md"], ["unknown-ref", "2-electricity/01-charge.md"]], `${edition}: 경고에 path`);
   ok(h.indexOf('id="part-2" data-palette="teal"') > h.indexOf('id="ch-1-2"'), `${edition}: 순서`);
   // 책 첫 쪽: 제목 + 목차(부·장 링크). 맨 앞에 있어야 함

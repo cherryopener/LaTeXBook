@@ -79,13 +79,14 @@ async function openBook(id, { asked = false, at = null } = {}) {
   $("#book-title").textContent = book.config.title ?? id;
   const sel = $("#sel-chapter");
   sel.innerHTML = "";
+  let seq = 0; // 장 번호는 책 전체로 이어진다
   book.parts.forEach((p, pi) => {
     const g = document.createElement("optgroup");
     g.label = `${pi + 1}부 ${p.config.title ?? p.dir}`;
     p.chapters.forEach((ch, ci) => {
       const o = document.createElement("option");
       o.value = `${pi + 1}:${ci + 1}`;
-      o.textContent = `${ci + 1}. ${splitFrontMatter(ch.source).meta.title ?? ch.path}`;
+      o.textContent = `${++seq}. ${splitFrontMatter(ch.source).meta.title ?? ch.path}`;
       g.appendChild(o);
     });
     sel.appendChild(g);
