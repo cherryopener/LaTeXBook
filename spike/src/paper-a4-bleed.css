@@ -1,0 +1,2 @@
+/* 인쇄소 제출용: A4 완성 + 사방 도련 3mm = 216×303mm */
+@page { size: 210mm 297mm; bleed: 3mm; marks: none; }

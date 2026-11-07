@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>미리보기</title>
+<style>html,body{margin:0;height:100%;background:#e5e5e5} #vp{position:absolute;inset:0}</style>
+</head><body><div id="vp"></div>
+<script src="vendor/vivliostyle.js"></script>
+<script>
+const q = new URLSearchParams(location.search);
+const viewer = new Vivliostyle.CoreViewer({ viewportElement: document.getElementById("vp"), window },
+  { renderAllPages: true, autoResize: true });
+window.__state = "loading";
+viewer.addListener("readystatechange", () => { if (viewer.readyState === Vivliostyle.ReadyState.COMPLETE) window.__state = "complete"; });
+viewer.addListener("error", (p) => { (window.__errors ??= []).push(String(p.content?.error ?? p.content?.messages ?? p.content)); });
+viewer.addListener("nav", (p) => { window.__pages = p.epageCount; });
+viewer.loadDocument({ url: q.get("src") ?? "book-a4.html" });
+</script></body></html>

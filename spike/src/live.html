@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>실시간 미리보기 시험</title>
+<style>html,body{margin:0;height:100%} #vp{position:absolute;inset:0}</style>
+</head><body><div id="vp"></div>
+<script src="vendor/vivliostyle.js"></script>
+<script type="module">
+// 브라우저 안에서: 원고 → HTML → Blob 주소 → Vivliostyle 조판 (편집기 미리보기와 같은 경로)
+import { renderChapter } from "./vendor/render.js";
+const base = location.href.replace(/[^/]*$/, "");
+const md = await (await fetch("sample.md")).text();
+const t0 = performance.now();
+const { meta, html } = renderChapter(md, { chapterNo: 1, mapSrc: (s) => base + "images/" + s.split("/").pop() });
+const t1 = performance.now();
+const css = ["fonts/pretendard/pretendard.css", "fonts/noto-serif-kr/400.css", "fonts/noto-serif-kr/700.css", "katex/katex.min.css", "book.css", "paper-a4.css"]
+  .map((h) => `<link rel="stylesheet" href="${base + h}">`).join("");
+const doc = `<!doctype html><html lang="ko"><head><meta charset="utf-8">${css}</head><body><section class="chapter"><header class="chapter-head"><p class="chapter-no">01</p><h1>${meta.title}</h1></header>${html}</section></body></html>`;
+const url = URL.createObjectURL(new Blob([doc], { type: "text/html" }));
+const viewer = new Vivliostyle.CoreViewer({ viewportElement: document.getElementById("vp"), window }, { renderAllPages: true });
+viewer.addListener("nav", (p) => { window.__pages = p.epageCount; });
+viewer.addListener("readystatechange", () => {
+  if (viewer.readyState === Vivliostyle.ReadyState.COMPLETE) window.__result = { renderMs: Math.round(t1 - t0), layoutMs: Math.round(performance.now() - t1), pages: window.__pages };
+});
+viewer.loadDocument({ url });
+</script></body></html>

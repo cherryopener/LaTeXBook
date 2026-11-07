@@ -3,7 +3,7 @@
 워드처럼 편하게 쓰고, 수식은 LaTeX(KaTeX)로 곱게 나오며, 인쇄용 PDF까지 뽑는 웹 편집기를 만드는 계획입니다.
 
 - 작성: 2026-11-07, 1차 수정: 2026-11-07(답변 1~5), 2차 수정: 2026-11-07(답변 A~D)
-- 상태: **0단계 진행 중**. 계획 확정.
+- 상태: **0단계 거의 완료**(GitHub 저장 시험만 남음, `textbooks` 저장소 생성 대기). 결과는 [DECISIONS.md](DECISIONS.md).
 - 참고한 것
   - `cherryopener/cherryopener.github.io`의 `CLAUDE.md`: 모델 배정 규칙(4절), 병렬 작업 절차(5절)
   - `cherryopener/Physiklar`의 `lib/markdown.tsx`, `docs/WRITING_GUIDE.md`, 브릿지 역학·전자기 원고: 원고 문법과 책 폴더 구조
@@ -152,11 +152,11 @@ point: (0, 1)            "y절편"
 
 ### 0단계. 기술 검증 (메인 세션 직접)
 
-- [ ] unified + remark-directive + KaTeX가 빌드 없이 브라우저에서 Physiklar 원고 1장을 그리는지
-- [ ] Vivliostyle로 머리말(장 제목)·꼬리말(쪽 번호)·좌우 페이지가 되는지
-- [ ] 2단 구간이 페이지를 넘어갈 때 제대로 이어지는지(페이지 나누기 엔진의 알려진 약점)
-- [ ] A4, 216×303 PDF 크기(`pdfinfo`), 한글 글꼴 포함(`pdffonts`)
-- [ ] 브라우저에서 비공개 저장소 파일 읽기·쓰기(GitHub API)
+- [x] unified + remark-directive + KaTeX가 브라우저에서 Physiklar 원고 1장을 그리는지 — 변환 0.08초. 단, 빌드 없이 CDN으로 부르는 대신 **미리 묶은 파일 1개**를 저장소에 둠(DECISIONS 2절)
+- [x] Vivliostyle로 머리말(장 제목)·꼬리말(쪽 번호)·좌우 페이지가 되는지 — 장 첫 페이지·빈 페이지 머리말 숨김까지 됨
+- [x] 2단 구간이 페이지를 넘어갈 때 제대로 이어지는지 — 3쪽에 걸친 2단 장에서 정상
+- [x] A4, 216×303 PDF 크기(`pdfinfo`), 한글 글꼴 포함(`pdffonts`) — 크기 오차 0.2mm, 글꼴 전부 포함(7단계에서 오차·재단 상자 보정)
+- [ ] 브라우저에서 비공개 저장소 파일 읽기·쓰기(GitHub API) — `textbooks` 생성 후
 - 산출물: `spike/`, `docs/DECISIONS.md`
 - **사용자 확인 ①**: Physiklar 브릿지 역학 1장으로 만든 시험 PDF 2개(A4, 216×303)
 
@@ -206,7 +206,7 @@ point: (0, 1)            "y절편"
 
 ### 7단계. 윤전 인쇄용 PDF (필수)
 
-- [ ] GitHub Actions에서 Vivliostyle CLI `press-ready`로 PDF/X-1a(CMYK) 생성
+- [ ] GitHub Actions에서 Vivliostyle CLI로 CMYK PDF 생성. CLI 11.4의 `--cmyk` 기능으로 색마다 CMYK 값을 직접 지정(검정 → K 100%)하고, 지정 안 된 색이 있으면 실패하게 함. 필요하면 `press-ready`로 PDF/X-1a
 - [ ] 검은 글자·수식이 K 100%로만 나오는지, 도수에 맞는 색만 쓰였는지 PDF를 직접 검사
 - [ ] 인쇄소의 제출 규격(도련, 재단선, 쪽수 배수, 색 기준)을 받아 맞춤 — 규격서는 사용자가 인쇄소에서 받아 주셔야 합니다
 - 담당: 2 · sonnet/high, 검사는 메인 세션

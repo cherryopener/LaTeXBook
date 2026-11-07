@@ -1,0 +1,90 @@
+/* 인쇄용 책 스타일 (0단계 시험판) */
+:root {
+  --ink: #1a1a1a; --dim: #555; --rule: #9a9a9a;
+  --tip: #2f8a4f; --note: #2b63b5; --warn: #c2412d; --think: #7a4bc2;
+}
+html { font-size: 10pt; }
+body {
+  font-family: "Noto Serif KR", serif; color: var(--ink);
+  line-height: 1.75; text-align: justify;
+  word-break: keep-all; overflow-wrap: anywhere; /* 한글 단어 중간에서 줄을 바꾸지 않음 */
+  margin: 0;
+}
+h1, h2, h3, .chapter-no, .callout-title, figcaption strong, th { font-family: "Pretendard", sans-serif; }
+
+/* ---- 페이지 ---- */
+@page {
+  size: 210mm 297mm;
+  margin: 24mm 17mm 22mm 23mm;
+  @bottom-center { content: none; }
+}
+@page :left {
+  margin-left: 17mm; margin-right: 23mm;  /* 안쪽(제본 쪽)이 넓게, 좌우 거울 */
+  @top-left { content: string(chapno) "   " string(chapter); font: 600 8.5pt "Pretendard", sans-serif; color: #444;
+              vertical-align: bottom; padding-bottom: 2.5mm; border-bottom: 0.4pt solid #888; }
+  @top-center { content: ""; border-bottom: 0.4pt solid #888; vertical-align: bottom; }
+  @top-right { content: ""; border-bottom: 0.4pt solid #888; vertical-align: bottom; }
+  @bottom-left { content: counter(page); font: 600 9pt "Pretendard", sans-serif; vertical-align: top; padding-top: 4mm; }
+}
+@page :right {
+  margin-left: 23mm; margin-right: 17mm;
+  @top-right { content: string(section); font: 600 8.5pt "Pretendard", sans-serif; color: #444;
+               vertical-align: bottom; padding-bottom: 2.5mm; border-bottom: 0.4pt solid #888; }
+  @top-center { content: ""; border-bottom: 0.4pt solid #888; vertical-align: bottom; }
+  @top-left { content: ""; border-bottom: 0.4pt solid #888; vertical-align: bottom; }
+  @bottom-right { content: counter(page); font: 600 9pt "Pretendard", sans-serif; vertical-align: top; padding-top: 4mm; }
+}
+/* 장 첫 페이지: 머리말 숨김 */
+section.chapter { page: chapter; break-before: right; }
+/* 장 첫 페이지 머리말 숨김: 장 머리가 section 문자열을 빈 값으로 먼저 정해 두면, 그 페이지의 오른쪽 머리말이 비게 된다 */
+.chapter-head { string-set: section ""; }
+@page :blank {
+  @top-left { content: none; border: none; } @top-center { content: none; border: none; } @top-right { content: none; border: none; }
+  @bottom-left { content: none; } @bottom-right { content: none; }
+}
+@page chapter:nth(1) {
+  @top-left { content: none; border: none; } @top-center { content: none; border: none; } @top-right { content: none; border: none; }
+}
+
+/* ---- 장 머리 ---- */
+.chapter-head { margin: 18mm 0 10mm; border-bottom: 1.2pt solid var(--ink); padding-bottom: 5mm; }
+.chapter-no { font-size: 28pt; font-weight: 800; color: #c2412d; margin: 0; line-height: 1; string-set: chapno content(); }
+h1 { font-size: 22pt; font-weight: 800; margin: 3mm 0 2mm; line-height: 1.3; string-set: chapter content(); text-align: left; }
+.summary { color: var(--dim); margin: 0; font-size: 9.5pt; }
+h2 { font-size: 13pt; font-weight: 700; margin: 8mm 0 3mm; string-set: section content(); break-after: avoid; text-align: left; }
+h3 { font-size: 11pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.2mm; orphans: 2; widows: 2; }
+ul, ol { padding-left: 5mm; margin: 0 0 2.5mm; }
+
+/* ---- 수식 ---- */
+.katex { font-size: 1.08em; font-family: KaTeX_Main, "Noto Serif KR", serif; display: inline-block; } /* \text{} 속 한글도 본문 글꼴로, 분수가 윗줄과 겹치지 않게 */
+.katex-display > .katex { display: block; }
+.katex.has-frac { margin: 1.2mm 0; } /* 분수가 든 인라인 수식은 위아래 줄과 겹치지 않게 여유 */
+.katex .mord.text, .katex .textrm { font-family: KaTeX_Main, "Noto Serif KR", serif; }
+.katex-display { margin: 2.5mm 0; break-inside: avoid; }
+
+/* ---- 상자 ---- */
+.callout { margin: 4mm 0; padding: 3mm 4mm; border-left: 1.2mm solid var(--c); background: color-mix(in srgb, var(--c) 8%, white); break-inside: avoid; }
+.callout.tip { --c: var(--tip); } .callout.note { --c: var(--note); } .callout.warn { --c: var(--warn); } .callout.think { --c: var(--think); }
+.callout-title { font-weight: 700; color: var(--c); margin-bottom: 1mm; }
+.callout > :last-child { margin-bottom: 0; }
+
+/* ---- 그림·표 ---- */
+figure.fig { margin: 4mm 0; text-align: center; break-inside: avoid; }
+figure.fig img { max-width: 100%; }
+figcaption { font-size: 8.5pt; color: var(--dim); margin-top: 1.5mm; text-align: center; }
+figcaption strong { color: var(--ink); }
+table { border-collapse: collapse; margin: 3mm auto; font-size: 9pt; break-inside: avoid; }
+th, td { border: 0.4pt solid var(--rule); padding: 1.2mm 3mm; text-align: center; }
+th { background: #eef0f3; }
+mark { background: #fff0a8; }
+.c-red { color: #c2412d; } .c-blue { color: #2b63b5; } .c-green { color: #2f8a4f; }
+.center { text-align: center; } .right { text-align: right; }
+
+/* ---- 2단 ---- */
+.columns-2 { column-count: 2; column-gap: 7mm; column-rule: 0.4pt solid #bbb; word-break: normal; } /* 좁은 단에서는 음절 단위 줄바꿈(띄어쓰기가 벌어지지 않게) */
+figure.fig svg { max-width: 100%; height: auto; }
+.columns-2 h2 { margin-top: 0; }
+.pagebreak { break-before: page; }
+/* 그림 속 글자: Vivliostyle은 CSS로 지정된 글꼴만 불러오므로 SVG의 font-family 속성 대신 CSS로 지정 */
+figure.fig svg, figure.fig svg text { font-family: "Pretendard", sans-serif; }

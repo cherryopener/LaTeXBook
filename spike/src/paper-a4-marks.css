@@ -1,0 +1,2 @@
+/* 재단선 표시판 (인쇄소가 요구할 때만) */
+@page { size: 210mm 297mm; bleed: 3mm; marks: crop cross; }
