@@ -86,3 +86,11 @@
 - **사용자 지시 글자 고침(본문 불변 규칙의 예외)**: 종이 위 방향을 뜻하는 "화면" → "종이면" 13곳(그림 11-rail.svg 1곳 포함). "지면"은 학생들이 지표면과 헷갈려서 쓰지 않음. 스마트폰 화면·웹 실험 화면은 그대로. 이식 설정 `textbooks/imports/bridge.json`의 `edits`에 줄 번호까지 기록, 도구가 횟수를 검사함. **Physiklar 원본은 바뀌지 않았으므로 두 원고가 이 13곳에서 다름.**
 - **남은 문제**: ✓ 場 ∝ ⊙ 네 글자가 테마 글꼴에 없어 시스템 글꼴(Unifont, WenQuanYi)로 찍힘 → 7단계 전에 글꼴 대체 목록 정하기.
 - 다시 이식: `node tools/import-physiklar.mjs --physiklar <Physiklar> --out <textbooks>/books/bridge --config <textbooks>/imports/bridge.json --report …` 후 로고 `images/image01.png`를 견본 책에서 복사.
+
+### 4-6. 인쇄 원고를 Physiklar와 갈라 씀 (2026-11-07 사용자 결정)
+
+- 이유(사용자): Physiklar는 실험·움직이는 그림이 중심이고 글이 짧다. 인쇄 교재는 줄글이 길고 정의를 더 명확하게 풀어 쓴다. 두 원고는 합치지 않는다.
+- textbooks `books/bridge`에서 웹 전용 부분을 걷어냄(`tools/strip-web-only.mjs`, 전후 인쇄 결과 동일 확인).
+- 말투: 사용자 교재(평서형 "-다"체, "~라고 한다", "즉·따라서")에 맞춤. 검사 `tools/tone-check.mjs`(내용 불변, 굵은 글씨·제목·상자 제목은 끝말만 바뀔 수 있음).
+- 합치며 어긋난 "N장/N부" 언급을 새 번호로 고침. "브릿지 역학에서" 3곳(14·15·18장 쪽)은 그대로(사용자 판단 대기).
+- 내용 보강(정의를 풀어 쓰기 등)은 사용자가 직접 한다. 요청이 오면 그때 시범 한 장부터.
