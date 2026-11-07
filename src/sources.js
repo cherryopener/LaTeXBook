@@ -58,45 +58,34 @@ export function createSampleSource(baseUrl) {
 
 /**
  * GitHub 비공개 저장소(storage 모듈의 Store)를 출처 모양으로 감싼다.
+ * 그림·글꼴은 store.prefetch로 미리 받아(sha 기준 IndexedDB 캐시) 동기 함수(cachedAssetUrl, readSvgCached)로 쓴다.
  * @param {object} store createGitHubStore(...) 결과
+ * @param {{owner:string, repo:string, resolveRepoPath:(base:string, rel:string)=>string|null}} opts
  */
-export function createGitHubSource(store, { owner, repo }) {
+export function createGitHubSource(store, { owner, repo, resolveRepoPath }) {
   let bookId = null;
-  const urls = new Map();   // 저장소 경로 → blob: 주소
-  const svgs = new Map();   // 저장소 경로 → SVG 글자
-  const missing = new Set();
+  const base = () => `books/${bookId}`;
+  const rp = (src) => resolveRepoPath(base(), src); // books/·fonts/ 밖이면 null
   return {
     kind: "github", label: `GitHub: ${owner}/${repo}`, readOnly: false,
     listBooks: () => store.listBooks(),
-    async loadBook(id) {
-      bookId = id;
-      urls.clear(); svgs.clear(); missing.clear();
-      return store.loadBook(id);
-    },
+    async loadBook(id) { bookId = id; return store.loadBook(id); },
     async save(path, text, sha) {
-      return store.writeFile(repoPath(bookId, path), text, { sha, message: `원고 저장: ${repoPath(bookId, path)}` });
+      const p = repoPath(bookId, path);
+      return store.writeFile(p, text, { sha, message: `원고 저장: ${p}` });
     },
     async prepareAssets(srcs) {
-      const todo = [...new Set(srcs.map((s) => repoPath(bookId, s)))].filter((p) => !urls.has(p) && !missing.has(p));
-      await Promise.all(todo.map(async (p) => {
-        try {
-          urls.set(p, await store.assetUrl(p));
-          if (p.endsWith(".svg")) {
-            const r = await store.readFile(p);
-            svgs.set(p, r.text);
-          }
-        } catch { missing.add(p); }
-      }));
+      const paths = [...new Set(srcs.map(rp).filter(Boolean))];
+      if (paths.length) await store.prefetch(paths);
     },
-    assetUrl(src) { return urls.get(repoPath(bookId, src)) ?? null; },
-    svgText(src) { return svgs.get(repoPath(bookId, src)) ?? null; },
+    assetUrl(src) { const p = rp(src); return p ? store.cachedAssetUrl(p) : null; },
+    svgText(src) { const p = rp(src); return p ? store.readSvgCached(p) : null; },
     async uploadImage(file) {
       const safe = file.name.normalize("NFC").replace(/[^\w.\-가-힣]+/g, "_");
       const src = `images/${Date.now().toString(36)}-${safe}`;
       const p = repoPath(bookId, src);
       await store.writeBinary(p, file, { message: `그림 올림: ${p}` });
-      urls.set(p, URL.createObjectURL(file));
-      if (p.endsWith(".svg")) svgs.set(p, await file.text());
+      await store.prefetch([p]);
       return src;
     },
   };

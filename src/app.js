@@ -261,7 +261,7 @@ async function connectGitHub(token, remember, { save = true } = {}) {
   const store = storage.createGitHubStore({ ...REPO, token });
   await store.listBooks(); // 토큰 확인
   if (save) storage.saveToken(token, remember); // 시작할 때 저장된 토큰을 쓸 때는 저장 방식을 바꾸지 않음
-  await useSource(createGitHubSource(store, REPO), params.get("book"));
+  await useSource(createGitHubSource(store, { ...REPO, resolveRepoPath: storage.resolveRepoPath }), params.get("book"));
 }
 $("#btn-github").onclick = () => {
   let has = false;

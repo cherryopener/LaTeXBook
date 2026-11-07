@@ -262,6 +262,16 @@ type Store = {
   writeBinary(path: string, blob: Blob, opts: { sha?: string; message: string }): Promise<{ sha: string }>;
 };
 class ConflictError extends Error { remote: { text: string; sha: string } }
+class StorageError extends Error { status?: number; kind: "auth"|"ratelimit"|"forbidden"|"notfound"|"network"|"server"|"path"|"toolarge"|"other" }  // message는 한국어, 서버 응답 본문은 담지 않음
+
+// 덧붙임(3단계 E): render의 resolveAsset/readSvg가 동기이므로 미리 받아 두고 동기로 꺼낸다
+Store.prefetch(paths: string[]): Promise<{ ok: string[]; missing: string[] }>   // sha 기준 IndexedDB 캐시
+Store.cachedAssetUrl(path: string): string | null    // blob: 주소(동기)
+Store.readSvgCached(path: string): string | null     // SVG 원문(동기)
+Store.listFiles(prefix: string), Store.hasFile(path: string), Store.dispose()
+listDrafts(): Promise<…>
+resolveRepoPath(baseDir: string, rel: string): string | null   // ("books/x", "../../fonts/K.ttf") → "fonts/K.ttf". books/·fonts/ 밖이면 null
+isRepoPath(path: string): boolean
 ```
 
 - 저장소는 비공개 `cherryopener/textbooks`, 책은 `books/` 아래(FORMAT.md 1절).
