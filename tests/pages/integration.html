@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>통합 시험</title>
+<style>html,body{margin:0;height:100%;background:#ddd}#pv{position:absolute;inset:0}@media print{html,body{background:none}}</style>
+</head><body><div id="pv"></div>
+<script type="module">
+// ?doc=/out/integration/x.html 문서를 createPreview().show()로 조판하고 결과를 window.__result에 둔다
+import { createPreview } from "../../src/layout/index.js";
+const q = new URLSearchParams(location.search);
+const doc = await (await fetch(q.get("doc"))).text();
+const pv = createPreview(document.getElementById("pv"));
+try {
+  const r = await pv.show(doc);
+  const pages = [...document.querySelectorAll("[data-vivliostyle-page-container]")].map((pg, i) => ({
+    no: i + 1, problems: [...pg.querySelectorAll("article.problem")].map((e) => e.id),
+    lines: [...pg.querySelectorAll("[data-line]")].map((e) => Number(e.getAttribute("data-line"))),
+  }));
+  window.__result = { pages: r.pages, ms: r.ms, warnings: r.warnings, pageInfo: pages };
+} catch (e) { window.__result = { error: String(e) }; }
+</script></body></html>

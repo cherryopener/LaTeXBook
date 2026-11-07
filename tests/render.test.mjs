@@ -60,7 +60,7 @@ for (const c of chapters) {
     ok(count(html, /<div class="theory-body">/g) === 1 && count(html, /<div class="problem-list">/g) === 1, `${t}: 구간 2개`);
     const p = plain(html);
     ok(!/:{2,}\w|:blank|:ref|:hl|:red|:blue|\\label|\+\+\+/.test(p), `${t}: 남은 디렉티브 없음`, p.match(/:{2,}\w+|:blank|:ref|\\label|\+\+\+/g));
-    ok(edition === "teacher" || (count(html, /class="solution"/g) === 0 && count(html, /teacher-only/g) === 0), `${t}: 학생용에 해설·교사용 없음`);
+    ok(edition === "teacher" || (count(html, /class="solution"/g) === 0 && count(html, /class="teacher-only"/g) === 0), `${t}: 학생용에 해설·교사용 내용 없음(교사용 메모는 placeholder로만)`);
     ok(blanksOf(html).every((b) => edition === "teacher" ? !/<span class="slot"><\/span>/.test(b) : !/<span class="slot">[^<]/.test(b)), `${t}: 빈칸 글자 판별`);
     ok(meta.blanks === count(html, /class="blank /g), `${t}: meta.blanks`, [meta.blanks]);
     // 원고 줄 번호: 제목 줄이 원본 파일의 그 줄인지
@@ -118,7 +118,7 @@ console.log("1-1 속도와 가속도");
   ok(!/<figure class="fig plot"[^>]*data-no/.test(h), "그래프는 번호 없음");
   // 교사용
   eq(count(T.html, /<div class="teacher-only" data-line="91">/g), 1, "교사용 메모");
-  ok(!h.includes("수업 메모"), "학생용에 메모 없음");
+  ok(/class="teacher-only placeholder"[^>]*>[\s\S]*수업 메모/.test(h) && !/class="teacher-only"/.test(h), "학생용 메모는 자리만(placeholder, 테마가 숨김)");
   // 문항
   eq(all(h, /<div class="problem-no">([^<]*)<\/div>/g), ["001", "002", "003"], "문항 번호");
   eq(all(h, /<article class="problem" data-line="\d+" id="([^"]+)"/g), ["pr-1-1-001", "pr-1-1-002", "pr-1-1-003"], "문항 id");

@@ -1,7 +1,9 @@
 // 조판·인쇄 — 담당: C. 약속: docs/INTERFACES.md 7절. 원고 문법: docs/FORMAT.md
 // 아래 함수의 이름과 인자는 약속이므로 바꾸지 않는다(바꿀 것이 있으면 보고서에 제안).
 import { BASE_STYLESHEETS } from "../assets.js";
-import { CoreViewer, ReadyState, Navigation, printHTML } from "../../vendor/vivliostyle.js";
+// Vivliostyle은 브라우저 전용이라 필요할 때만 불러온다(buildDocument는 Node에서도 쓰므로)
+let V = null;
+const loadVivliostyle = async () => (V ??= await import("../../vendor/vivliostyle.js"));
 
 /** 인쇄소 배수(전체 쪽수가 이 수의 배수여야 함) */
 export const PAGE_MULTIPLE = 16;
@@ -17,9 +19,14 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const strip = (html) => html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 const abs = (rel) => new URL(rel, import.meta.url).href;
 
-/** 테마 CSS의 절대 주소 */
-export function themeUrl(theme = "cyber") {
-  return abs(`../../themes/${encodeURIComponent(theme)}/theme.css`);
+/**
+ * 테마 CSS의 절대 주소.
+ * baseUrl(편집기가 올라가 있는 주소, 끝에 /)을 주면 그 기준으로 만든다. Node에서 문서를 만들 때는 반드시 줘야 한다
+ * (주지 않으면 이 파일 위치 기준이라 Node에서는 file:// 주소가 되어 브라우저가 읽지 못함).
+ */
+export function themeUrl(theme = "cyber", baseUrl) {
+  const rel = `themes/${encodeURIComponent(theme)}/theme.css`;
+  return baseUrl ? new URL(rel, baseUrl).href : abs(`../../${rel}`);
 }
 
 /**
@@ -46,7 +53,7 @@ function runningHeads(headHtml, print, resolveAsset) {
  * @returns {string}
  */
 export function buildDocument(bodyHtml, settings) {
-  const { paper = "a4", edition = "teacher", theme = "cyber", print = {}, title = "" } = settings;
+  const { paper = "a4", edition = "teacher", theme = "cyber", print = {}, title = "", baseUrl } = settings;
   const resolveAsset = settings.resolveAsset ?? ((s) => s);
   const toAbs = (u) => { try { return new URL(u, globalThis.location?.href).href; } catch { return u; } };
 
@@ -64,7 +71,7 @@ export function buildDocument(bodyHtml, settings) {
     fontCss = `:root { --font-body: "${esc(print.fonts.body)}", "Noto Serif KR", serif; }`;
   }
 
-  const links = [...BASE_STYLESHEETS, themeUrl(theme)].map((h) => `<link rel="stylesheet" href="${esc(h)}">`).join("\n");
+  const links = [...BASE_STYLESHEETS, themeUrl(theme, baseUrl)].map((h) => `<link rel="stylesheet" href="${esc(h)}">`).join("\n");
   const attrs = [
     `lang="ko"`, `data-edition="${esc(edition)}"`, `data-paper="${esc(paper)}"`,
     `data-side="${print.sideColumn === "left" ? "left" : "outside"}"`,
@@ -144,26 +151,34 @@ export function createPreview(container, opts = {}) {
     st.textContent = "@media print{.layout-preview-vp{position:static!important;overflow:visible!important}}";
     doc.head.appendChild(st);
   }
-  const viewer = new CoreViewer({ viewportElement: vp, window: win }, {
-    renderAllPages: true, autoResize: true, zoom: opts.zoom ?? 1,
-    pageViewMode: opts.spread ? "spread" : "singlePage",
-  });
+  let viewer = null;
   let url = null;
   let lineMap = []; // [줄, 쪽] 줄 순서
   let pending = null;
-  viewer.addListener("readystatechange", () => {
-    if (viewer.readyState === ReadyState.COMPLETE && pending) { const p = pending; pending = null; p.ok(); }
-  });
-  viewer.addListener("error", (p) => {
-    const msg = String(p.content?.error ?? p.content?.messages ?? "");
-    if (pending && /fatal/i.test(msg)) { const q = pending; pending = null; q.fail(new Error(msg)); }
-  });
+  // 첫 show()에서 엔진을 불러와 viewer를 만든다
+  const ensureViewer = async () => {
+    if (viewer) return viewer;
+    const { CoreViewer, ReadyState } = await loadVivliostyle();
+    viewer = new CoreViewer({ viewportElement: vp, window: win }, {
+      renderAllPages: true, autoResize: true, zoom: opts.zoom ?? 1,
+      pageViewMode: opts.spread ? "spread" : "singlePage",
+    });
+    viewer.addListener("readystatechange", () => {
+      if (viewer.readyState === ReadyState.COMPLETE && pending) { const p = pending; pending = null; p.ok(); }
+    });
+    viewer.addListener("error", (p) => {
+      const msg = String(p.content?.error ?? p.content?.messages ?? "");
+      if (pending && /fatal/i.test(msg)) { const q = pending; pending = null; q.fail(new Error(msg)); }
+    });
+    return viewer;
+  };
 
   const pageEls = () => [...vp.querySelectorAll("[data-vivliostyle-page-container]")];
 
   return {
     async show(docHtml) {
       const t0 = performance.now();
+      await ensureViewer();
       const old = url;
       url = URL.createObjectURL(new Blob([docHtml], { type: "text/html" }));
       const done = new Promise((ok, fail) => { pending = { ok, fail }; });
@@ -183,7 +198,7 @@ export function createPreview(container, opts = {}) {
       return { pages: pages.length, ms: Math.round(performance.now() - t0), warnings: collectWarnings(pages) };
     },
     goToPage(n) {
-      viewer.navigateToPage(Navigation.EPAGE, Math.max(0, n - 1));
+      if (viewer && V) viewer.navigateToPage(V.Navigation.EPAGE, Math.max(0, n - 1));
     },
     pageOfLine(line) {
       let page = null;
@@ -202,11 +217,11 @@ export function createPreview(container, opts = {}) {
 
 /** 브라우저 인쇄 창을 연다(PDF로 저장). 문서를 숨은 iframe에서 다시 조판한다. */
 export function printPdf(docHtml, opts = {}) {
-  printHTML(docHtml, {
+  return loadVivliostyle().then(({ printHTML }) => printHTML(docHtml, {
     title: opts.title ?? "",
     printCallback: (w) => w.print(),
     errorCallback: (m) => console.error("printPdf:", m),
     hideIframe: true,
     removeIframe: true,
-  });
+  }));
 }

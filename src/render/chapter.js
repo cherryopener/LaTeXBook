@@ -180,7 +180,8 @@ export function renderChapterImpl(source, ctx = {}) {
       case "center": case "right": return box(name, txAll(unlabeled(n), env));
       case "columns": return box("columns-2", txAll(unlabeled(n), env));
       case "figs": return box("figs", txAll(unlabeled(n), env));
-      case "teacher": return teacher ? box("teacher-only", txAll(unlabeled(n), env)) : null;
+      // 학생용도 같은 자리를 차지하게 내보내고(테마가 글자를 숨김) 두 판의 쪽 위치를 맞춘다
+      case "teacher": return box(teacher ? "teacher-only" : "teacher-only placeholder", txAll(unlabeled(n), env));
       case "solution": return teacher ? box("solution", txAll(unlabeled(n), env)) : null;
       case "problem": return problem(n, env);
       default:

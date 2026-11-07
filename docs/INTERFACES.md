@@ -79,7 +79,7 @@ type Warning = { code: string; message: string; line?: number; path?: string };
 ```js
 renderChapter(source: string, ctx: RenderContext): { html: string, meta: ChapterMeta, warnings: Warning[] }
 renderBook(book: BookSource, opts: BookRenderOptions): { html: string, toc: TocEntry[], warnings: Warning[] }
-exportPhysiklar(source: string, ctx: { chapterNo: number }): { source: string, files: Array<{ path: string, text: string }> }
+exportPhysiklar(source: string, ctx: { chapterNo: number, plot?, palette?, print? }): { source: string, files: Array<{ path: string, text: string }>, warnings: Warning[] }
 
 type RenderContext = {
   edition: Edition;
@@ -87,7 +87,7 @@ type RenderContext = {
   chapterNo: number;                   // 부 안에서 1부터
   palette: Palette;
   print: PrintConfig;
-  resolveAsset(src: string): string;   // 원고의 그림 경로 → 문서에서 쓸 URL
+  resolveAsset(src: string): string | null;   // 원고의 그림 경로 → 문서에서 쓸 URL. 파일이 없으면 null(→ missing-image 경고)
   readSvg(src: string): string | null; // SVG 원문(동기). null이면 <img>로 넣음
   plot?(spec: string, opts: { palette: Palette }): { svg: string, errors: string[] };  // 없으면 src/plot 사용
 };
@@ -177,7 +177,7 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
 | `:blank[알짜힘]` 학생용 | `<span class="blank empty"><span class="slot"></span><span class="slot"></span><span class="slot"></span></span>` |
 | `:blank[등가속도 운동]` | 띄어쓰기 자리에 `<span class="gap"></span>` |
 | `:blank[$F=ma$]` | `<span class="blank answer math">(KaTeX)</span>` / 학생용은 같은 KaTeX에 `empty` 클래스(글자는 CSS로 숨기고 폭은 유지) |
-| `:::teacher` | 교사용 `<div class="teacher-only"> … </div>`, 학생용은 없음 |
+| `:::teacher` | 교사용 `<div class="teacher-only"> … </div>`, 학생용 `<div class="teacher-only placeholder"> … </div>`(테마가 글자를 숨기고 자리만 유지) |
 | `:::solution` | 교사용 `<div class="solution"> … </div>`, 학생용은 없음 |
 | `::space{h=30}` | `<div class="space" style="height:30mm"></div>` |
 | `::pagebreak` | `<div class="pagebreak"></div>` |
@@ -188,20 +188,22 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
 | `:::center` / `:::right` | `<div class="center">` / `<div class="right">` |
 
 - **빈칸의 폭 규칙**: 교사용과 학생용 모두 글자 하나를 `.slot` 하나로 감쌉니다. 테마 CSS가 `.slot`의 폭을 고정(한글 한 글자 폭)하므로 두 판의 줄바꿈이 같아집니다.
+- 테마 내부 변수(테마 전용, render는 쓰지 않음): `--c-title`, `--c-hi`, `--c-frame`, `--c-em`(교사용 답 글자), `--c-tint`, `--c-mark`. 색 원본 값은 `themes/cyber/theme.css`의 `:root` 한 곳에만 있음(CMYK 전환 시 여기만 고침).
 - 색 변수(테마가 `[data-palette]`마다 정의, 그래프·그림도 사용): `--c-base`, `--c-dark`, `--c-accent`(번호 상자), `--c-side`(옆 띠·탭), `--c-big`(부 표지 숫자), `--c-shadow`, `--c-rule`(머리말 선), `--plot-1`~`--plot-4`(그래프 선), `--plot-fill`(칠하기).
 
 ## 7. layout (C) — `src/layout/index.js`, `themes/`
 
 ```js
 buildDocument(bodyHtml: string, settings: LayoutSettings): string        // <!doctype html>… 전체 문서
-createPreview(container: HTMLElement): Preview
-printPdf(docHtml: string, opts?: { title?: string }): void               // 브라우저 인쇄 창(PDF 저장)
+createPreview(container: HTMLElement, opts?: { spread?: boolean; zoom?: number }): Preview
+printPdf(docHtml: string, opts?: { title?: string }): Promise<void>   // 조판 엔진을 필요할 때 불러오므로 Promise               // 브라우저 인쇄 창(PDF 저장)
 
 type LayoutSettings = {
   paper: Paper; edition: Edition; theme: string;
   print: PrintConfig;
   resolveAsset(src: string): string;   // 로고·본문 글꼴 파일 주소
   title?: string;
+  baseUrl?: string;                    // 편집기 주소(끝에 /). Node에서 문서를 만들 때 필수(테마 CSS 주소 기준)
 };
 type Preview = {
   show(docHtml: string): Promise<{ pages: number; ms: number; warnings: Warning[] }>;  // solution-overflow, page-multiple 등
@@ -228,7 +230,8 @@ createEditor(parent: HTMLElement, opts: {
 }): Editor
 
 type Editor = {
-  getText(): string; setText(text: string): void;
+  getText(): string; setText(text: string): void;   // setText는 onChange를 부르지 않고 되돌리기·경고를 비움(app이 setWarnings를 다시 부를 것)
+  focus(): void; pickImage(): void;                 // 덧붙임(2단계 A)
   goToLine(line: number): void;
   setWarnings(list: Warning[]): void;     // 해당 줄에 표시
   command(name: EditorCommand, arg?: any): void;

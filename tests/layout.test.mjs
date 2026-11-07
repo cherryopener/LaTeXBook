@@ -153,7 +153,8 @@ for (const [name, q] of [["book", "edition=teacher&paper=a4&twice=1"], ["chapter
   const ok = await page.evaluate(async () => {
     const { printPdf } = await import("/src/layout/index.js");
     let printed = false;
-    printPdf(window.__doc, { title: "시험" });
+    // printPdf는 조판 엔진을 불러온 뒤 시작하므로(Promise) 끝까지 기다린다
+    await printPdf(window.__doc, { title: "시험" });
     const fr = document.querySelector("iframe");
     if (!fr) return "iframe 없음";
     // 인쇄 창 대신 표시만
