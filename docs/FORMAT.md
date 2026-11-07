@@ -42,7 +42,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
     "omitSections": ["실험으로 확인하기", "직접 해 보기"],
     "headingNumbers": true,
     "problemNumber": "000",
-    "chapterStart": "right",
+    "chapterStart": "left",
     "sideColumn": "outside"
   }
 }
@@ -59,7 +59,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
 | `omitSections` | 제목 목록 | `[]` | 인쇄에서 **제목째 통으로** 뺄 절의 제목(3-3절) |
 | `headingNumbers` | 참/거짓 | `true` | 절 제목 앞 번호 자동(`1.`, `(1)`) |
 | `problemNumber` | `"000"` \| `"0"` | `"000"` | 문항 번호 모양(`001` 또는 `1`) |
-| `chapterStart` | `"right"` \| `"any"` | `"right"` | 장을 오른쪽 쪽에서 시작 |
+| `chapterStart` | `"left"` \| `"right"` \| `"any"` | `"left"` | `left`: 부 표지·개념 시작·문제 시작을 모두 **짝수(왼쪽) 쪽**에서(사용자 교재 방식, 필요하면 빈 쪽 자동 삽입). `right`: 부 표지·장은 홀수 쪽, 문제는 새 쪽. `any`: 모두 새 쪽 |
 | `sideColumn` | `"outside"` \| `"left"` | `"outside"` | 개념 구간 좁은 단의 자리. `outside`: 펼친 책의 바깥쪽(왼쪽 쪽은 왼쪽, 오른쪽 쪽은 오른쪽). `left`: 항상 왼쪽 |
 
 - **저작권 문구는 어디에도 자동으로 넣지 않습니다.** 판권면·꼬리말 저작권 표시 기능은 만들지 않습니다(사용자 결정, 2026-11-07).

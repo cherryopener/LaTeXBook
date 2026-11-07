@@ -32,7 +32,7 @@ export function renderBook(book, opts = {}) {
     if (!one) {
       toc.push({ part: P, title: partTitle });
       html.push(
-        `<section class="part-cover" data-palette="${esc(palette)}" data-part="${P}">\n` +
+        `<section class="part-cover" id="part-${P}" data-palette="${esc(palette)}" data-part="${P}">\n` +
         `<div class="part-no">${String(P).padStart(2, "0")}</div>\n<h1 class="part-title">${esc(partTitle)}</h1>\n</section>`,
         `<section class="part-toc" data-palette="${esc(palette)}" data-part="${P}">\n<ol>` +
         chapters.map((c) => `<li><span class="toc-no">${c.no}.</span> ${esc(c.meta.title)}</li>`).join("") +
@@ -44,7 +44,25 @@ export function renderBook(book, opts = {}) {
       html.push(c.html);
     }
   });
+  // 책 전체를 만들 때는 맨 앞에 책 첫 쪽(제목 + 한 쪽짜리 목차). 쪽수는 조판기가 링크 대상의 쪽 번호로 채운다
+  if (!range.part) html.unshift(bookFront(book, print, toc));
   return { html: html.join("\n"), toc, warnings };
+}
+
+/** 책 첫 쪽: 시리즈 글씨, 책 제목·부제, 목차(부·장, 쪽수 자동) */
+function bookFront(book, print, toc) {
+  const cfg = book?.config ?? {};
+  const series = (print.series?.label ?? []).join(" · ");
+  const item = (cls, href, no, title) =>
+    `<li class="${cls}"><a href="#${href}"><span class="toc-no">${esc(no)}</span><span class="toc-title">${esc(title)}</span><span class="toc-fill"></span></a></li>`;
+  const items = toc.map((t) => t.chapter
+    ? item("toc-chapter", `ch-${t.part}-${t.chapter}`, `${t.chapter}`, t.title)
+    : item("toc-part", `part-${t.part}`, String(t.part).padStart(2, "0"), t.title)).join("");
+  return `<section class="book-front" data-palette="${esc(print.palette ?? "teal")}">\n` +
+    `<header class="front-head">${series ? `<p class="front-series">${esc(series)}</p>` : ""}` +
+    `<h1 class="book-title">${esc(cfg.title ?? book?.id ?? "")}</h1>` +
+    `${cfg.subtitle ? `<p class="book-subtitle">${esc(cfg.subtitle)}</p>` : ""}</header>\n` +
+    `<nav class="book-toc"><h2>CONTENTS</h2><ol>${items}</ol></nav>\n</section>`;
 }
 
 /** @returns {{source:string, files:Array<{path:string,text:string}>}} */

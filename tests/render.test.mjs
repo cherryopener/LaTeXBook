@@ -194,13 +194,16 @@ for (const edition of ["teacher", "student"]) {
   fs.writeFileSync(path.join(OUT, `book-${edition}.html`), r.html);
   const h = r.html;
   eq(all(h, /<div class="part-no">(\d+)<\/div>/g), ["01", "02"], `${edition}: 부 번호 01, 02`);
-  ok(h.includes('<section class="part-cover" data-palette="red" data-part="1">') && h.includes('<section class="part-cover" data-palette="teal" data-part="2">'), `${edition}: 부 색 묶음`);
+  ok(h.includes('<section class="part-cover" id="part-1" data-palette="red" data-part="1">') && h.includes('<section class="part-cover" id="part-2" data-palette="teal" data-part="2">'), `${edition}: 부 색 묶음`);
   ok(h.includes('<h1 class="part-title">운동과 힘</h1>') && h.includes('<h1 class="part-title">전기</h1>'), `${edition}: 부 제목`);
   ok(h.includes('<section class="part-toc" data-palette="red" data-part="1">\n<ol><li><span class="toc-no">1.</span> 속도와 가속도</li><li><span class="toc-no">2.</span> 힘과 운동</li></ol>'), `${edition}: 부 목차`);
   eq(all(h, /<section class="chapter" id="([^"]+)"/g), ["ch-1-1", "ch-1-2", "ch-2-1"], `${edition}: 장 3개`);
   eq(r.toc, [{ part: 1, title: "운동과 힘" }, { part: 1, chapter: 1, title: "속도와 가속도" }, { part: 1, chapter: 2, title: "힘과 운동" }, { part: 2, title: "전기" }, { part: 2, chapter: 1, title: "정전기" }], `${edition}: toc`);
   eq(r.warnings.map((w) => [w.code, w.path]), [["missing-image", "2-electricity/01-charge.md"], ["unknown-ref", "2-electricity/01-charge.md"]], `${edition}: 경고에 path`);
-  ok(h.indexOf('class="part-cover" data-palette="teal"') > h.indexOf('id="ch-1-2"'), `${edition}: 순서`);
+  ok(h.indexOf('id="part-2" data-palette="teal"') > h.indexOf('id="ch-1-2"'), `${edition}: 순서`);
+  // 책 첫 쪽: 제목 + 목차(부·장 링크). 맨 앞에 있어야 함
+  ok(h.trimStart().startsWith('<section class="book-front"') && h.includes('<h1 class="book-title">견본 물리</h1>'), `${edition}: 책 첫 쪽(제목)`);
+  eq(all(h, /<li class="toc-(?:part|chapter)"><a href="#([^"]+)"/g), ["part-1", "ch-1-1", "ch-1-2", "part-2", "ch-2-1"], `${edition}: 책 목차 링크`);
 }
 {
   const p2 = renderBook(book, { ...base, edition: "student", range: { part: 2 } });

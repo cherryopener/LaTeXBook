@@ -14,7 +14,7 @@
  * @property {string[]} omitSections
  * @property {boolean} headingNumbers
  * @property {"000"|"0"} problemNumber
- * @property {"right"|"any"} chapterStart
+ * @property {"left"|"right"|"any"} chapterStart
  * @property {"outside"|"left"} sideColumn
  */
 /**
@@ -33,7 +33,7 @@ export const PRINT_DEFAULTS = Object.freeze({
   omitSections: ["실험으로 확인하기", "직접 해 보기"],
   headingNumbers: true,
   problemNumber: "000",
-  chapterStart: "right",
+  chapterStart: "left",
   sideColumn: "outside",
 });
 

@@ -13,6 +13,11 @@ try {
   const pages = [...document.querySelectorAll("[data-vivliostyle-page-container]")].map((pg, i) => ({
     no: i + 1, problems: [...pg.querySelectorAll("article.problem")].map((e) => e.id),
     lines: [...pg.querySelectorAll("[data-line]")].map((e) => Number(e.getAttribute("data-line"))),
+    head: pg.querySelector(".chapter-head")?.getAttribute("data-mode") ?? null,
+    headOf: pg.querySelector(".chapter-head")?.closest(".chapter")?.id ?? null,
+    cover: pg.querySelector(".part-cover")?.id ?? null,
+    front: !!pg.querySelector(".book-front"),
+    toc: [...pg.querySelectorAll(".book-toc a")].map((a) => [a.getAttribute("href"), getComputedStyle(a, "::after").content]),
   }));
   window.__result = { pages: r.pages, ms: r.ms, warnings: r.warnings, pageInfo: pages };
 } catch (e) { window.__result = { error: String(e) }; }

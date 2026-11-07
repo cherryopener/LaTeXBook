@@ -80,7 +80,7 @@ export function buildDocument(bodyHtml, settings) {
   const attrs = [
     `lang="ko"`, `data-edition="${esc(edition)}"`, `data-paper="${esc(paper)}"`,
     `data-side="${print.sideColumn === "left" ? "left" : "outside"}"`,
-    `data-chapter-start="${print.chapterStart === "any" ? "any" : "right"}"`,
+    `data-chapter-start="${["right", "any"].includes(print.chapterStart) ? print.chapterStart : "left"}"`,
   ].join(" ");
   return `<!doctype html>
 <html ${attrs}>

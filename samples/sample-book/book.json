@@ -11,6 +11,6 @@
     "omitSections": ["실험으로 확인하기", "직접 해 보기"],
     "headingNumbers": true,
     "problemNumber": "000",
-    "chapterStart": "right"
+    "chapterStart": "left"
   }
 }

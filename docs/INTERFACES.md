@@ -51,7 +51,7 @@ type PrintConfig = {
   logo?: string;                       // 책 폴더 기준 경로
   fonts?: { body?: string; bodyFile?: string; bodyBoldFile?: string };
   omitSections: string[]; headingNumbers: boolean;
-  problemNumber: "000" | "0"; chapterStart: "right" | "any";
+  problemNumber: "000" | "0"; chapterStart: "left" | "right" | "any";
   sideColumn: "outside" | "left";
 };
 
@@ -127,8 +127,16 @@ svgToPng(svg: string, scale?: number): Promise<Blob>   // 브라우저 전용, �
 render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 모양을 입힙니다. **두 쪽 모두 이 표를 정답으로 삼습니다.**
 
 ```html
+<!-- 책 첫 쪽: 제목 + 한 쪽짜리 목차 (renderBook으로 책 전체를 만들 때만, 맨 앞). 쪽수는 테마가 target-counter로 채움 -->
+<section class="book-front" data-palette="teal">
+  <header class="front-head"><p class="front-series">PHYSICS · LECTURE NOTES</p><h1 class="book-title">책 제목</h1><p class="book-subtitle">부제</p></header>
+  <nav class="book-toc"><h2>CONTENTS</h2><ol>
+    <li class="toc-part"><a href="#part-1"><span class="toc-no">01</span><span class="toc-title">운동과 힘</span><span class="toc-fill"></span></a></li>
+    <li class="toc-chapter"><a href="#ch-1-1"><span class="toc-no">1</span><span class="toc-title">속도와 가속도</span><span class="toc-fill"></span></a></li>
+  </ol></nav>
+</section>
 <!-- 부 표지 (renderBook만) -->
-<section class="part-cover" data-palette="red" data-part="1">
+<section class="part-cover" id="part-1" data-palette="red" data-part="1">
   <div class="part-no">01</div>
   <h1 class="part-title">운동과 평형</h1>
 </section>

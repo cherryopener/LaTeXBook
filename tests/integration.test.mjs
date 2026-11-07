@@ -82,6 +82,24 @@ for (const paper of ["a4", "a4-bleed"]) {
   check(T.pages - S.pages <= 1, `${paper}: 쪽수 차이는 의도된 넘침 1쪽 이하 (${T.pages} / ${S.pages})`);
 }
 
+// 쪽 배치: 1쪽 책 첫 쪽(제목+목차), 부 표지·개념 시작·문제 시작은 모두 짝수 쪽(chapterStart: left)
+for (const name of Object.keys(results)) {
+  const P = results[name].pageInfo;
+  check(P[0]?.front, `${name}: 1쪽이 책 첫 쪽(제목+목차)`);
+  const odd = P.filter((p) => (p.head || p.cover) && p.no % 2 === 1).map((p) => `${p.no}쪽(${p.head ?? p.cover})`);
+  check(odd.length === 0, `${name}: 부 표지·개념·문제 시작이 모두 짝수 쪽 ${odd.join(", ")}`);
+}
+// 목차 쪽수 자동: 1쪽 글자에서 각 항목의 쪽수가 실제 쪽과 같은지
+{
+  const R = results["book-teacher-a4"];
+  const want = {};
+  for (const p of R.pageInfo) { if (p.cover) want[`#${p.cover}`] ??= p.no; if (p.head === "theory" && p.headOf) want[`#${p.headOf}`] ??= p.no; }
+  const page1 = execFileSync("pdftotext", ["-f", "1", "-l", "1", "-layout", path.join(OUT, "book-teacher-a4.pdf"), "-"], { encoding: "utf8" });
+  const nums = [...page1.matchAll(/(\d+)\s*$/gm)].map((m) => Number(m[1]));
+  const expect = Object.values(want);
+  check(expect.length >= 5 && expect.every((n) => nums.includes(n)), `목차 쪽수 자동(기대 ${expect.join(",")} / 1쪽 숫자 ${nums.join(",")})`);
+}
+
 // 학생용 PDF에 정답·해설·교사 메모가 글자로 남지 않아야 함
 const stu = fs.readFileSync(path.join(OUT, "book-student-a4.txt"), "utf8");
 const tea = fs.readFileSync(path.join(OUT, "book-teacher-a4.txt"), "utf8");
