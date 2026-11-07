@@ -104,7 +104,8 @@ function bookFront(book, print, toc, resolveAsset = (s) => s, coverMode = false)
     : t.chapter
       ? item("toc-chapter", `ch-${t.part}-${t.chapter}`, `${t.seq ?? t.chapter}`, t.title, t.palette)
       : item("toc-part", `part-${t.part}`, String(t.part).padStart(2, "0"), t.title, t.palette)).join("");
-  return `<section class="book-front${coverMode ? " has-covers" : ""}" data-palette="${esc(print.palette ?? "teal")}">\n` +
+  const covers = toc.filter((t) => t.cover).length;
+  return `<section class="book-front${coverMode ? " has-covers" : ""}"${coverMode ? ` data-covers="${covers}"` : ""} data-palette="${esc(print.palette ?? "teal")}">\n` +
     `${art}\n` +
     `<nav class="book-toc"><h2>CONTENTS</h2><ol>${items}</ol></nav>\n</section>`;
 }
