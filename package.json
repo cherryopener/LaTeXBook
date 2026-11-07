@@ -22,6 +22,8 @@
     "@vivliostyle/core": "2.46.0",
     "codemirror": "6.0.2",
     "esbuild": "0.28.2",
+    "hast-util-from-html": "2.1.0",
+    "hast-util-to-html": "9.0.6",
     "hast-util-to-string": "3.0.1",
     "katex": "0.16.47",
     "mdast-util-to-string": "4.0.0",
@@ -36,5 +38,7 @@
     "unified": "11.0.5",
     "unist-util-visit": "5.2.0"
   },
-  "overrides": { "katex": "0.16.47" }
+  "overrides": {
+    "katex": "0.16.47"
+  }
 }

@@ -16,6 +16,7 @@ export const PAPER_CSS = {
 };
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const cssName = (n) => String(n ?? "").replace(/[^\p{L}\p{N} _-]/gu, "").trim().slice(0, 64);
 const strip = (html) => html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 const abs = (rel) => new URL(rel, import.meta.url).href;
 
@@ -64,14 +65,15 @@ export function buildDocument(bodyHtml, settings) {
   // 본문 글꼴: bodyFile이 있으면 @font-face로 불러와 맨 앞에 둔다
   let fontCss = "";
   if (print.fonts?.bodyFile) {
-    const name = print.fonts.body || "BookBody";
+    // 글꼴 이름은 글자·숫자·공백·-·_만(줄바꿈·따옴표·\로 CSS를 끊고 규칙을 끼워 넣는 것을 막음. 보안 검토 지적 5)
+    const name = cssName(print.fonts.body) || "BookBody";
     // 굵은 글씨 파일(bodyBoldFile)이 있으면 700으로 따로 등록(없으면 브라우저가 가짜 굵게를 만듦)
     const bold = print.fonts.bodyBoldFile
       ? `\n@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyBoldFile))}"); font-weight: 700; font-display: block; }` : "";
     fontCss = `@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyFile))}"); font-weight: ${print.fonts.bodyBoldFile ? 400 : "normal"}; font-display: block; }${bold}
 :root { --font-body: "${esc(name)}", "Noto Serif KR", serif; }`;
-  } else if (print.fonts?.body) {
-    fontCss = `:root { --font-body: "${esc(print.fonts.body)}", "Noto Serif KR", serif; }`;
+  } else if (cssName(print.fonts?.body)) {
+    fontCss = `:root { --font-body: "${cssName(print.fonts.body)}", "Noto Serif KR", serif; }`;
   }
 
   const links = [...BASE_STYLESHEETS, themeUrl(theme, baseUrl)].map((h) => `<link rel="stylesheet" href="${esc(h)}">`).join("\n");
@@ -218,13 +220,24 @@ export function createPreview(container, opts = {}) {
   };
 }
 
-/** 브라우저 인쇄 창을 연다(PDF로 저장). 문서를 숨은 iframe에서 다시 조판한다. */
+/**
+ * 브라우저 인쇄 창을 연다(PDF로 저장). 문서를 숨은 iframe에서 다시 조판한다.
+ * Vivliostyle printHTML은 iframe에 인라인 onload를 넣는데, 편집기의 보안 정책(CSP: 인라인 스크립트 금지)에 막힌다.
+ * 그래서 만든 직후 iframe 문서에서 onload를 빼고, 같은 일을 load 이벤트로 한다.
+ */
 export function printPdf(docHtml, opts = {}) {
-  return loadVivliostyle().then(({ printHTML }) => printHTML(docHtml, {
-    title: opts.title ?? "",
-    printCallback: (w) => w.print(),
-    errorCallback: (m) => console.error("printPdf:", m),
-    hideIframe: true,
-    removeIframe: true,
-  }));
+  return loadVivliostyle().then(({ printHTML }) => {
+    printHTML(docHtml, {
+      title: opts.title ?? "",
+      printCallback: (w) => w.print(),
+      errorCallback: (m) => console.error("printPdf:", m),
+      hideIframe: true,
+      removeIframe: true,
+    });
+    const inst = window.printInstance;
+    const fr = inst?.iframe;
+    if (!fr) return;
+    fr.srcdoc = fr.srcdoc.replace(/\sonload=(['"])[\s\S]*?\1/, "");
+    fr.addEventListener("load", () => inst.runInIframe(fr.contentWindow), { once: true });
+  });
 }

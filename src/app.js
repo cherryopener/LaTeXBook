@@ -50,16 +50,18 @@ const chapterAt = ({ part, chapter }) => state.book?.parts[part - 1]?.chapters[c
 const draftKey = (ch) => `${state.source.kind}:${state.book.id}/${ch.path}`;
 
 async function useSource(source, bookId) {
+  if (!confirmLeave()) return false; // 먼저 묻고, 동의했을 때만 출처를 바꾼다(보안 검토 지적 7)
   state.source = source;
   $("#source-label").textContent = source.label;
   $("#btn-save").disabled = source.readOnly;
   const books = await source.listBooks();
   if (!books.length) { setBanner("이 저장소에 책이 없습니다. books/ 아래에 책 폴더를 만드세요."); return; }
-  await openBook(bookId && books.some((b) => b.id === bookId) ? bookId : books[0].id);
+  await openBook(bookId && books.some((b) => b.id === bookId) ? bookId : books[0].id, { asked: true });
+  return true;
 }
 
-async function openBook(id) {
-  if (!confirmLeave()) return;
+async function openBook(id, { asked = false } = {}) {
+  if (!asked && !confirmLeave()) return;
   setBanner(null);
   $("#book-title").textContent = "불러오는 중…";
   const book = await state.source.loadBook(id);
@@ -93,15 +95,23 @@ async function openChapter(part, chapter) {
   updateSaveState();
   // 임시 저장된 내용이 있으면 알림
   try {
-    const d = await storage.loadDraft(draftKey(ch));
+    const d = readDraft(await storage.loadDraft(draftKey(ch)));
     if (d && d.text !== ch.source) {
       setBanner(`이 장에 저장하지 않은 임시 내용이 있습니다(${new Date(d.savedAt).toLocaleString("ko-KR")}).`, [
-        ["불러오기", () => { ch.source = d.text; editor.setText(d.text); updateSaveState(); scheduleRender(0); setBanner(null); }],
+        // 임시 내용이 바탕으로 한 저장소 판(sha)으로 되돌려 두면, 그 뒤 다른 곳에서 저장된 내용이 있을 때 저장 시 충돌 창이 뜬다
+        ["불러오기", () => { ch.source = d.text; if (d.sha) ch.sha = d.sha; editor.setText(d.text); updateSaveState(); scheduleRender(0); setBanner(null); }],
         ["버리기", () => { storage.clearDraft(draftKey(ch)).catch(() => {}); setBanner(null); }],
       ]);
     } else setBanner(null);
   } catch { /* 임시 저장 기능이 없으면 넘어감 */ }
   scheduleRender(0);
+}
+
+/** 임시 저장 기록 → {text, sha, savedAt}. 바탕 sha를 함께 저장한다(보안 검토 지적 6: 오래된 임시 내용이 새 원격본을 조용히 덮어쓰지 않게) */
+function readDraft(d) {
+  if (!d) return null;
+  try { const o = JSON.parse(d.text); if (o && o.v === 1) return { text: o.text, sha: o.sha, savedAt: d.savedAt }; } catch {}
+  return { text: d.text, sha: null, savedAt: d.savedAt };
 }
 
 // ---------- 편집 → 미리보기 ----------
@@ -113,7 +123,7 @@ function onEdit(text) {
   updateSaveState();
   scheduleRender(RENDER_DELAY);
   clearTimeout(draftTimer);
-  draftTimer = setTimeout(() => storage.saveDraft(draftKey(ch), text).catch(() => {}), DRAFT_DELAY);
+  draftTimer = setTimeout(() => storage.saveDraft(draftKey(ch), JSON.stringify({ v: 1, text, sha: ch.sha ?? null })).catch(() => {}), DRAFT_DELAY);
 }
 
 function scheduleRender(delay) {
@@ -137,7 +147,7 @@ async function renderNow() {
     const doc = buildDocument(r.html, {
       paper: state.paper, edition: state.edition, theme: state.book.print.theme,
       print: { ...state.book.print, paper: state.paper },
-      resolveAsset: (s) => src.assetUrl(s) ?? s, title: state.book.config.title ?? "", baseUrl: BASE,
+      resolveAsset: (s) => src.assetUrl(s) ?? "data:,", // 없는 로고·글꼴은 빈 주소(외부로 요청하지 않음) title: state.book.config.title ?? "", baseUrl: BASE,
     });
     const res = await preview.show(doc);
     const path = chapterAt(state.cur)?.path;
@@ -226,8 +236,10 @@ async function resolveConflict(ch, remote) {
   dlg.showModal();
   const choice = await new Promise((ok) => dlg.addEventListener("close", () => ok(dlg.returnValue), { once: true }));
   if (choice === "mine") {
-    const r = await state.source.save(ch.path, ch.source, remote.sha);
-    ch.sha = r.sha; ch.saved = ch.source;
+    try {
+      const r = await state.source.save(ch.path, ch.source, remote.sha);
+      ch.sha = r.sha; ch.saved = ch.source;
+    } catch (e) { alert(`저장하지 못했습니다: ${e.message} (고친 내용은 그대로 있습니다)`); }
   } else if (choice === "remote") {
     ch.sha = remote.sha; ch.source = ch.saved = remote.text;
     if (ch === chapterAt(state.cur)) { editor.setText(remote.text); scheduleRender(0); }
@@ -250,7 +262,7 @@ async function makePdf() {
   const doc = buildDocument(r.html, {
     paper: state.paper, edition: state.edition, theme: state.book.print.theme,
     print: { ...state.book.print, paper: state.paper },
-    resolveAsset: (s) => src.assetUrl(s) ?? s, title: `${state.book.config.title ?? ""} (${state.edition === "teacher" ? "교사용" : "학생용"})`, baseUrl: BASE,
+    resolveAsset: (s) => src.assetUrl(s) ?? "data:,", // 없는 로고·글꼴은 빈 주소(외부로 요청하지 않음) title: `${state.book.config.title ?? ""} (${state.edition === "teacher" ? "교사용" : "학생용"})`, baseUrl: BASE,
   });
   app.lastPdfDoc = doc;
   await printPdf(doc, { title: state.book.config.title ?? "" });
@@ -274,8 +286,11 @@ $("#btn-github").onclick = () => {
 $("#dlg-github").addEventListener("close", async () => {
   const v = $("#dlg-github").returnValue;
   if (v === "disconnect") {
+    if (!(await useSource(createSampleSource(BASE)))) return;
     try { storage.clearToken(); } catch {}
-    await useSource(createSampleSource(BASE));
+    if (confirm("이 컴퓨터에 남은 임시 저장 원고와 그림·글꼴 캐시도 지울까요? (공용 컴퓨터라면 지우세요)")) {
+      try { indexedDB.deleteDatabase("latexbook"); } catch {}
+    }
   } else if (v === "connect") {
     const token = $("#inp-token").value.trim();
     $("#inp-token").value = "";

@@ -67,6 +67,22 @@ await page.waitForFunction(() => document.querySelector("#save-state").textConte
 const final = fake.files.get(chPath).toString("utf8");
 check(final.includes("이 창에서 쓴 문장.") && !final.includes("다른 컴퓨터에서 쓴 문장."), "내 내용으로 덮어씀");
 
+// 임시 저장 → 창을 닫는 사이 다른 곳에서 저장 → 다시 열어 임시 내용 불러오기 → 저장하면 충돌 창이 떠야 함(조용히 덮어쓰지 않음)
+await page.locator(".cm-content").click();
+await page.keyboard.press("Control+End");
+await page.keyboard.insertText("임시 저장만 된 문장.\n");
+await page.waitForTimeout(2500); // 임시 저장(1.5초) 기다림
+fake.setFile(chPath, fake.files.get(chPath).toString("utf8") + "\n그사이 다른 컴퓨터가 저장.\n");
+page.on("dialog", (d) => d.accept()); // 떠날 때 확인 창
+await page.goto("http://localhost:8811/index.html"); // 저장된 토큰으로 바로 GitHub 연결
+await page.waitForFunction(() => window.__app?.ready && window.__app.state.source?.kind === "github" && !document.querySelector("#banner").hidden, null, { timeout: 60000 });
+check((await page.locator("#banner").textContent()).includes("임시 내용"), "다시 열면 임시 내용 알림");
+await page.click("#banner button:first-of-type");
+await page.click("#btn-save");
+await page.waitForSelector("#dlg-conflict[open]", { timeout: 30000 });
+check((await page.inputValue("#cf-remote")).includes("그사이 다른 컴퓨터가 저장."), "임시 내용 저장 시 충돌 창(새 원격본을 조용히 덮어쓰지 않음)");
+await page.click('#dlg-conflict button[value="cancel"]');
+
 // 토큰 유출 검사
 const tok = fake.token;
 check(outside.every((u) => !u.includes(tok)) , "api.github.com 밖 요청 주소에 토큰 없음");

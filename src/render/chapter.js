@@ -4,6 +4,7 @@ import { withPrintDefaults } from "../types.js";
 import { renderPlot } from "../plot/index.js";
 import { esc, text, splitFrontMatter, mapAssetPath, cleanSvg, plotWidth, clampPct } from "./util.js";
 import { prepare, stripLabels, HIDDEN } from "./prepare.js";
+import { checkRawHtml, sanitizeSvg } from "./sanitize.js";
 
 const CALLOUT_TITLE = { note: "참고", tip: "팁", warn: "주의", think: "생각해 보기" };
 const COLORS = new Set(["red", "blue", "green"]);
@@ -14,7 +15,8 @@ function mdastToHtml(nodes) {
   return String(toText.stringify(toHast.runSync({ type: "root", children: nodes })));
 }
 
-const html = (value) => ({ type: "html", value });
+// 변환기가 직접 만든 HTML(믿을 수 있음). 원고에서 온 날 HTML은 tx의 "html" 경우에서 따로 거른다
+const html = (value) => ({ type: "html", value, data: { trusted: true } });
 const el = (tag, props, children = []) => ({ type: "el", data: { hName: tag, hProperties: props }, children });
 
 export function renderChapterImpl(source, ctx = {}) {
@@ -59,7 +61,9 @@ export function renderChapterImpl(source, ctx = {}) {
 
   function svgBody(svg) {
     svgCount++;
-    return cleanSvg(svg, `svg${P}-${C}-${svgCount}-`);
+    // 스크립트·이벤트 속성·외부 링크를 지운 뒤 넣는다(같은 문서에 그려지므로)
+    const safe = sanitizeSvg(svg);
+    return safe ? cleanSvg(safe, `svg${P}-${C}-${svgCount}-`) : "";
   }
 
   // 그림 본문(SVG 직접 삽입 또는 img). 없으면 missing-image
@@ -254,8 +258,20 @@ export function renderChapterImpl(source, ctx = {}) {
       case "image": {
         const src = mapAssetPath(n.url);
         const url = resolveAsset(src);
-        if (!url) warn("missing-image", `그림 파일이 없습니다: ${src}`, n);
-        return { ...n, url: url || src };
+        if (!url) {
+          // 저장소에 없는 그림(외부 주소 포함)은 주소를 내보내지 않는다(외부 요청·추적 방지. 보안 검토 지적 8)
+          warn("missing-image", `그림 파일이 없습니다: ${src}`, n);
+          return html(`<span class="fig-body missing" data-src="${esc(src)}"></span>`);
+        }
+        return { ...n, url };
+      }
+      case "html": {
+        if (n.data?.trusted) return n;
+        // 원고 속 날 HTML: 간단한 글자 꾸밈 태그만 허용, 나머지는 글자 그대로 보이게
+        const c = checkRawHtml(n.value);
+        if (c.ok) return html(c.value);
+        warn("raw-html", "원고 속 HTML은 보안상 글자 그대로 둡니다(허용: br sup sub b i u s em strong small mark).", n);
+        return { type: "text", value: n.value, position: n.position };
       }
       case "containerDirective": return container(n, env);
       case "leafDirective": return leaf(n, env);

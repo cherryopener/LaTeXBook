@@ -23,6 +23,8 @@ export { visit, SKIP, CONTINUE, EXIT } from "unist-util-visit";
 export { toString as mdToString } from "mdast-util-to-string";
 export { toString as hastToString } from "hast-util-to-string";
 export { default as katex } from "katex";
+export { fromHtml } from "hast-util-from-html";
+export { toHtml } from "hast-util-to-html";
 `,
   },
   {

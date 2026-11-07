@@ -63,6 +63,18 @@ await page.click("#btn-pdf");
 await page.waitForFunction(() => window.__app.lastPdfDoc, null, { timeout: 60000 });
 const docLen = await page.evaluate(() => window.__app.lastPdfDoc.length);
 check(docLen > 10000, `PDF용 문서 만듦(${docLen}자)`);
+// 숨은 iframe에서 조판 → 인쇄 호출 → iframe 정리 (보안 정책 아래에서도)
+const printed = await page.evaluate(async () => {
+  for (let i = 0; i < 100 && !document.querySelector("body > iframe"); i++) await new Promise((ok) => setTimeout(ok, 100));
+  const fr = document.querySelector("body > iframe");
+  if (!fr) return "iframe 없음";
+  for (let i = 0; i < 100 && fr.contentDocument?.readyState !== "complete"; i++) await new Promise((ok) => setTimeout(ok, 100));
+  let called = false;
+  fr.contentWindow.print = () => { called = true; };
+  for (let i = 0; i < 600 && document.contains(fr); i++) await new Promise((ok) => setTimeout(ok, 100));
+  return called && !document.contains(fr) ? "ok" : `called=${called} removed=${!document.contains(fr)}`;
+});
+check(printed === "ok", `PDF 인쇄 창 호출과 정리 (${printed})`);
 
 check(t.errors.length === 0, `브라우저 오류 없음 ${t.errors.slice(0, 3).join(" | ")}`);
 await t.close();
