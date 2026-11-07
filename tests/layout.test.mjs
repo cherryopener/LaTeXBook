@@ -16,7 +16,7 @@ const mm = (pt) => (pt * 25.4) / 72;
 
 // PDF에 들어가도 되는 글꼴(이 밖의 것은 시스템 대체 글꼴로 본다: WenQuanYi, Liberation, DejaVu 등)
 const ALLOWED_FONT = /^(KaTeX_|NotoSerifKR|Pretendard|Rajdhani|RubikGlitch|Wallpoet)/;
-const SIZE = { "a4": [210, 297], "a4-bleed": [216, 303] };
+const SIZE = { "a4": [210, 297] };
 
 const t = await openBrowser({ port: 8803 });
 
@@ -50,7 +50,7 @@ function pdfChecks(file, paper) {
 const problemPages = (info) => Object.fromEntries(info.flatMap((p) => p.problems.map((id) => [id, p.no])).reverse());
 const report = { runs: {}, speed: {} };
 
-for (const paper of ["a4", "a4-bleed", "a4-marks"]) {
+for (const paper of ["a4"]) {
   console.log(`[${paper}]`);
   const res = {};
   for (const edition of ["teacher", "student"]) {
@@ -75,8 +75,8 @@ for (const paper of ["a4", "a4-bleed", "a4-marks"]) {
   check(T.pages % 16 ? !!pm && pm.message.includes(`${16 - (T.pages % 16)}쪽`) : !pm, `page-multiple 경고(${pm?.message ?? "없음"})`);
   check(T.lines.every(([, p]) => Number.isInteger(p) && p >= 1), `pageOfLine ${JSON.stringify(T.lines)}`);
 
-  // 주요 쪽 그림 (도련판에서)
-  if (paper === "a4-bleed") {
+  // 주요 쪽 그림
+  if (paper === "a4") {
     const pick = (info, f) => info.find(f)?.no;
     const shots = {
       "cover-red": pick(T.pageInfo, (p) => p.cover && p.palette === "red"),

@@ -2,7 +2,7 @@
 
 /** @typedef {"teacher"|"student"} Edition */
 /** @typedef {"teal"|"red"} Palette */
-/** @typedef {"a4"|"a4-bleed"|"a4-marks"} Paper */
+/** @typedef {"a4"} Paper  도련판은 만들지 않음(인쇄소가 처리) */
 /**
  * @typedef {Object} PrintConfig
  * @property {string} theme

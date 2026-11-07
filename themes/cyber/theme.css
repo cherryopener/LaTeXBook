@@ -94,7 +94,7 @@
   @top-left { content: none; } @top-right { content: none; }
   @bottom-left { content: none; } @bottom-right { content: none; }
 }
-/* 부 표지(도련까지 바탕색)·부 목차 */
+/* 부 표지(종이 끝까지 바탕색)·부 목차 */
 @page cover-teal { margin: 14mm 20mm; background: var(--teal-base);
   @top-left { content: none; } @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; } }
 @page cover-red { margin: 14mm 20mm; background: var(--red-base);

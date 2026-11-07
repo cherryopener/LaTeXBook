@@ -11,8 +11,7 @@ export const PAGE_MULTIPLE = 16;
 /** 판형별 @page 규칙 */
 export const PAPER_CSS = {
   "a4": "@page { size: 210mm 297mm; }",
-  "a4-bleed": "@page { size: 210mm 297mm; bleed: 3mm; marks: none; }",
-  "a4-marks": "@page { size: 210mm 297mm; bleed: 3mm; marks: crop cross; }",
+  // 도련판(216×303)·재단선판은 만들지 않는다: 인쇄소가 자기 장비에 맞춰 처리(사용자 결정 2026-11-07)
 };
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);

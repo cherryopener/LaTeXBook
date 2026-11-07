@@ -4,7 +4,7 @@
 </head><body><div id="pv"></div>
 <script type="module">
 // 견본 본문으로 buildDocument → createPreview().show(). 결과는 window.__result
-// 쿼리: edition=teacher|student, paper=a4|a4-bleed|a4-marks, side=outside|left, fixture=이름
+// 쿼리: edition=teacher|student, paper=a4, side=outside|left, fixture=이름
 import { buildDocument, createPreview } from "../../src/layout/index.js";
 const q = new URLSearchParams(location.search);
 const edition = q.get("edition") ?? "teacher";
