@@ -74,6 +74,20 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
 - `title`은 부 표지와 부 목차에 나옵니다.
 - `print.palette`가 있으면 이 부 안의 장은 그 색 묶음을 씁니다. 없으면 책 기본값.
 
+#### 큰 표지(Part) — 부 위의 단계 (2026-11-07 사용자 결정)
+
+```json
+{ "title": "운동의 기술", "print": { "palette": "red", "cover": { "title": "Mechanics" } } }
+```
+
+- 책 위계는 **큰 표지(Part) → 부 → 장**입니다. Griffiths 『Introduction to Quantum Mechanics』의 Part I·II 구성을 본뜬 것입니다.
+- `print.cover`가 있는 부 **앞에만** 큰 표지가 들어갑니다. 그 부부터 다음 `print.cover` 직전 부까지가 한 Part입니다.
+  - 큰 표지: 색 바탕(그 부의 색 묶음) + `PART` + 로마 숫자(I, II, … 자동) + 영어 제목(`cover.title`). 짝수(왼쪽) 쪽.
+  - `cover.label`로 `PART` 글자를 바꿀 수 있습니다(기본 `PART`).
+- 이 모드에서는 **모든 부**에 흰 바탕 부 쪽(색 테두리 + 큰 부 제목 + 그 부의 장 목록)이 들어갑니다. **언제나 홀수(오른쪽) 쪽**이고, 그 왼쪽은 큰 표지이거나 앞 부의 마지막 쪽입니다(앞 부가 홀수 쪽에서 끝나면 빈 쪽이 하나 들어감).
+- 책 첫 쪽 목차는 PART 줄 · 부 · 장 3단계이고, Part마다 한 단(2단)으로 나뉩니다.
+- 어느 `part.json`에도 `print.cover`가 없으면 예전 구성(부마다 색 표지 `01` + 부 제목, 다음 쪽에 부 목차)입니다.
+
 ## 2. 장 원고 (`.md`)
 
 ### 2-1. 머리 부분

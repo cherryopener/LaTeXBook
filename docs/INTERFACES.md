@@ -102,7 +102,9 @@ type ChapterMeta = {
   problems: Array<{ number: string; hasSolution: boolean; line: number }>;
   blanks: number;
 };
-type TocEntry = { part: number; chapter?: number; title: string };
+type TocEntry =
+  | { cover: number; label: string; no: string; title: string; palette: Palette }   // 큰 표지(Part) 모드의 큰 표지("PART" "II")
+  | { part: number; chapter?: number; seq?: number; title: string; palette: Palette };
 ```
 
 - `renderChapter`가 내놓는 `html`은 `<section class="chapter">` 하나입니다(6절). `renderBook`은 부 표지·부 목차·장들을 이어 붙인 본문입니다. `<html>`, `<head>`는 만들지 않습니다(layout 담당).
@@ -143,6 +145,18 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
 <!-- 부 목차 (renderBook만) -->
 <section class="part-toc" data-palette="red" data-part="1">
   <ol><li><span class="toc-no">1.</span> 속도와 가속도</li>…</ol>
+</section>
+
+<!-- 큰 표지(Part) 모드(어느 part.json에든 print.cover가 있을 때. FORMAT.md 1-2절): 위 두 가지 대신 -->
+<section class="part-cover big" id="cover-1" data-palette="red" data-cover="1">
+  <div class="part-label">PART</div>
+  <div class="part-no">I</div>
+  <h1 class="part-title">Mechanics</h1>
+</section>
+<!-- 모든 부마다(홀수 쪽). 큰 표지 모드에서는 책 첫 쪽에 class="book-front has-covers", 목차 줄 li.toc-cover(href="#cover-1")가 더해짐 -->
+<section class="part-toc titled" id="part-1" data-palette="red" data-part="1">
+  <h1 class="part-toc-title">운동의 기술</h1>
+  <ol><li><span class="toc-no">1.</span> 위치·변위·속도</li>…</ol>
 </section>
 
 <!-- 장 -->

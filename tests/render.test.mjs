@@ -198,7 +198,7 @@ for (const edition of ["teacher", "student"]) {
   ok(h.includes('<h1 class="part-title">운동과 힘</h1>') && h.includes('<h1 class="part-title">전기</h1>'), `${edition}: 부 제목`);
   ok(h.includes('<section class="part-toc" data-palette="red" data-part="1">\n<ol><li><span class="toc-no">1.</span> 속도와 가속도</li><li><span class="toc-no">2.</span> 힘과 운동</li></ol>'), `${edition}: 부 목차`);
   eq(all(h, /<section class="chapter" id="([^"]+)"/g), ["ch-1-1", "ch-1-2", "ch-2-1"], `${edition}: 장 3개`);
-  eq(r.toc, [{ part: 1, title: "운동과 힘" }, { part: 1, chapter: 1, seq: 1, title: "속도와 가속도" }, { part: 1, chapter: 2, seq: 2, title: "힘과 운동" }, { part: 2, title: "전기" }, { part: 2, chapter: 1, seq: 3, title: "정전기" }], `${edition}: toc`);
+  eq(r.toc, [{ part: 1, title: "운동과 힘", palette: "red" }, { part: 1, chapter: 1, seq: 1, title: "속도와 가속도", palette: "red" }, { part: 1, chapter: 2, seq: 2, title: "힘과 운동", palette: "red" }, { part: 2, title: "전기", palette: "teal" }, { part: 2, chapter: 1, seq: 3, title: "정전기", palette: "teal" }], `${edition}: toc`);
   // 장 번호는 책 전체로 이어진다(사용자 결정 2026-11-07): 전기 부의 첫 장이 3
   ok(/id="ch-2-1"[\s\S]*?<span class="chapter-no">3<\/span>/.test(h), `${edition}: 2부 첫 장 번호 3`);
   ok(h.includes('<li><span class="toc-no">3.</span> 정전기</li>'), `${edition}: 부 목차의 장 번호 이어짐`);
@@ -206,7 +206,8 @@ for (const edition of ["teacher", "student"]) {
   ok(h.indexOf('id="part-2" data-palette="teal"') > h.indexOf('id="ch-1-2"'), `${edition}: 순서`);
   // 책 첫 쪽: 제목 + 목차(부·장 링크). 맨 앞에 있어야 함
   ok(h.trimStart().startsWith('<section class="book-front"') && h.includes('<h1 class="book-title">견본 물리</h1>'), `${edition}: 책 첫 쪽(제목)`);
-  eq(all(h, /<li class="toc-(?:part|chapter)"><a href="#([^"]+)"/g), ["part-1", "ch-1-1", "ch-1-2", "part-2", "ch-2-1"], `${edition}: 책 목차 링크`);
+  eq(all(h, /<li class="toc-(?:part|chapter)"[^>]*><a href="#([^"]+)"/g), ["part-1", "ch-1-1", "ch-1-2", "part-2", "ch-2-1"], `${edition}: 책 목차 링크`);
+  ok(!h.includes("part-label") && !h.includes("part-toc-title") && !h.includes("has-covers"), `${edition}: print.cover가 없으면 예전 구성`);
 }
 {
   const p2 = renderBook(book, { ...base, edition: "student", range: { part: 2 } });
@@ -214,6 +215,27 @@ for (const edition of ["teacher", "student"]) {
   const c12 = renderBook(book, { ...base, edition: "student", range: { part: 1, chapter: 2 } });
   ok(!c12.html.includes("part-cover") && /^<section class="chapter" id="ch-1-2"/.test(c12.html) && c12.toc.length === 1, "range 장 하나");
   eq(renderBook(book, { ...base, edition: "student" }).html, renderBook(book, { ...base, edition: "student" }).html, "renderBook 결정성");
+}
+
+// 큰 표지(Part) 모드: part.json의 print.cover가 있는 부 앞에만 큰 표지, 모든 부에 제목 있는 부 쪽(2026-11-07 사용자 결정)
+console.log("큰 표지(Part) 모드");
+{
+  const mk = (title, palette, cover) => ({ dir: title, config: { title, print: { palette, ...(cover ? { cover } : {}) } }, palette,
+    chapters: [{ path: `${title}/01.md`, source: `---\ntitle: ${title} 장\n---\n글\n` }] });
+  const cb = { id: "b", config: { title: "책" }, print, parts: [mk("운동", "red", { title: "Mechanics" }), mk("에너지", "red"), mk("전기장", "teal", { title: "Electromagnetics" })] };
+  const r = renderBook(cb, { ...base, edition: "student" });
+  const h = r.html;
+  eq(all(h, /<section class="(?:part-cover big|part-toc titled|chapter)" id="([^"]+)"/g), ["cover-1", "part-1", "ch-1-1", "part-2", "ch-2-1", "cover-2", "part-3", "ch-3-1"], "큰 표지 모드: 순서");
+  ok(h.includes('<section class="part-cover big" id="cover-1" data-palette="red" data-cover="1">\n<div class="part-label">PART</div>\n<div class="part-no">I</div>\n<h1 class="part-title">Mechanics</h1>'), "큰 표지 I");
+  ok(h.includes('<div class="part-no">II</div>\n<h1 class="part-title">Electromagnetics</h1>') && h.includes('id="cover-2" data-palette="teal"'), "큰 표지 II 청록");
+  ok(h.includes('<section class="part-toc titled" id="part-2" data-palette="red" data-part="2">\n<h1 class="part-toc-title">에너지</h1>\n<ol><li><span class="toc-no">2.</span> 에너지 장</li></ol>'), "부 쪽: 부 제목 + 장 목록");
+  ok(!/class="part-cover" /.test(h), "부마다 붙던 표지 없음");
+  eq(all(h, /<li class="toc-(?:cover|part|chapter)"[^>]*><a href="#([^"]+)"/g), ["cover-1", "part-1", "ch-1-1", "part-2", "ch-2-1", "cover-2", "part-3", "ch-3-1"], "책 목차: 큰 표지·부·장");
+  ok(h.includes('<section class="book-front has-covers"') && h.includes('<span class="toc-no">PART II</span><span class="toc-title">Electromagnetics</span>'), "책 목차 큰 표지 줄");
+  const p3 = renderBook(cb, { ...base, edition: "student", range: { part: 3 } });
+  ok(p3.html.includes('<div class="part-no">II</div>') && p3.html.includes('id="part-3"') && !p3.html.includes("cover-1"), "range 부 하나: 그 부의 큰 표지 번호 유지");
+  const p2 = renderBook(cb, { ...base, edition: "student", range: { part: 2 } });
+  ok(!p2.html.includes("part-cover") && p2.html.includes('id="part-2"'), "range 부 하나: 표지 없는 부");
 }
 
 console.log("여러 경우");
