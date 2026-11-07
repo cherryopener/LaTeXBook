@@ -31,7 +31,22 @@ function parts(src) {
 
 export function toneCheck(before, after) {
   const a = parts(before), b = parts(after);
-  const diffs = [];
+  const diffs = [], toneBold = [];
+  // 굵은 글씨 안의 문장 끝(마지막 낱말의 끝말)은 바뀌어도 된다: "**밀어내요.**" → "**밀어낸다.**"
+  // 마지막 낱말 앞부분이 같고, 마지막 낱말의 첫 글자 첫소리가 같고, 바뀐 쪽이 "-다"류로 끝날 때만
+  const cho = (ch) => { const c = ch.codePointAt(0) - 0xac00; return c >= 0 && c < 11172 ? Math.floor(c / 588) : ch; };
+  const boldKey = (t) => { const m = /^(.*?)(\S+?)([.?!]?)$/.exec(t); return m ? `${m[1]}|${cho(m[2][0])}` : t; };
+  // 제목 줄·상자 줄(콜론 줄)도 같은 규칙: "## 직렬연결: 전압을 나눠 가져요" → "… 나눠 가진다"
+  for (const k of ["굵은 글씨", "제목", "그림·상자·디렉티브 줄"]) {
+    if (a[k].length !== b[k].length) continue;
+    a[k].forEach((x, i) => {
+      const y = b[k][i];
+      const core = (t) => (k === "굵은 글씨" ? t : t.replace(/\]\{.*$|\]\s*$/, ""));
+      const tail = (t) => (k === "굵은 글씨" ? "" : t.slice(core(t).length));
+      const cx = core(x), cy = core(y);
+      if (x !== y && tail(x) === tail(y) && /(요|죠)[.?!]?$/.test(cx) && /(다|까)[.?!]?$/.test(cy) && boldKey(cx) === boldKey(cy)) { b[k][i] = x; toneBold.push(`${cx} → ${cy}`); }
+    });
+  }
   for (const k of Object.keys(a)) {
     const x = a[k], y = b[k];
     if (JSON.stringify(x) === JSON.stringify(y)) continue;
@@ -41,9 +56,9 @@ export function toneCheck(before, after) {
   }
   // 해요체 끝말이 남았는지(수식·코드 제외한 글자에서)
   const left = strip(after).replace(/^---\n[\s\S]*?\n---\n/, "").replace(/\$\$[\s\S]*?\$\$/g, "").replace(/\$[^$\n]+\$/g, "")
-    .split("\n").map((l, i) => [i, l]).filter(([, l]) => /[가-힣](요|죠)[.?!)\s]*($|[.?!])/.test(l) || /(요|죠)[.?!]/.test(l));
+    .split("\n").map((l, i) => [i, l]).filter(([, l]) => /[가-힣](요|죠)[.?!)\s]*($|[.?!])/.test(l) || /(요|죠)[.?!]/.test(l) || /[가-힣](요|죠)[.?!]?\*\*/.test(l));
   for (const [, l] of left.slice(0, 10)) diffs.push(`해요체가 남음: ${l.trim().slice(0, 80)}`);
-  return diffs;
+  return Object.assign(diffs, { toneBold });
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -51,4 +66,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const d = toneCheck(fs.readFileSync(b, "utf8"), fs.readFileSync(a, "utf8"));
   if (d.length) { console.log(`다른 곳 ${d.length}개\n- ` + d.join("\n- ")); process.exit(1); }
   console.log("통과: 머리 부분·제목·수식·그림·상자·굵은 글씨·표·숫자가 같고, 해요체가 남지 않음");
+  if (d.toneBold.length) console.log(`(굵은 글씨·제목·상자 제목의 끝말만 바뀜 ${d.toneBold.length}곳: ${d.toneBold.join(" / ")})`);
 }
