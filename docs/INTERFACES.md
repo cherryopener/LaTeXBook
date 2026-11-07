@@ -52,6 +52,7 @@ type PrintConfig = {
   fonts?: { body?: string; bodyFile?: string };
   omitSections: string[]; headingNumbers: boolean;
   problemNumber: "000" | "0"; chapterStart: "right" | "any";
+  sideColumn: "outside" | "left";
 };
 
 /** 저장소에서 읽은 책 하나 */
@@ -211,6 +212,7 @@ type Preview = {
 
 - 문서 `<head>`에는 `src/assets.js`의 `BASE_STYLESHEETS`, 테마 CSS(`themes/<theme>/theme.css`), 판형 CSS를 넣습니다. 문서가 Blob 주소로 열리므로 **모든 주소는 절대 주소**여야 합니다.
 - 본문 글꼴: `print.fonts.bodyFile`이 있으면 `@font-face`로 불러오고, 없으면 Noto Serif KR. 제목 글꼴은 `"Apple SD Gothic Neo", "Pretendard"` 순서(맥에서는 설치된 글꼴, 그 밖에는 Pretendard).
+- 개념 구간의 좁은 단(`sideColumn: "outside"`): 쪽 여백을 `@page :left`/`:right`로 거울처럼 바꾸고, `.side`는 `float: outside; margin: 0 -<단 폭+간격>`으로 바깥 여백에 걸칩니다. Vivliostyle이 `outside`를 쪽마다 왼쪽·오른쪽으로 바꿔 줍니다(2026-11-07 시험으로 확인). `"left"`면 항상 왼쪽.
 - 머리말(왼쪽 쪽: 시리즈 글씨 + 이름 태그, 오른쪽 쪽: 로고 + 장 제목), 꼬리말(바깥쪽 쪽 번호), 장 첫 쪽·빈 쪽 머리말 숨김, 장 오른쪽 시작은 0단계 시험의 방식을 이어받습니다(`spike/src/book.css`, DECISIONS 1-1절).
 
 ## 8. editor (A) — `src/editor/index.js`

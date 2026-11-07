@@ -15,6 +15,7 @@
  * @property {boolean} headingNumbers
  * @property {"000"|"0"} problemNumber
  * @property {"right"|"any"} chapterStart
+ * @property {"outside"|"left"} sideColumn
  */
 /**
  * @typedef {Object} BookSource
@@ -33,6 +34,7 @@ export const PRINT_DEFAULTS = Object.freeze({
   headingNumbers: true,
   problemNumber: "000",
   chapterStart: "right",
+  sideColumn: "outside",
 });
 
 /** book.json 전체를 받아 print 칸에 기본값을 채운 PrintConfig를 돌려준다 */
