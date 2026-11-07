@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>layout 시험</title>
+<style>html,body{margin:0;height:100%;background:#ddd}#pv{position:absolute;inset:0}@media print{html,body{background:none}}</style>
+</head><body><div id="pv"></div>
+<script type="module">
+// 견본 본문으로 buildDocument → createPreview().show(). 결과는 window.__result
+// 쿼리: edition=teacher|student, paper=a4|a4-bleed|a4-marks, side=outside|left, fixture=이름
+import { buildDocument, createPreview } from "../../src/layout/index.js";
+const q = new URLSearchParams(location.search);
+const edition = q.get("edition") ?? "teacher";
+const fixture = q.get("fixture") ?? `layout-${edition}`;
+// fixture=a,b: 여러 견본을 이어 붙임
+let body = (await Promise.all(fixture.split(",").map(async (f) => (await fetch(`../fixtures/${f}.html`)).text()))).join("\n");
+// chapter=ch-2-1: 장 하나만(편집 중 미리보기 속도 재기용)
+if (q.get("chapter")) {
+  const d = new DOMParser().parseFromString(`<body>${body}</body>`, "text/html");
+  body = d.getElementById(q.get("chapter")).outerHTML;
+}
+const print = {
+  theme: "cyber", palette: "teal", paper: q.get("paper") ?? "a4",
+  series: { label: ["PHYSICS", "LECTURE NOTES"], tag: "SAMPLE" },
+  logo: "layout-logo.svg",
+  omitSections: [], headingNumbers: true, problemNumber: "000",
+  chapterStart: q.get("start") ?? "right", sideColumn: q.get("side") ?? "outside",
+};
+const settings = { paper: print.paper, edition, theme: "cyber", print, title: "견본",
+  resolveAsset: (s) => new URL(`../fixtures/${s}`, location.href).href };
+const doc = buildDocument(body, settings);
+window.__doc = doc;
+const pv = createPreview(document.getElementById("pv"), { spread: q.has("spread") });
+window.__preview = pv;
+try {
+  const r1 = await pv.show(doc);
+  // 두 번째 보이기(편집 중 갱신) 속도
+  const r2 = q.has("twice") ? await pv.show(doc) : null;
+  // 쪽마다 무엇이 있는지(그림 뽑기·문항 쪽 비교용)
+  const pages = [...document.querySelectorAll("[data-vivliostyle-page-container]")].map((pg, i) => ({
+    no: i + 1,
+    side: pg.getAttribute("data-vivliostyle-page-side"),
+    palette: pg.querySelector("[data-palette]")?.getAttribute("data-palette") ?? null,
+    cover: !!pg.querySelector(".part-cover"), toc: !!pg.querySelector(".part-toc"),
+    head: pg.querySelector(".chapter-head")?.getAttribute("data-mode") ?? null,
+    theory: !!pg.querySelector(".theory-body"), sides: pg.querySelectorAll(".side").length,
+    problems: [...pg.querySelectorAll("article.problem")].map((e) => e.id),
+    margin: [...pg.querySelectorAll("[data-vivliostyle-page-margin-box]")].map((e) => e.textContent.trim()).join("").length,
+    text: (pg.querySelector("[data-vivliostyle-page-area]")?.textContent ?? "").trim().length,
+  }));
+  window.__result = { ...r1, ms2: r2?.ms ?? null, lines: [10, 40, 100].map((l) => [l, pv.pageOfLine(l)]), pageInfo: pages };
+} catch (e) { window.__result = { error: String(e) }; }
+</script></body></html>

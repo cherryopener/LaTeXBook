@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>layout 시험 보기</title>
+<style>html,body{margin:0;height:100%;background:#ddd}#vp{position:absolute;inset:0}@media print{html,body{background:none}}</style>
+</head><body><div id="vp"></div>
+<script type="module">
+// 문서 주소(?src=)를 Vivliostyle로 그대로 연다. 실험·PDF 저장용
+import { CoreViewer, ReadyState } from "../../vendor/vivliostyle.js";
+const q = new URLSearchParams(location.search);
+const v = new CoreViewer({ viewportElement: document.getElementById("vp"), window }, { renderAllPages: true, autoResize: false });
+window.__errors = [];
+v.addListener("error", (p) => window.__errors.push(String(p.content?.error ?? p.content?.messages ?? p.content)));
+v.addListener("nav", (p) => { if (p.epageCount) window.__pages = p.epageCount; });
+v.addListener("readystatechange", () => { if (v.readyState === ReadyState.COMPLETE) window.__state = "complete"; });
+v.loadDocument({ url: q.get("src") });
+</script></body></html>

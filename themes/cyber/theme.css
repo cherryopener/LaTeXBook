@@ -1,1 +1,284 @@
-/* cyber 테마 — 담당: C. 약속: docs/INTERFACES.md 6·7절 */
+/* cyber 테마 — 담당: C. 약속: docs/INTERFACES.md 6·7절
+   판형(@page size·bleed)은 layout이 문서에 따로 넣는다(src/layout/index.js PAPER_CSS).
+   색은 아래 :root 표에서만 정한다. 윤전 4도 CMYK 값으로 바꿀 때는 이 표만 고친다. */
+
+/* ================= 색 ================= */
+:root {
+  /* 청록(전자기) */
+  --teal-base: #1c6862;   /* 바탕(띠·부 표지·탭 켜짐) */
+  --teal-dark: #111f1f;   /* 진한(탭 꺼짐·이름 태그) */
+  --teal-accent: #cfed58; /* 번호 상자 */
+  --teal-side: #0adead;   /* 옆 띠·탭 테두리·문항 번호·머리말 장 제목 */
+  --teal-big: #cfed58;    /* 부 표지 숫자 */
+  --teal-shadow: #32d7dd; /* 부 표지 숫자 그림자 */
+  --teal-title: #32d7dd;  /* 장 제목·켜진 탭 글씨·LECTURE NOTES·이름 태그 글씨 */
+  --teal-hi: #cfed58;     /* 꺼진 탭 글씨·PHYSICS */
+  --teal-rule: #60eaca;   /* 머리말 선 */
+  --teal-frame: #0adead;  /* 부 표지 테두리 */
+  --teal-em: #0d8a74;     /* 흰 바탕 위 강조 글자(교사용 빈칸 답 등) */
+  --teal-tint: #e6f7f3;   /* 옅은 바탕(상자·표 머리) */
+  --teal-mark: #ecf8b4;   /* 형광펜 */
+  /* 붉은(역학) */
+  --red-base: #690000;
+  --red-dark: #420000;
+  --red-accent: #37ebf3;
+  --red-side: #ff6b62;
+  --red-big: #fdf500;
+  --red-shadow: #3ec7ce;
+  --red-title: #37ebf3;
+  --red-hi: #ff6b62;
+  --red-rule: #ff6b62;
+  --red-frame: #fdf500;
+  --red-em: #d8322a;
+  --red-tint: #fbeceb;
+  --red-mark: #fff6a0;
+  /* 색 묶음과 관계없는 인쇄 색 */
+  --ink: #1a1a1a;
+  --ink-red: #d6322a; --ink-blue: #1f5fb4; --ink-green: #178a52;
+  --grid: #9a9a9a;
+
+  --font-body: "Noto Serif KR", serif;
+  --font-head: "Apple SD Gothic Neo", "Pretendard", sans-serif;
+  --font-deco: "Wallpoet", "Pretendard", sans-serif;
+  --font-num: "Rajdhani", "Pretendard", sans-serif;
+  --font-big: "Rubik Glitch", "Pretendard", sans-serif;
+}
+/* 약속된 변수 이름(INTERFACES.md 6절) + 테마 내부 변수 */
+:root, [data-palette="teal"] {
+  --c-base: var(--teal-base); --c-dark: var(--teal-dark); --c-accent: var(--teal-accent); --c-side: var(--teal-side);
+  --c-big: var(--teal-big); --c-shadow: var(--teal-shadow); --c-rule: var(--teal-rule);
+  --c-title: var(--teal-title); --c-hi: var(--teal-hi); --c-frame: var(--teal-frame);
+  --c-em: var(--teal-em); --c-tint: var(--teal-tint); --c-mark: var(--teal-mark);
+  --plot-1: var(--teal-base); --plot-2: var(--teal-side); --plot-3: var(--teal-shadow); --plot-4: var(--teal-dark);
+  --plot-fill: var(--teal-tint);
+}
+[data-palette="red"] {
+  --c-base: var(--red-base); --c-dark: var(--red-dark); --c-accent: var(--red-accent); --c-side: var(--red-side);
+  --c-big: var(--red-big); --c-shadow: var(--red-shadow); --c-rule: var(--red-rule);
+  --c-title: var(--red-title); --c-hi: var(--red-hi); --c-frame: var(--red-frame);
+  --c-em: var(--red-em); --c-tint: var(--red-tint); --c-mark: var(--red-mark);
+  --plot-1: var(--red-base); --plot-2: var(--red-side); --plot-3: var(--red-shadow); --plot-4: var(--red-dark);
+  --plot-fill: var(--red-tint);
+}
+
+/* ================= 쪽 =================
+   완성 A4 기준. 바깥 14mm, 안쪽 19mm. 개념 구간은 바깥에 좁은 단(38mm + 간격 7mm)을 위한 여백을 더 둔다.
+   머리말 선은 위에서 24mm, 본문은 31mm에서 시작 */
+@page {
+  margin: 31mm 19mm 22mm 14mm;
+}
+@page :left {
+  margin: 31mm 19mm 22mm 14mm;
+  @top-left { content: element(runL, first-except); width: 177mm; vertical-align: bottom; padding-bottom: 6.5mm; }
+  @bottom-left { content: counter(page); width: 30mm; text-align: left; vertical-align: top; padding-top: 5mm;
+                 font-family: var(--font-num); font-weight: 600; font-size: 10pt; color: var(--ink); }
+}
+@page :right {
+  margin: 31mm 14mm 22mm 19mm;
+  @top-right { content: element(runR, first-except); width: 177mm; vertical-align: bottom; padding-bottom: 6.5mm; }
+  @bottom-right { content: counter(page); width: 30mm; text-align: right; vertical-align: top; padding-top: 5mm;
+                  font-family: var(--font-num); font-weight: 600; font-size: 10pt; color: var(--ink); }
+}
+/* 개념 구간: 좁은 단이 바깥쪽(sideColumn: outside) */
+@page theory:left { margin-left: 59mm;
+  @top-left { margin-left: -45mm; } @bottom-left { margin-left: -45mm; } }
+@page theory:right { margin-right: 59mm;
+  @top-right { margin-right: -45mm; } @bottom-right { margin-right: -45mm; } }
+/* 개념 구간: 좁은 단이 늘 왼쪽(sideColumn: left) */
+@page theory-l:left { margin-left: 59mm;
+  @top-left { margin-left: -45mm; } @bottom-left { margin-left: -45mm; } }
+@page theory-l:right { margin-left: 64mm;
+  @top-right { margin-left: -45mm; } }
+/* 빈 쪽: 머리말·쪽 번호 없음 */
+@page :blank {
+  @top-left { content: none; } @top-right { content: none; }
+  @bottom-left { content: none; } @bottom-right { content: none; }
+}
+/* 부 표지(도련까지 바탕색)·부 목차 */
+@page cover-teal { margin: 14mm 20mm; background: var(--teal-base);
+  @top-left { content: none; } @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; } }
+@page cover-red { margin: 14mm 20mm; background: var(--red-base);
+  @top-left { content: none; } @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; } }
+/* 부 표지 앞에 끼는 빈 쪽은 다음 쪽(표지)의 이름을 물려받으므로 바탕을 지운다 */
+@page cover-teal:blank { background: none; }
+@page cover-red:blank { background: none; }
+@page part-toc { margin: 14mm 20mm;
+  @top-left { content: none; } @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; } }
+
+/* ================= 기본 ================= */
+html { font-size: 10.4pt; }
+body {
+  margin: 0; color: var(--ink);
+  font-family: var(--font-body); line-height: 1.78;
+  word-break: keep-all; overflow-wrap: anywhere; /* 한글 단어 중간에서 줄을 바꾸지 않음 */
+  font-kerning: normal;
+}
+h1, h2, h3, h4, th, .callout-title, .side, figcaption, .teacher-only::before, .solution::before { font-family: var(--font-head); }
+p { margin: 0 0 2.4mm; orphans: 2; widows: 2; }
+ul, ol { padding-left: 5mm; margin: 0 0 2.4mm; }
+img, svg { max-width: 100%; }
+
+/* ================= 부 표지·부 목차 ================= */
+.part-cover { break-before: right; height: 269mm; box-sizing: border-box; border: 0.75pt solid var(--c-frame);
+  padding: 88mm 0 0 11mm; }
+.part-cover[data-palette="teal"] { page: cover-teal; }
+.part-cover[data-palette="red"] { page: cover-red; }
+.part-no { font-family: var(--font-big); font-size: 180pt; line-height: 1; color: var(--c-big);
+  text-shadow: 1.2mm 1.2mm 0 var(--c-shadow); margin: 0 0 4mm; }
+.part-title { font-family: var(--font-head); font-weight: 800; font-size: 58pt; line-height: 1.45; color: var(--c-big);
+  text-shadow: 1mm 1mm 0 var(--c-shadow); margin: 0; max-width: 90mm; }
+.part-toc { page: part-toc; break-before: page; height: 269mm; box-sizing: border-box; border: 1.5pt solid var(--c-base);
+  padding: 140mm 12mm 0 0; text-align: right; }
+.part-toc ol { list-style: none; margin: 0; padding: 0; }
+.part-toc li { font-family: var(--font-head); font-weight: 800; font-size: 36pt; line-height: 1.3; color: var(--c-base); margin: 0 0 8mm; }
+.part-toc .toc-no { font-family: var(--font-big); font-weight: 400; margin-right: 1mm; }
+
+/* ================= 장·구간 ================= */
+.chapter { break-before: right; }
+[data-chapter-start="any"] .chapter { break-before: page; }
+.theory { page: theory; }
+[data-side="left"] .theory { page: theory-l; }
+.problems { break-before: page; }
+
+/* ---- 장 머리: 탭 + 옆 띠 + 띠(번호 상자·제목). 쪽 위 4mm부터 폭 177mm ---- */
+.chapter-head { position: relative; height: 39.5mm; box-sizing: border-box; padding-left: 7.3mm;
+  margin: -27mm 0 6mm; }
+/* 개념 구간은 본문 단이 좁으므로 바깥 여백까지 덮는 띄움 상자로 */
+.theory > .chapter-head { float: outside; width: 177mm; margin: -27mm -45mm 0; }
+[data-side="left"] .theory > .chapter-head { float: left; margin: -27mm 0 0 -45mm; }
+.theory-body { clear: both; padding-top: 3mm; }
+.chapter-head::before { content: ""; position: absolute; left: 0; top: 0; width: 7.3mm; height: 39.5mm; background: var(--c-side);
+  clip-path: polygon(1.2mm 0, 100% 0, 100% 100%, 1.2mm 100%, 0 calc(100% - 1.2mm), 0 70%, 0.7mm 69%, 0.7mm 62%, 0 61%, 0 1.2mm); }
+.tabs { display: flex; height: 8.2mm; }
+.tab { position: relative; display: block; width: 37mm; height: 8.2mm; box-sizing: border-box; padding-top: 1.7mm;
+  text-align: center; font-family: var(--font-deco); font-size: 9.6pt; line-height: 6.5mm;
+  color: var(--c-hi); background: var(--c-side);
+  clip-path: polygon(0 1.2mm, 15mm 1.2mm, 16.2mm 0, 100% 0, 100% calc(100% - 1.4mm), calc(100% - 1.4mm) 100%, 0 100%); }
+.tab::before { content: ""; position: absolute; left: 0.3mm; top: 0.3mm; right: 0.3mm; bottom: 0; z-index: -1; background: var(--c-dark);
+  clip-path: polygon(0 1.2mm, 14.85mm 1.2mm, 16.05mm 0, 100% 0, 100% calc(100% - 1.25mm), calc(100% - 1.25mm) 100%, 0 100%); }
+.tab { z-index: 0; }
+.tab.on { color: var(--c-title); }
+.tab.on::before { background: var(--c-base); }
+.band { display: flex; align-items: center; height: 31.3mm; box-sizing: border-box; padding-left: 3.6mm;
+  background: var(--c-base); border-top: 0.6pt solid var(--c-side); border-bottom: 0.6pt solid var(--c-side); }
+.chapter-no { flex: none; width: 17.3mm; height: 17.3mm; box-sizing: border-box; padding-top: 0.8mm; text-align: center;
+  font-family: var(--font-num); font-weight: 500; font-size: 30pt; line-height: 1.15; color: var(--c-dark); background: var(--c-accent);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 4mm 100%, 0 calc(100% - 4mm)); }
+.chapter-title { margin: 0 0 0 3mm; font-family: var(--font-head); font-weight: 300; font-size: 28pt; line-height: 1.2;
+  color: var(--c-title); text-align: left; }
+
+/* ---- 머리말(running 요소) ---- */
+.run-l { position: running(runL); }
+.run-r { position: running(runR); }
+.run-l, .run-r { display: flex; align-items: flex-end; width: 177mm; height: 12mm; box-sizing: border-box; padding-bottom: 1.6mm;
+  border-bottom: 0.6pt solid var(--c-rule); line-height: 1; }
+.run-l .series { display: flex; flex-direction: column; align-items: flex-end; flex: none;
+  font-family: var(--font-deco); font-size: 10.6pt; line-height: 1.1; white-space: nowrap; }
+.run-l .s1 { color: var(--c-hi); }
+.run-l .s2 { color: var(--c-title); }
+.run-l .bracket { flex: none; width: 1.8mm; height: 7mm; margin: 0 0.5mm 0 0.9mm;
+  background:
+    linear-gradient(var(--c-side), var(--c-side)) left top / 100% 0.9mm no-repeat,
+    linear-gradient(var(--c-side), var(--c-side)) left top / 0.9mm 2.4mm no-repeat,
+    linear-gradient(var(--c-side), var(--c-side)) left bottom / 100% 0.9mm no-repeat,
+    linear-gradient(var(--c-side), var(--c-side)) left bottom / 0.9mm 2.4mm no-repeat; }
+.run-l .tag { flex: none; display: block; padding: 0.35mm; background: var(--c-side);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1.3mm), calc(100% - 1.3mm) 100%, 0 100%); }
+.run-l .tag > span { display: block; min-width: 25mm; height: 6.6mm; box-sizing: border-box; padding: 0 5mm; text-align: center;
+  font-family: var(--font-deco); font-size: 14pt; line-height: 6.4mm; color: var(--c-title); background: var(--c-dark);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1.05mm), calc(100% - 1.05mm) 100%, 0 100%); }
+.run-r { justify-content: space-between; padding-left: 1mm; }
+.run-r .logo { display: block; height: 11mm; width: auto; max-width: 50mm; margin-bottom: 0.4mm; }
+.run-r .run-title { font-family: var(--font-head); font-weight: 300; font-size: 14pt; color: var(--c-side); white-space: nowrap; padding-bottom: 0.6mm; }
+
+/* ================= 개념 구간 ================= */
+.theory-body { text-align: left; } /* 양쪽 정렬은 keep-all과 만나 띄어쓰기가 크게 벌어짐 */
+.theory-body h2.sec, .theory-body h3.sub, .theory-body h4 { text-align: left; break-after: avoid; }
+h2.sec { font-size: 14pt; font-weight: 700; line-height: 1.35; margin: 6mm 0 3mm; }
+h3.sub { font-size: 11pt; font-weight: 700; line-height: 1.4; margin: 5mm 0 2mm; }
+h3.sub .sec-no { font-weight: 400; }
+h4 { font-size: 10pt; font-weight: 700; margin: 4mm 0 1.5mm; }
+.theory-body > h2.sec:first-child { margin-top: 0; }
+
+/* ---- 좁은 단: 바깥 여백(38mm)에 걸침. Vivliostyle이 outside를 쪽마다 좌우로 바꾼다 ---- */
+.side { float: outside; clear: both; width: 38mm; margin: 0.6mm -45mm 3mm; box-sizing: border-box;
+  font-size: 7.6pt; line-height: 1.38; text-align: left; word-break: keep-all; color: #222; }
+[data-side="left"] .side { float: left; margin: 0.6mm 0 3mm -45mm; }
+.side p { margin: 0 0 1mm; }
+.side .side-title { font-weight: 700; font-size: 8pt; color: var(--ink); margin-bottom: 0.6mm; }
+.side figure.fig { margin: 1.5mm 0; }
+.side .katex { font-size: 1em; }
+
+/* ---- 상자 ---- */
+.callout { margin: 4mm 0; padding: 2.6mm 4mm 2.6mm 4mm; border: 0.6pt solid var(--c-base); border-left: 1.6mm solid var(--c-base);
+  background: var(--c-tint); break-inside: avoid; text-align: left; }
+.callout-title { font-weight: 700; font-size: 9pt; color: var(--c-base); margin: 0 0 1mm; }
+.callout.warn { border-left-color: var(--c-side); }
+.callout.think { border-style: dashed; border-left-style: solid; }
+.callout > :last-child { margin-bottom: 0; }
+.teacher-only { margin: 3mm 0; padding: 2mm 3mm; border: 0.6pt dashed var(--c-em); color: var(--c-em); font-size: 9pt; line-height: 1.6; break-inside: avoid; }
+.teacher-only::before { content: "교사용"; display: block; font-weight: 700; font-size: 8pt; margin-bottom: 0.5mm; }
+.teacher-only > :last-child { margin-bottom: 0; }
+
+/* ---- 그림·표 ---- */
+figure.fig { margin: 4mm 0; text-align: center; break-inside: avoid; }
+.fig-body { display: inline-block; max-width: 100%; vertical-align: top; }
+.fig-body > svg, .fig-body > img { display: block; width: 100%; height: auto; }
+/* SVG 그림 속 글자는 CSS로 지정한 글꼴만 PDF에 들어간다(DECISIONS 1-1절 1) */
+figure.fig svg text { font-family: var(--font-head); }
+figure.plot svg text { font-family: var(--font-body); }
+figcaption { display: block; margin-top: 1.2mm; padding: 0.7mm 2mm; background: var(--c-base); color: var(--c-title);
+  font-size: 8pt; line-height: 1.4; text-align: center; }
+.fig-no { font-weight: 700; margin-right: 1mm; }
+.figs { display: flex; align-items: flex-end; gap: 0.6mm; margin: 4mm 0; break-inside: avoid; }
+.figs > figure.fig { flex: 1 1 0; margin: 0; }
+.table-wrap { margin: 3mm 0; text-align: center; break-inside: avoid; }
+table { border-collapse: collapse; margin: 3mm auto; font-size: 9pt; line-height: 1.5; break-inside: avoid; }
+.table-wrap > table { margin: 0 auto; }
+th, td { border: 0.5pt solid var(--grid); padding: 1mm 3.5mm; text-align: center; }
+thead th { background: var(--c-tint); border-top: 1pt solid var(--c-base); border-bottom: 0.8pt solid var(--c-base); }
+mark { background: var(--c-mark); color: inherit; padding: 0 0.3mm; }
+.c-red { color: var(--ink-red); } .c-blue { color: var(--ink-blue); } .c-green { color: var(--ink-green); }
+.center { text-align: center; } .right { text-align: right; }
+a.ref { color: inherit; text-decoration: none; }
+
+/* ---- 수식 (KaTeX) ---- */
+.katex { font-size: 1.05em; }
+.katex .mord.text, .katex .textrm { font-family: KaTeX_Main, var(--font-body); } /* \text{} 속 한글도 본문 글꼴로 */
+.katex.has-frac { display: inline-block; margin: 1.1mm 0; } /* 분수가 든 인라인 수식이 윗줄·아랫줄과 겹치지 않게 */
+.katex-display { margin: 2.6mm 0; break-inside: avoid; }
+.eq { break-inside: avoid; }
+/* 식 번호: Vivliostyle에서 KaTeX의 기본 위치(top 없음)가 아래로 밀리므로 위를 맞춘다 */
+.katex-display > .katex > .katex-html { position: relative; }
+.katex-display > .katex > .katex-html > .tag { position: absolute; right: 0; top: 0; }
+.katex-mathml { display: none; } /* 인쇄에는 필요 없음(숨은 글자가 PDF에 대체 글꼴로 들어가지 않게) */
+
+/* ---- 빈칸: 칸 하나 = 한글 한 글자 폭. 두 판의 줄바꿈이 같다 ---- */
+.blank { white-space: nowrap; }
+.blank .slot { display: inline-block; width: 1em; margin: 0 0.06em; text-align: center; text-indent: 0;
+  border-bottom: 0.7pt solid var(--ink); line-height: 1.15; vertical-align: baseline; }
+.blank .gap { display: inline-block; width: 0.35em; }
+.blank.answer .slot { color: var(--c-em); border-bottom-color: var(--ink); }
+.blank.empty .slot { color: transparent; }
+.blank.math { display: inline-block; border-bottom: 0.7pt solid var(--ink); padding: 0 0.3em; line-height: 1.2; }
+.blank.math.answer { color: var(--c-em); }
+.blank.math.empty .katex { visibility: hidden; }
+
+/* ================= 문제 구간: 대칭 2단, 문항마다 새 단 ================= */
+.problems > .chapter-head { margin-bottom: 7mm; }
+.problem-list { column-count: 2; column-gap: 8mm; column-fill: auto; }
+.problem { break-before: column; }
+.problem:first-child { break-before: auto; }
+.problem-no { font-family: var(--font-num); font-weight: 600; font-size: 17pt; line-height: 1; color: var(--c-side);
+  text-shadow: 0.35mm 0.45mm 0.5mm rgba(0, 0, 0, 0.35); margin: 0 0 4mm; letter-spacing: 0.02em; }
+.problem-body { font-size: 9.6pt; line-height: 1.95; text-align: left; }
+.problem-body figure.fig { margin: 4mm 0; }
+.solution { margin-top: 5mm; padding-top: 2.5mm; border-top: 0.6pt dashed var(--c-side); font-size: 9.2pt; line-height: 1.8; text-align: left; }
+.solution::before { content: "해설"; display: inline-block; margin: 0 0 1.5mm; padding: 0.3mm 2mm; background: var(--c-base); color: var(--c-title);
+  font-size: 7.5pt; font-weight: 700; line-height: 1.5; }
+.space { display: block; }
+
+/* ================= 쪽·단 나눔 ================= */
+.pagebreak { break-before: page; }
+.columnbreak { break-before: column; }
+.columns-2 { column-count: 2; column-gap: 7mm; word-break: normal; }
