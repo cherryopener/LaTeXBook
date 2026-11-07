@@ -1,0 +1,39 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>render 시험</title></head><body>
+<div id="out"></div>
+<script type="module">
+// 브라우저에서 renderChapter·renderBook·exportPhysiklar가 도는지 확인(만든 HTML을 문서에 넣어 봄)
+import { renderChapter, renderBook, exportPhysiklar } from "../../src/render/index.js";
+import { withPrintDefaults, partPalette } from "../../src/types.js";
+const B = "/samples/sample-book/";
+const get = (p) => fetch(B + p).then((r) => (r.ok ? r.text() : null));
+const config = JSON.parse(await get("book.json"));
+const print = withPrintDefaults(config);
+const svgs = {};
+for (const f of ["charges.svg", "charges-same.svg", "number-line.svg"]) svgs["images/" + f] = await get("images/" + f);
+const ctx = {
+  edition: "student",
+  resolveAsset: (s) => (svgs[s] ? B + s : null),
+  readSvg: (s) => svgs[s] ?? null,
+  plot: () => ({ svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>', errors: [] }),
+};
+const parts = [];
+for (const dir of ["1-mechanics", "2-electricity"]) {
+  const pc = JSON.parse(await get(dir + "/part.json"));
+  const files = dir === "1-mechanics" ? ["01-velocity.md", "02-force.md"] : ["01-charge.md"];
+  const chapters = [];
+  for (const f of files) chapters.push({ path: `${dir}/${f}`, source: await get(`${dir}/${f}`) });
+  parts.push({ dir, config: pc, palette: partPalette(pc, print), chapters });
+}
+const book = renderBook({ id: "sample-book", config, print, parts }, ctx);
+const one = renderChapter(parts[0].chapters[0].source, { ...ctx, partNo: 1, chapterNo: 1, palette: "red", print });
+const ex = exportPhysiklar(parts[0].chapters[0].source, { chapterNo: 1 });
+document.getElementById("out").innerHTML = book.html;
+window.__done = {
+  chapters: document.querySelectorAll("section.chapter").length,
+  slots: document.querySelectorAll("#ch-1-1 .slot").length,
+  oneSlots: (one.html.match(/class="slot"/g) ?? []).length,
+  svgs: document.querySelectorAll("figure.fig svg").length,
+  warnings: book.warnings.map((w) => w.code),
+  exported: !ex.source.includes(":blank"),
+};
+</script></body></html>
