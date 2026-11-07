@@ -1,0 +1,40 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>plot PDF 확인용</title>
+<style>html,body{margin:0;height:100%;background:#e5e5e5} #vp{position:absolute;inset:0}</style></head><body><div id="vp"></div>
+<script type="module">
+// 인쇄 조판 경로 확인: plot SVG를 본문에 넣은 문서를 Vivliostyle로 조판한다. 테스트(tests/plot-pdf.mjs)가 PDF로 저장한다.
+import { CoreViewer, ReadyState } from "../../vendor/vivliostyle.js";
+import { BASE_STYLESHEETS } from "../../src/assets.js";
+import { renderPlot } from "../../src/plot/index.js";
+import { EXAMPLES } from "../fixtures/plot-examples.mjs";
+
+const fig = (name, w) => {
+  const ex = EXAMPLES.find((e) => e.name === name);
+  const { svg } = renderPlot(ex.spec, { palette: ex.palette });
+  const ww = w ?? svg.match(/data-w="([\d.]+)"/)[1];
+  return `<figure class="fig plot" data-palette="${ex.palette}"><div class="fig-body" style="width:${ww}%">${svg}</div></figure>`;
+};
+const links = BASE_STYLESHEETS.map((h) => `<link rel="stylesheet" href="${h}">`).join("");
+const css = `
+  @page { size: A4; margin: 20mm 18mm }
+  body { font-family: "Noto Serif KR", serif; font-size: 10pt; line-height: 1.7; color: #1a1a1a }
+  figure.fig { margin: 4mm 0; break-inside: avoid; page-break-inside: avoid }
+  .fig-body { margin: 0 auto } .fig-body svg { display: block; width: 100%; height: auto }
+  [data-palette=red] { --plot-1: #690000; --plot-2: #1f5a85; --plot-3: #2d6a3a; --plot-4: #8a5d00; --plot-fill: rgba(105,0,0,.18) }
+  [data-palette=teal] { --plot-1: #1c6862; --plot-2: #b4571e; --plot-3: #3b5f9e; --plot-4: #7a6a14; --plot-fill: rgba(28,104,98,.22) }
+  .cols { column-count: 2; column-gap: 8mm }`;
+const body = `
+  <h2>등가속도 운동</h2>
+  <p>가속도가 일정한 운동에서는 속도-시간 그래프의 넓이가 변위와 같다. 아래 그래프에서 칠한 넓이는 0초부터 4초까지의 변위이다.</p>
+  ${fig("sample-velocity")}
+  <p>일차함수와 이차함수 사이의 넓이.</p>
+  ${fig("quadratic-between", 60)}
+  ${fig("tan", 75)}
+  <div class="cols"><p>2단 안에서는 단 너비의 60%로 그려진다.</p>${fig("kinematics-red", 100)}${fig("four-curves", 100)}</div>`;
+const doc = `<!doctype html><html lang="ko"><head><meta charset="utf-8">${links}<style>${css}</style></head><body>${body}</body></html>`;
+const v = new CoreViewer({ viewportElement: document.getElementById("vp"), window }, { renderAllPages: true });
+window.__state = "loading";
+v.addListener("readystatechange", () => { if (v.readyState === ReadyState.COMPLETE) window.__state = "complete"; });
+v.addListener("nav", (p) => { window.__pages = p.epageCount; });
+v.addListener("error", (p) => { (window.__errors ??= []).push(String(p.content?.error ?? p.content?.messages ?? p.content)); });
+v.loadDocument({ url: URL.createObjectURL(new Blob([doc], { type: "text/html" })) });
+</script></body></html>
