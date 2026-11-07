@@ -47,9 +47,17 @@ function walk(list, fn, anc = []) {
  * @returns {{theory:Array, problems:Array|null, labels:Map, meta:Object}}
  */
 // 식·그림 번호의 앞자리 N은 책 전체에서 몇 번째 장인지(chapterSeq). 부가 바뀌어도 이어진다(책은 한 권으로 나오므로, 사용자 결정 2026-11-07)
+/**
+ * "**:blank[알짜힘]**이란"처럼 굵은 빈칸 바로 뒤에 한글이 오면 마크다운 규칙상 굵게가 닫히지 않아 ** 가 그대로 찍힌다.
+ * 그래서 "**:blank[…]**" 는 미리 ":blank[…]{.strong}" 으로 바꾸고, 빈칸이 스스로 굵게 그린다(줄 수는 그대로).
+ */
+export function boldBlanks(body) {
+  return String(body).replace(/\*\*(:blank\[[^\]\n]*\])\*\*/g, "$1{.strong}");
+}
+
 export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn, lineOf }) {
   const N = chapterSeq ?? C;
-  const tree = parseBody(body);
+  const tree = parseBody(boldBlanks(body));
   const idx = tree.children.findIndex((n) => n.type === "leafDirective" && n.name === "problems");
   const theory = idx >= 0 ? tree.children.slice(0, idx) : tree.children.slice();
   const problems = idx >= 0 ? tree.children.slice(idx + 1) : null;

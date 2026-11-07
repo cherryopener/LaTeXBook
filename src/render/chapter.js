@@ -123,9 +123,10 @@ export function renderChapterImpl(source, ctx = {}) {
 
   function blank(n, env) {
     meta.blanks++;
+    const strong = /(^|\s)strong(\s|$)/.test(n.attributes?.class ?? "");
     const hasMath = (x) => x.type === "inlineMath" || (x.children ?? []).some(hasMath);
     if (n.children.some(hasMath)) {
-      return el("span", { className: ["blank", teacher ? "answer" : "empty", "math"] }, txAll(n.children, env));
+      return el("span", { className: ["blank", teacher ? "answer" : "empty", "math", ...(strong ? ["strong"] : [])] }, txAll(n.children, env));
     }
     let out = "", gap = false;
     for (const ch of Array.from(text(n))) {
@@ -134,7 +135,7 @@ export function renderChapterImpl(source, ctx = {}) {
       gap = false;
       out += `<span class="slot">${teacher ? esc(ch) : ""}</span>`;
     }
-    return html(`<span class="blank ${teacher ? "answer" : "empty"}">${out}</span>`);
+    return html(`<span class="blank ${teacher ? "answer" : "empty"}${strong ? " strong" : ""}">${out}</span>`);
   }
 
   function ref(n) {

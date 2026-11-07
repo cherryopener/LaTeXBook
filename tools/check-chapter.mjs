@@ -14,5 +14,9 @@ const r = renderChapter(fs.readFileSync(path.join(bookDir, rel), "utf8"), ctx);
 const t = renderChapter(fs.readFileSync(path.join(bookDir, rel), "utf8"), { ...ctx, edition: "teacher" });
 console.log(`${rel}: 제목 "${r.meta.title}", 절 ${r.meta.headings.length}, 그림 ${r.meta.figures.length}, 빈칸 ${t.meta.blanks}`);
 const ws = r.warnings.filter((w) => w.code !== "low-dpi");
+// 굵게(**)가 닫히지 않아 글자로 찍히는 곳: 예) "**(가)**는" 처럼 닫는 ** 앞이 문장 부호이고 뒤가 한글일 때.
+// 고치는 법: 굵게 안의 끝 문장 부호를 밖으로 빼거나, 조사까지 굵게 안에 넣는다.
+const plain = r.html.replace(/<svg[\s\S]*?<\/svg>/g, "").replace(/<[^>]+>/g, "");
+for (const m of plain.matchAll(/.{0,15}\*\*.{0,15}/g)) ws.push({ code: "bold-unclosed", message: `굵게(**)가 글자로 남음: …${m[0]}…` });
 for (const w of ws) console.log(`  경고 ${w.code} (줄 ${w.line ?? "?"}): ${w.message}`);
 process.exit(ws.length ? 1 : 0);
