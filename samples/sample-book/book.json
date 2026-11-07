@@ -6,11 +6,23 @@
     "theme": "cyber",
     "palette": "teal",
     "paper": "a4",
-    "series": { "label": ["PHYSICS", "LECTURE NOTES"], "tag": "SAMPLE" },
+    "series": {
+      "label": [
+        "PHYSICS",
+        "LECTURE NOTES"
+      ],
+      "tag": "SAMPLE"
+    },
     "logo": "images/logo.svg",
-    "omitSections": ["실험으로 확인하기", "직접 해 보기"],
+    "omitSections": [
+      "실험으로 확인하기",
+      "직접 해 보기"
+    ],
     "headingNumbers": true,
     "problemNumber": "000",
-    "chapterStart": "left"
+    "chapterStart": "left",
+    "front": {
+      "title": "Physics Sample"
+    }
   }
 }

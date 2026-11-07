@@ -105,6 +105,7 @@ export function collectAssetSrcs(book) {
   const out = new Set();
   const p = book.print ?? {};
   if (p.logo) out.add(p.logo);
+  if (p.front?.image) out.add(p.front.image);
   if (p.fonts?.bodyFile) out.add(p.fonts.bodyFile);
   if (p.fonts?.bodyBoldFile) out.add(p.fonts.bodyBoldFile);
   for (const part of book.parts) for (const ch of part.chapters) {

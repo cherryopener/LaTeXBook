@@ -129,7 +129,7 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
 ```html
 <!-- 책 첫 쪽: 제목 + 한 쪽짜리 목차 (renderBook으로 책 전체를 만들 때만, 맨 앞). 쪽수는 테마가 target-counter로 채움 -->
 <section class="book-front" data-palette="teal">
-  <header class="front-head"><p class="front-series">PHYSICS · LECTURE NOTES</p><h1 class="book-title">책 제목</h1><p class="book-subtitle">부제</p></header>
+  <div class="front-art has-image"><img class="front-image" src="…"><div class="front-caption"><p class="front-series">PHYSICS · LECTURE NOTES</p><p class="front-title">Physics Bridge</p><h1 class="book-title">책 제목</h1><p class="book-subtitle">부제</p></div></div>
   <nav class="book-toc"><h2>CONTENTS</h2><ol>
     <li class="toc-part"><a href="#part-1"><span class="toc-no">01</span><span class="toc-title">운동과 힘</span><span class="toc-fill"></span></a></li>
     <li class="toc-chapter"><a href="#ch-1-1"><span class="toc-no">1</span><span class="toc-title">속도와 가속도</span><span class="toc-fill"></span></a></li>

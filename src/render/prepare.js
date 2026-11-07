@@ -46,7 +46,9 @@ function walk(list, fn, anc = []) {
  * 원고 본문을 읽어 구간을 나누고 번호를 매긴다. 노드에 _no, _id 등을 적어 둔다.
  * @returns {{theory:Array, problems:Array|null, labels:Map, meta:Object}}
  */
-export function prepare(body, { print, partNo: P, chapterNo: C, warn, lineOf }) {
+// 식·그림 번호의 앞자리 N은 책 전체에서 몇 번째 장인지(chapterSeq). 부가 바뀌어도 이어진다(책은 한 권으로 나오므로, 사용자 결정 2026-11-07)
+export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn, lineOf }) {
+  const N = chapterSeq ?? C;
   const tree = parseBody(body);
   const idx = tree.children.findIndex((n) => n.type === "leafDirective" && n.name === "problems");
   const theory = idx >= 0 ? tree.children.slice(0, idx) : tree.children.slice();
@@ -85,7 +87,7 @@ export function prepare(body, { print, partNo: P, chapterNo: C, warn, lineOf }) 
       const names = labelsOf(n.value);
       if (!names.length) return;
       eq++;
-      n._no = `${C}.${eq}`;
+      n._no = `${N}.${eq}`;
       n._id = `eq-${names[0]}`;
       if (!addLabel(names[0], { kind: "eq", id: n._id, no: n._no }, n)) n._id = `eq-${P}-${C}-${eq}`;
       for (const name of names.slice(1)) addLabel(name, { kind: "eq", id: n._id, no: n._no }, n);
@@ -96,7 +98,7 @@ export function prepare(body, { print, partNo: P, chapterNo: C, warn, lineOf }) 
       // 옆 단 안의 작은 그림은 #이름이 있을 때만 번호
       if (inSide && !name) return;
       fig++;
-      n._no = `${C}.${fig}`;
+      n._no = `${N}.${fig}`;
       n._id = name ? `fig-${name}` : `fig-${P}-${C}-${fig}`;
       if (name && !addLabel(name, { kind: "fig", id: n._id, no: n._no }, n)) n._id = `fig-${P}-${C}-${fig}`;
       meta.figures.push({ id: n._id, number: n._no, caption: text(n).trim(), line: lineOf(n) });

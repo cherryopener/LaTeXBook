@@ -41,7 +41,7 @@ export function renderChapterImpl(source, ctx = {}) {
   const dlAttr = (n) => { const l = lineOf(n); return l === undefined ? "" : ` data-line="${l}"`; };
   const srcOf = (n) => (n.position ? body.slice(n.position.start.offset, n.position.end.offset) : "");
 
-  const { theory, problems, labels, meta } = prepare(body, { print, partNo: P, chapterNo: C, warn, lineOf });
+  const { theory, problems, labels, meta } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
   let svgCount = 0;
 
   // KaTeX: 오류는 경고로, 분수가 든 인라인 수식은 has-frac

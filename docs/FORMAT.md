@@ -55,6 +55,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
 | `paper` | `"a4"` \| `"a4-bleed"` | `"a4"` | 판형. 인쇄할 때 바꿀 수 있음(5절) |
 | `series` | 객체 | 없음 | 왼쪽 쪽 머리말의 시리즈 글씨와 이름 태그 |
 | `logo` | 그림 경로 | 없음 | 오른쪽 쪽 머리말 로고 |
+| `front` | `{ "image": "images/front.png", "title": "Physics Bridge" }` | 없음 | 책 첫 쪽 윗부분 그림과 그 위의 영어 제목(사이버펑크 글꼴). 그림이 없으면 색 띠 |
 | `fonts.body` | 글꼴 이름 | Noto Serif KR | 본문 글꼴. `bodyFile`(보통 굵기)과 `bodyBoldFile`(굵은 글씨)이 있으면 그 파일을 불러옴. 경로는 책 폴더 기준(저장소의 `fonts/`는 `../../fonts/…`) |
 | `omitSections` | 제목 목록 | `[]` | 인쇄에서 **제목째 통으로** 뺄 절의 제목(3-3절) |
 | `headingNumbers` | 참/거짓 | `true` | 절 제목 앞 번호 자동(`1.`, `(1)`) |
