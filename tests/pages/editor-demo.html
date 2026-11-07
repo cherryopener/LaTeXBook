@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>편집 화면 시연</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; flex-direction: column; font-family: "Apple SD Gothic Neo", "Pretendard", sans-serif; background: #fff; }
+  #bar { flex: none; }
+  main { flex: 1; min-height: 0; display: flex; }
+  #ed { flex: 1; min-width: 0; height: 100%; }
+  aside { flex: none; width: 240px; border-left: 1px solid #ddd; padding: 10px; font-size: 13px; color: #444; overflow: auto; }
+  aside h2 { font-size: 13px; margin: 0 0 6px; }
+  aside output { display: block; margin-bottom: 12px; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<main>
+  <div id="ed"></div>
+  <aside>
+    <h2>시연 정보</h2>
+    <output id="info">대기 중</output>
+    <h2>호출 기록</h2>
+    <output id="log"></output>
+  </aside>
+</main>
+<script type="module">
+import { createEditor, createToolbar } from "../../src/editor/index.js";
+
+// 주소 뒤에 ?doc=경로 로 다른 원고, ?empty=1 로 빈 원고, ?noimage=1 로 그림 처리 없음, ?nowarn=1 로 경고 없음
+const params = new URLSearchParams(location.search);
+const src = params.get("doc") ?? "/samples/sample-book/1-mechanics/01-velocity.md";
+const text = params.get("empty") ? "" : await (await fetch(src)).text();
+
+const stats = { changes: 0, saves: 0, cursor: 1, images: [] };
+const log = document.getElementById("log");
+const note = (s) => { log.textContent = (s + "\n" + log.textContent).slice(0, 600); };
+const showInfo = () => { document.getElementById("info").textContent = `변경 ${stats.changes}회 · 저장 ${stats.saves}회 · 커서 ${stats.cursor}줄`; };
+
+window.__imageDelay = 150;   // 시험에서 바꿈
+window.__imageFail = false;
+let uploadSeq = 0;
+
+const editor = createEditor(document.getElementById("ed"), {
+  doc: text,
+  onChange: (t) => { stats.changes++; stats.last = t; showInfo(); },
+  onCursorLine: (n) => { stats.cursor = n; note(`커서 ${n}줄`); showInfo(); },
+  onSave: () => { stats.saves++; note("저장 요청"); showInfo(); },
+  onImage: params.get("noimage") ? undefined : async (file) => {
+    await new Promise((r) => setTimeout(r, window.__imageDelay));
+    if (window.__imageFail) throw new Error("실패 시험");
+    const path = `images/upload-${++uploadSeq}-${file.name.replace(/\s+/g, "_")}`;
+    stats.images.push(path);
+    return path;
+  },
+});
+createToolbar(document.getElementById("bar"), editor);
+
+// 경고 몇 개: 본문에서 줄을 찾아 붙임
+const lines = editor.getText().split("\n");
+const find = (re) => lines.findIndex((l) => re.test(l)) + 1;
+const sample = [
+  { code: "missing-image", message: "그림 파일 images/number-line.svg 를 찾을 수 없습니다.", line: find(/^::fig\[/) },
+  { code: "unknown-ref", message: "참조한 이름 'numline' 이 없습니다.", line: find(/^:ref\[numline\]/) },
+  { code: "bad-math", message: "수식을 해석하지 못했습니다: Undefined control sequence \\foo", line: find(/\\bar v/) },
+  { code: "bad-math", message: "두 번째 경고: 같은 줄에 겹쳐 표시됩니다.", line: find(/\\bar v/) },
+  { code: "plot-error", message: "그래프 범위 오류: y 범위가 비어 있습니다.", line: find(/^y: 0 \.\. 12/) },
+].filter((w) => w.line > 0);
+if (!params.get("nowarn")) editor.setWarnings(sample);
+
+window.__ed = editor;
+window.__stats = stats;
+window.__warnLines = sample.map((w) => w.line);
+showInfo();
+window.__ready = true;
+</script>
+</body>
+</html>
