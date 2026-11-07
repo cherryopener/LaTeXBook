@@ -61,7 +61,33 @@ export function toneCheck(before, after) {
   return Object.assign(diffs, { toneBold });
 }
 
+/**
+ * 살 붙이기 검사: 원래 원고의 수식·숫자·굵은 글씨·그림·상자·제목이 순서대로 모두 남아 있는지(사이에 더한 것은 허용).
+ * 돌려주는 것: 빠진 것 목록
+ */
+export function growCheck(before, after) {
+  const a = parts(before), b = parts(after);
+  const miss = [];
+  for (const k of Object.keys(a)) {
+    if (k === "표 줄 수") { if (Number(b[k][0]) < Number(a[k][0])) miss.push(`${k}: ${a[k][0]} → ${b[k][0]}`); continue; }
+    let j = 0;
+    for (const x of a[k]) {
+      while (j < b[k].length && b[k][j] !== x) j++;
+      if (j >= b[k].length) { miss.push(`${k}: 「${x}」가 없거나 순서가 바뀜`); break; }
+      j++;
+    }
+  }
+  return miss;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
+  if (process.argv[2] === "--grow") {
+    const [b, a] = process.argv.slice(3);
+    const m = growCheck(fs.readFileSync(b, "utf8"), fs.readFileSync(a, "utf8"));
+    if (m.length) { console.log(`빠진 것 ${m.length}개\n- ` + m.join("\n- ")); process.exit(1); }
+    console.log("통과(살 붙이기): 원래의 수식·숫자·굵은 글씨·그림·상자·제목이 순서대로 모두 남아 있음");
+    process.exit(0);
+  }
   const [b, a] = process.argv.slice(2);
   const d = toneCheck(fs.readFileSync(b, "utf8"), fs.readFileSync(a, "utf8"));
   if (d.length) { console.log(`다른 곳 ${d.length}개\n- ` + d.join("\n- ")); process.exit(1); }
