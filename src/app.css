@@ -42,6 +42,7 @@ dialog { border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px;
 dialog h2 { margin: 0 0 8px; font-size: 17px; }
 dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; margin: 14px 0 0; }
 dialog label.ui-block { display: block; margin: 10px 0 6px; }
+dialog input[type=text], dialog input:not([type]), dialog select { width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; }
 dialog input[type=password] { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
 dialog ol { padding-left: 20px; }
 dialog code { background: var(--bg); padding: 0 4px; border-radius: 4px; }

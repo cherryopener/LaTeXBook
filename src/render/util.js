@@ -25,7 +25,9 @@ export function splitFrontMatter(source) {
     const i = line.indexOf(":");
     if (i <= 0) continue;
     let v = line.slice(i + 1).trim();
-    if (/^(["']).*\1$/.test(v)) v = v.slice(1, -1);
+    // YAML 따옴표 값: "…"는 JSON 규칙(\" \\ 등), '…'는 '' → '
+    if (/^".*"$/.test(v)) { try { v = JSON.parse(v); } catch { v = v.slice(1, -1); } }
+    else if (/^'.*'$/.test(v)) v = v.slice(1, -1).replace(/''/g, "'");
     meta[line.slice(0, i).trim()] = v;
   }
   const head = m[0];

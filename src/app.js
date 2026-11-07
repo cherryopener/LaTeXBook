@@ -2,6 +2,7 @@
 // 모듈 약속: docs/INTERFACES.md
 import { createEditor, createToolbar } from "./editor/index.js";
 import { renderBook } from "./render/index.js";
+import { splitFrontMatter } from "./render/util.js";
 import { buildDocument, createPreview, printPdf } from "./layout/index.js";
 import * as storage from "./storage/index.js";
 import { createSampleSource, createGitHubSource, collectAssetSrcs } from "./sources.js";
@@ -55,12 +56,19 @@ async function useSource(source, bookId) {
   $("#source-label").textContent = source.label;
   $("#btn-save").disabled = source.readOnly;
   const books = await source.listBooks();
-  if (!books.length) { setBanner("이 저장소에 책이 없습니다. books/ 아래에 책 폴더를 만드세요."); return; }
+  if (!books.length) {
+    state.book = null;
+    $("#book-title").textContent = "책 없음";
+    $("#sel-chapter").innerHTML = "";
+    editor.setText("");
+    setBanner("이 저장소에 아직 책이 없습니다.", [["새 책 만들기", () => newThing("book")]]);
+    return true;
+  }
   await openBook(bookId && books.some((b) => b.id === bookId) ? bookId : books[0].id, { asked: true });
   return true;
 }
 
-async function openBook(id, { asked = false } = {}) {
+async function openBook(id, { asked = false, at = null } = {}) {
   if (!asked && !confirmLeave()) return;
   setBanner(null);
   $("#book-title").textContent = "불러오는 중…";
@@ -77,13 +85,13 @@ async function openBook(id, { asked = false } = {}) {
     p.chapters.forEach((ch, ci) => {
       const o = document.createElement("option");
       o.value = `${pi + 1}:${ci + 1}`;
-      o.textContent = `${ci + 1}. ${/^title:\s*(.*)$/m.exec(ch.source)?.[1] ?? ch.path}`;
+      o.textContent = `${ci + 1}. ${splitFrontMatter(ch.source).meta.title ?? ch.path}`;
       g.appendChild(o);
     });
     sel.appendChild(g);
   });
   await state.source.prepareAssets(collectAssetSrcs(book));
-  await openChapter(1, 1);
+  await openChapter(at?.part ?? 1, at?.chapter ?? 1);
 }
 
 async function openChapter(part, chapter) {
@@ -320,6 +328,82 @@ $("#dlg-github").addEventListener("close", async () => {
     }
   }
 });
+
+// ---------- 새 책·부·장 만들기 ----------
+const pad2 = (n) => String(n).padStart(2, "0");
+const yaml = (t) => JSON.stringify(String(t)); // 머리 부분 제목(따옴표·콜론 안전)
+const chapterText = (title) => `---\ntitle: ${yaml(title)}\n---\n\n## 첫 절 제목\n\n여기에 본문을 씁니다.\n`;
+
+/** kind: "book" | "chapter" | "part" (chapter·part는 대화창에서 고를 수 있음) */
+async function newThing(kind) {
+  if (!state.source || state.source.readOnly || !state.source.createFiles) {
+    alert("견본 책에는 만들 수 없습니다. 위의 \"GitHub 연결\"로 원고 저장소에 연결하세요.");
+    return;
+  }
+  const dlg = $("#dlg-new");
+  const isBook = kind === "book";
+  $("#new-heading").textContent = isBook ? "새 책 만들기" : "새 장·새 부 만들기";
+  $("#new-kind-row").hidden = isBook;
+  $("#new-kind").value = isBook ? "chapter" : kind;
+  for (const id of ["#new-book", "#new-part", "#new-chapter"]) $(id).value = "";
+  $("#new-msg").hidden = true;
+  const sync = () => {
+    const k = isBook ? "book" : $("#new-kind").value;
+    $("#new-book-row").hidden = k !== "book";
+    $("#new-part-row").hidden = k === "chapter";
+    $("#new-pal-row").hidden = k === "chapter";
+  };
+  $("#new-kind").onchange = sync;
+  sync();
+  dlg.showModal();
+  const v = await new Promise((ok) => dlg.addEventListener("close", () => ok(dlg.returnValue), { once: true }));
+  if (v !== "ok") return;
+  const k = isBook ? "book" : $("#new-kind").value;
+  if (k !== "book" && state.book?.parts.some((p) => p.chapters.some((c) => c.source !== c.saved))) {
+    alert("먼저 저장해 주세요. 저장하지 않은 내용이 있으면 새 장·새 부를 만들 수 없습니다.");
+    return;
+  }
+  const bookT = $("#new-book").value.trim(), partT = $("#new-part").value.trim(), chT = $("#new-chapter").value.trim();
+  const pal = $("#new-pal").value;
+  if ((k === "book" && !bookT) || (k !== "chapter" && !partT) || !chT) { alert("제목을 모두 적어 주세요."); return newThing(kind); }
+  try {
+    setBanner("만드는 중…");
+    if (k === "book") {
+      const id = `book-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random().toString(36).slice(2, 6)}`;
+      // 지금 열린 책의 머리말·로고·글꼴 설정을 이어받는다(같은 저장소의 책끼리 모양을 맞춤)
+      const prev = state.book?.config?.print ?? {};
+      const hasKoPub = state.source.hasRepoFile?.("fonts/KoPubWorld_Batang_Light.ttf");
+      const print = { theme: "cyber", palette: pal, paper: "a4" };
+      if (prev.series) print.series = prev.series;
+      if (prev.fonts) print.fonts = prev.fonts;
+      else if (hasKoPub) print.fonts = { body: "KoPubWorld Batang", bodyFile: "../../fonts/KoPubWorld_Batang_Light.ttf", bodyBoldFile: "../../fonts/KoPubWorld_Batang_Bold.ttf" };
+      await state.source.createFiles({
+        "book.json": JSON.stringify({ title: bookT, print }, null, 2) + "\n",
+        "1-part1/part.json": JSON.stringify({ title: partT, print: { palette: pal } }, null, 2) + "\n",
+        "1-part1/01-chapter1.md": chapterText(chT),
+      }, id);
+      await openBook(id);
+    } else if (k === "part") {
+      const n = state.book.parts.length + 1;
+      await state.source.createFiles({
+        [`${n}-part${n}/part.json`]: JSON.stringify({ title: partT, print: { palette: pal } }, null, 2) + "\n",
+        [`${n}-part${n}/01-chapter1.md`]: chapterText(chT),
+      });
+      await openBook(state.book.id, { asked: true, at: { part: n, chapter: 1 } });
+    } else {
+      const part = state.book.parts[state.cur.part - 1];
+      const m = part.chapters.length + 1;
+      await state.source.createFiles({ [`${part.dir}/${pad2(m)}-chapter${m}.md`]: chapterText(chT) });
+      await openBook(state.book.id, { asked: true, at: { part: state.cur.part, chapter: m } });
+    }
+    setBanner(null);
+  } catch (e) {
+    setBanner(null);
+    alert(`만들지 못했습니다: ${e.message}`);
+  }
+}
+$("#btn-add").onclick = () => newThing("chapter");
+$("#btn-newbook").onclick = () => { $("#dlg-books").close(); newThing("book"); };
 
 // ---------- 그 밖의 조작 ----------
 $("#btn-book").onclick = async () => {

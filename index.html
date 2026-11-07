@@ -16,6 +16,7 @@
     <button id="btn-book" class="menu" title="다른 책 열기">책</button>
     <strong id="book-title">불러오는 중…</strong>
     <select id="sel-chapter" aria-label="장 고르기" title="장 고르기"></select>
+    <button id="btn-add" title="새 장·새 부 만들기">＋</button>
   </div>
   <div class="grp">
     <label title="교사용·학생용">판
@@ -71,7 +72,20 @@
   <form method="dialog">
     <h2>책 열기</h2>
     <ul id="book-list"></ul>
-    <menu><button value="cancel">닫기</button></menu>
+    <menu><button value="cancel">닫기</button><button id="btn-newbook" value="new" class="ui-primary">새 책 만들기</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-new">
+  <form method="dialog">
+    <h2 id="new-heading">새로 만들기</h2>
+    <label class="ui-block" id="new-kind-row">무엇을 <select id="new-kind"><option value="chapter">새 장(지금 부의 끝에)</option><option value="part">새 부(책의 끝에)</option></select></label>
+    <label class="ui-block" id="new-book-row">책 제목 <input id="new-book" autocomplete="off" placeholder="예: 브릿지 물리"></label>
+    <label class="ui-block" id="new-part-row">부 제목 <input id="new-part" autocomplete="off" placeholder="예: 운동과 힘"></label>
+    <label class="ui-block" id="new-chapter-row">장 제목 <input id="new-chapter" autocomplete="off" placeholder="예: 속도와 가속도"></label>
+    <label class="ui-block" id="new-pal-row">색 <select id="new-pal"><option value="teal">청록(전자기 등)</option><option value="red">붉은(역학 등)</option></select></label>
+    <p id="new-msg" class="ui-error" hidden></p>
+    <menu><button value="cancel">취소</button><button value="ok" class="ui-primary">만들기</button></menu>
   </form>
 </dialog>
 

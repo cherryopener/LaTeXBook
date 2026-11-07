@@ -80,6 +80,15 @@ export function createGitHubSource(store, { owner, repo, resolveRepoPath }) {
     },
     assetUrl(src) { const p = rp(src); return p ? store.cachedAssetUrl(p) : null; },
     svgText(src) { const p = rp(src); return p ? store.readSvgCached(p) : null; },
+    /** 저장소 기준 경로의 파일이 있는지(마지막으로 받은 목록 기준) */
+    hasRepoFile: (p) => store.hasFile(p),
+    /** 새 파일 만들기. files: 책 폴더 기준 경로 → 글자. 책 id를 주면 그 책 폴더에 */
+    async createFiles(files, id = bookId) {
+      for (const [rel, text] of Object.entries(files)) {
+        const p = repoPath(id, rel);
+        await store.writeFile(p, text, { message: `새로 만듦: ${p}` });
+      }
+    },
     async uploadImage(file) {
       const safe = file.name.normalize("NFC").replace(/[^\w.\-가-힣]+/g, "_");
       const src = `images/${Date.now().toString(36)}-${safe}`;
