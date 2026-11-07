@@ -230,7 +230,7 @@ img, svg { max-width: 100%; }
 .tab.on::before { background: var(--c-base); }
 .band { display: flex; align-items: center; height: 31.3mm; box-sizing: border-box; padding-left: 3.6mm;
   background: var(--c-base); border-top: 0.6pt solid var(--c-side); border-bottom: 0.6pt solid var(--c-side); }
-.chapter-no { flex: none; width: 17.3mm; height: 17.3mm; box-sizing: border-box; padding-top: 0.8mm; text-align: center;
+.chapter-no { flex: none; width: 17.3mm; height: 17.3mm; box-sizing: border-box; padding-top: 2.8mm; /* 숫자가 상자 위쪽으로 치우쳐 보여 2 mm 내림(2026-11-07 사용자 요청) */ text-align: center;
   font-family: var(--font-num); font-weight: 500; font-size: 30pt; line-height: 1.15; color: var(--c-dark); background: var(--c-accent);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 4mm 100%, 0 calc(100% - 4mm)); }
 .chapter-title { margin: 0 0 0 3mm; font-family: var(--font-head); font-weight: 300; font-size: 28pt; line-height: 1.2;
