@@ -53,6 +53,23 @@ await page.selectOption("#sel-scope", "book");
 await waitRender(r.at);
 const rb = await page.evaluate(() => window.__app.lastRender);
 check(rb.pages >= 10, `책 전체 미리보기 ${rb.pages}쪽, ${rb.ms}ms`);
+// 모든 쪽이 화면에 이어져 보이고 스크롤로 끝까지 갈 수 있어야 함(처음에는 한 쪽만 보이던 문제)
+const sc = await page.evaluate(() => {
+  const vp = document.querySelector(".layout-preview-vp");
+  const shown = [...document.querySelectorAll("#preview [data-vivliostyle-page-container]")].filter((p) => getComputedStyle(p).display !== "none").length;
+  vp.scrollTop = vp.scrollHeight;
+  return { shown, scrollable: vp.scrollHeight > vp.clientHeight * 5 };
+});
+await page.waitForTimeout(300);
+const lastNo = await page.evaluate(() => window.__app.preview.currentPage());
+check(sc.shown === rb.pages && sc.scrollable && lastNo >= rb.pages - 1, `책 전체: ${sc.shown}쪽 모두 보이고 끝까지 스크롤(마지막 화면 ${lastNo}쪽)`);
+check(/\d+ \/ \d+쪽/.test(await page.locator("#pages").textContent()), "아래 막대에 지금 쪽 번호");
+// 커서를 장의 문제 구간으로 옮기면 그 쪽으로 따라감
+await page.evaluate(() => { const ed = window.__app.editor; const n = ed.getText().split("\n").findIndex((l) => l.startsWith("::problems")) + 1; ed.goToLine(n + 3); });
+await page.waitForTimeout(800);
+const cur = await page.evaluate(() => window.__app.preview.currentPage());
+const probPage = await page.evaluate(() => { const ps = [...document.querySelectorAll("#preview [data-vivliostyle-page-container]")]; return ps.findIndex((p) => p.querySelector('[data-part="2"][data-chapter="1"] article.problem')) + 1; });
+check(cur === probPage, `커서 따라가기: 정전기 장 문제 쪽(${probPage})으로 이동 → ${cur}`);
 
 // 커서 위치 → 미리보기 쪽 맞춤(오류 없이 동작하는지)
 await page.evaluate(() => window.__app.editor.goToLine(20));

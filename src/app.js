@@ -157,8 +157,8 @@ async function renderNow() {
     ];
     editor.setWarnings(state.warnings.filter((w) => w.line));
     showWarnings();
-    $("#pages").textContent = `${res.pages}쪽 · 조판 ${(res.ms / 1000).toFixed(1)}초`;
     app.lastRender = { pages: res.pages, ms: res.ms, at: Date.now() };
+    showPageNo();
     state.lastPage = null;
   } catch (e) {
     console.error(e);
@@ -169,10 +169,27 @@ async function renderNow() {
   }
 }
 
+// 커서 줄이 들어 있는 쪽으로 미리보기를 옮긴다. 책 전체 미리보기에서는 장마다 줄 번호가 겹치므로 지금 장 안에서만 찾는다
 function followCursor(line) {
-  const p = preview?.pageOfLine(line);
+  const { part, chapter } = state.cur;
+  const pages = [...document.querySelectorAll("#preview [data-vivliostyle-page-container]")];
+  let best = null, bestLine = -1;
+  pages.forEach((pg, i) => {
+    for (const el of pg.querySelectorAll(`[data-part="${part}"][data-chapter="${chapter}"] [data-line]`)) {
+      const l = Number(el.getAttribute("data-line"));
+      if (l <= line && l >= bestLine) { best = i + 1; bestLine = l; }
+    }
+  });
+  const p = best ?? preview?.pageOfLine(line);
   if (p && p !== state.lastPage) { state.lastPage = p; preview.goToPage(p); }
 }
+
+// 지금 보고 있는 쪽 번호
+function showPageNo() {
+  if (!app.lastRender || !preview?.currentPage) return;
+  $("#pages").textContent = `${preview.currentPage()} / ${app.lastRender.pages}쪽 · 조판 ${(app.lastRender.ms / 1000).toFixed(1)}초`;
+}
+$("#preview").addEventListener("scroll", () => requestAnimationFrame(showPageNo), { capture: true, passive: true });
 
 // ---------- 경고 ----------
 function showWarnings() {

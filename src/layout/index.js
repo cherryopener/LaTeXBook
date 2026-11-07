@@ -153,7 +153,11 @@ export function createPreview(container, opts = {}) {
   if (!doc.getElementById("layout-preview-print")) {
     const st = doc.createElement("style");
     st.id = "layout-preview-print";
-    st.textContent = "@media print{.layout-preview-vp{position:static!important;overflow:visible!important}}";
+    // 화면: 모든 쪽을 위아래로 이어 스크롤로 넘겨 보게(Vivliostyle은 기본으로 지금 쪽 하나만 보여 줌)
+    st.textContent = "@media print{.layout-preview-vp{position:static!important;overflow:visible!important}}"
+      + "@media screen{.layout-preview-vp [data-vivliostyle-outer-zoom-box]{overflow:visible!important}"
+      + ".layout-preview-vp [data-vivliostyle-spread-container]{display:block!important}"
+      + ".layout-preview-vp [data-vivliostyle-page-container]{display:block!important;margin:0 auto 14px!important;box-shadow:0 1px 6px rgba(0,0,0,.28)}}";
     doc.head.appendChild(st);
   }
   let viewer = null;
@@ -165,7 +169,7 @@ export function createPreview(container, opts = {}) {
     if (viewer) return viewer;
     const { CoreViewer, ReadyState } = await loadVivliostyle();
     viewer = new CoreViewer({ viewportElement: vp, window: win }, {
-      renderAllPages: true, autoResize: true, zoom: opts.zoom ?? 1,
+      renderAllPages: true, autoResize: false, zoom: opts.zoom ?? 1, // 크기가 바뀌면 app이 미리보기를 다시 만든다
       pageViewMode: opts.spread ? "spread" : "singlePage",
     });
     viewer.addListener("readystatechange", () => {
@@ -179,6 +183,13 @@ export function createPreview(container, opts = {}) {
   };
 
   const pageEls = () => [...vp.querySelectorAll("[data-vivliostyle-page-container]")];
+  // 바깥 상자는 한 쪽 높이로 고정되어 있으므로 전체 쪽 길이에 맞춘다(스크롤이 끝까지 되게)
+  const fitHeight = (pages) => {
+    const outer = vp.querySelector("[data-vivliostyle-outer-zoom-box]");
+    const last = pages[pages.length - 1];
+    if (!outer || !last) return;
+    outer.style.height = `${Math.ceil(last.getBoundingClientRect().bottom - outer.getBoundingClientRect().top + 16)}px`;
+  };
 
   return {
     async show(docHtml) {
@@ -200,10 +211,22 @@ export function createPreview(container, opts = {}) {
         }
       });
       lineMap = [...first].sort((a, b) => a[0] - b[0]);
-      return { pages: pages.length, ms: Math.round(performance.now() - t0), warnings: collectWarnings(pages) };
+      const warnings = collectWarnings(pages);
+      fitHeight(pages);
+      return { pages: pages.length, ms: Math.round(performance.now() - t0), warnings };
     },
     goToPage(n) {
-      if (viewer && V) viewer.navigateToPage(V.Navigation.EPAGE, Math.max(0, n - 1));
+      // 모든 쪽이 이어져 보이므로 그 쪽으로 스크롤한다
+      const el = pageEls()[Math.max(0, n - 1)];
+      if (el) vp.scrollTop += el.getBoundingClientRect().top - vp.getBoundingClientRect().top - 8;
+    },
+    /** 지금 화면 위쪽에 보이는 쪽 번호(1부터) */
+    currentPage() {
+      const top = vp.getBoundingClientRect().top + 40;
+      const ps = pageEls();
+      let n = 1;
+      ps.forEach((p, i) => { if (p.getBoundingClientRect().top <= top) n = i + 1; });
+      return n;
     },
     pageOfLine(line) {
       let page = null;
