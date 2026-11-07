@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>storage 시험 페이지</title>
+<body>
+<p id="screen">storage 시험</p>
+<script type="module">
+  // 시험 도우미: Playwright가 page.evaluate로 window.S 등을 부른다.
+  import * as S from "../../src/storage/index.js";
+  import { assembleBook } from "../../src/book.js";
+
+  window.S = S;
+  window.assembleBook = assembleBook;
+  /** 성공/실패를 직렬화 가능한 모양으로 */
+  window.attempt = async (fn) => {
+    try { return { ok: true, value: await fn() }; }
+    catch (e) {
+      return {
+        ok: false, isError: e instanceof Error, name: e?.name, message: String(e?.message ?? e), kind: e?.kind, status: e?.status,
+        isConflict: e instanceof S.ConflictError, remote: e?.remote ?? null,
+      };
+    }
+  };
+  window.sha256 = async (data) => {
+    const buf = data instanceof Blob ? await data.arrayBuffer() : data instanceof Uint8Array ? data : new TextEncoder().encode(String(data));
+    return [...new Uint8Array(await crypto.subtle.digest("SHA-256", buf))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  };
+  /** IndexedDB 전체를 훑어 needles(토큰 등)가 들어 있는지 검사하고 요약을 돌려준다 */
+  window.scanIdb = async (needles) => {
+    const db = await new Promise((ok, no) => { const r = indexedDB.open("latexbook"); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+    const out = { stores: {}, hits: [] };
+    for (const name of db.objectStoreNames) {
+      const rows = await new Promise((ok, no) => { const r = db.transaction(name).objectStore(name).getAll(); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+      out.stores[name] = rows.length;
+      for (const row of rows) {
+        for (const [k, v] of Object.entries(row)) {
+          const text = v instanceof ArrayBuffer ? new TextDecoder("latin1").decode(new Uint8Array(v)) : JSON.stringify(v);
+          for (const n of needles) if (String(text).includes(n)) out.hits.push(`${name}.${k}`);
+        }
+      }
+    }
+    db.close();
+    return out;
+  };
+  window.__ready = true;
+</script>
+</body>
+</html>
