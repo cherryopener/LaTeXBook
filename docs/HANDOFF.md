@@ -94,3 +94,12 @@
 - 말투: 사용자 교재(평서형 "-다"체, "~라고 한다", "즉·따라서")에 맞춤. 검사 `tools/tone-check.mjs`(내용 불변, 굵은 글씨·제목·상자 제목은 끝말만 바뀔 수 있음).
 - 합치며 어긋난 "N장/N부" 언급을 새 번호로 고침. "브릿지 역학에서" 3곳(14·15·18장 쪽)은 그대로(사용자 판단 대기).
 - 내용 보강(정의를 풀어 쓰기 등)은 사용자가 직접 한다. 요청이 오면 그때 시범 한 장부터.
+
+## 5. 2026-11-07 밤 상태 (중등 이식)
+
+- 책 셋(모두 비공개 `textbooks`): `books/bridge`(133쪽, 살 붙이기·사실 확인 끝), `books/mid-1`(중등 역학, Part 3개, 18장, 66쪽), `books/mid-2`(중등 전자기 + 파동, Part 2개, 18장, 63쪽).
+- 책 제작 계획·저자 결정은 `textbooks/PLAN.md`, 중등 고친 곳 목록은 `textbooks/notes/mid-corrections.md`, 축약 분석은 `textbooks/notes/simplification-analysis.md`.
+- 이번에 더한 편집기 기능: `:::def`(„ “ 한 문장 정의), note·think 제목 앞 §, `print.fonts.latin`(로마자·숫자만 Tinos/EB Garamond, lining 숫자), 빠진 기호를 KaTeX·Noto로 메움, 굵은 빈칸 `**:blank[…]**`, 목차 Part 수만큼 단, 장 번호 상자 위치.
+- 도구: `tools/import-physiklar.mjs`(RECOLOR 표), `tools/recolor-svg.mjs`, `tools/strip-web-only.mjs`, `tools/tone-check.mjs`(`--grow`), `tools/check-chapter.mjs`(경고·닫히지 않은 굵게).
+- 비공개 책 조판: 세션 scratchpad의 build-book.mjs 요지 — 책 폴더의 json·md → assembleBook → renderBook → buildDocument → tests/pages/integration.html → page.pdf. 그림은 `out/private/<이름>/books/b/images`, 글꼴은 `out/private/<이름>/fonts`로 복사(책 폴더 기준 `../../fonts`).
+- 저자 결정 대기: textbooks/PLAN.md 3절과 mid-corrections.md의 "저자 확인" 줄.
