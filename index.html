@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>교재 편집기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="src/app.css">
+</head>
+<body>
+<header id="top">
+  <div class="grp">
+    <button id="btn-book" class="menu" title="다른 책 열기">책</button>
+    <strong id="book-title">불러오는 중…</strong>
+    <select id="sel-chapter" aria-label="장 고르기" title="장 고르기"></select>
+  </div>
+  <div class="grp">
+    <label title="교사용·학생용">판
+      <select id="sel-edition"><option value="teacher">교사용</option><option value="student">학생용</option></select></label>
+    <label title="판형">판형
+      <select id="sel-paper"><option value="a4">A4</option><option value="a4-bleed">216×303 (재단 여유)</option></select></label>
+    <label title="미리보기 범위">미리보기
+      <select id="sel-scope"><option value="chapter">이 장</option><option value="book">책 전체</option></select></label>
+  </div>
+  <div class="grp ui-right">
+    <span id="save-state" class="ui-muted"></span>
+    <button id="btn-save" title="저장(⌘S / Ctrl+S)">저장</button>
+    <button id="btn-pdf" title="책 전체를 PDF로 저장">PDF로 저장</button>
+    <button id="btn-github" title="GitHub 원고 저장소 연결">GitHub 연결</button>
+  </div>
+</header>
+<div id="banner" hidden></div>
+<div id="toolbar"></div>
+<main id="main">
+  <section id="editor" aria-label="원고"></section>
+  <div id="split" role="separator" aria-orientation="vertical" title="끌어서 너비 조절"></div>
+  <section id="preview" aria-label="인쇄 미리보기"></section>
+</main>
+<footer id="status">
+  <button id="btn-warn" class="ui-link">경고 0개</button>
+  <span id="pages" class="ui-muted"></span>
+  <span id="source-label" class="ui-muted ui-right"></span>
+</footer>
+<div id="warn-list" hidden></div>
+
+<dialog id="dlg-github">
+  <form method="dialog">
+    <h2>GitHub 원고 저장소 연결</h2>
+    <p>원고는 비공개 저장소 <b>cherryopener/textbooks</b>에 저장됩니다. 연결하려면 그 저장소 하나만 읽고 쓸 수 있는 <b>토큰</b>이 필요합니다.</p>
+    <details><summary>토큰 만드는 법</summary>
+      <ol>
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub 토큰 만들기 화면</a>을 엽니다(GitHub에 로그인).</li>
+        <li>Token name: <code>교재 편집기</code>, Expiration: 원하는 기간(예: 1년).</li>
+        <li>Repository access: <b>Only select repositories</b> → <code>cherryopener/textbooks</code> 하나만 고릅니다.</li>
+        <li>Permissions → Repository permissions → <b>Contents</b>를 <b>Read and write</b>로 바꿉니다. 다른 권한은 건드리지 않습니다.</li>
+        <li>맨 아래 <b>Generate token</b> → 나온 값(<code>github_pat_…</code>)을 복사해 아래 칸에 붙여 넣습니다.</li>
+      </ol>
+      <p class="ui-muted">토큰은 이 브라우저에만 저장되고 GitHub 말고는 어디에도 보내지 않습니다. 대화창이나 메일에 붙여 넣지 마세요. 잃어버리면 같은 화면에서 지우고 새로 만들면 됩니다.</p>
+    </details>
+    <label class="ui-block">토큰 <input id="inp-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label>
+    <label><input id="chk-remember" type="checkbox" checked> 이 컴퓨터에 기억하기(공용 컴퓨터에서는 끄세요)</label>
+    <p id="github-msg" class="ui-error" hidden></p>
+    <menu><button value="cancel">닫기</button><button id="btn-disconnect" value="disconnect" class="ui-danger" hidden>연결 끊기</button><button id="btn-connect" value="connect" class="ui-primary">연결</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-books">
+  <form method="dialog">
+    <h2>책 열기</h2>
+    <ul id="book-list"></ul>
+    <menu><button value="cancel">닫기</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-conflict">
+  <form method="dialog">
+    <h2>다른 곳에서 먼저 저장했습니다</h2>
+    <p>다른 컴퓨터(또는 창)에서 이 장을 먼저 저장했습니다. 어느 쪽을 남길지 고르세요.</p>
+    <div class="ui-two">
+      <label>저장소에 있는 내용<textarea id="cf-remote" readonly></textarea></label>
+      <label>지금 고친 내용<textarea id="cf-mine" readonly></textarea></label>
+    </div>
+    <menu><button value="cancel">취소</button><button value="remote">저장소 내용 받기(내 수정 버림)</button><button value="mine" class="ui-primary">내 내용으로 덮어쓰기</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-pdf">
+  <form method="dialog">
+    <h2>PDF로 저장</h2>
+    <p>잠시 뒤 인쇄 창이 열립니다. 그 창에서:</p>
+    <ol>
+      <li>대상(프린터): <b>PDF로 저장</b></li>
+      <li>여백: <b>기본값 그대로</b>(바꾸지 않기)</li>
+      <li>"배경 그래픽"이 있으면 <b>켜기</b></li>
+    </ol>
+    <p class="ui-muted">Chrome에서 쓰기를 권합니다. 책 전체를 조판하므로 몇 초 걸립니다.</p>
+    <label><input id="chk-pdf-tip" type="checkbox"> 다음부터 이 안내 보지 않기</label>
+    <menu><button value="cancel">취소</button><button value="go" class="ui-primary">계속</button></menu>
+  </form>
+</dialog>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

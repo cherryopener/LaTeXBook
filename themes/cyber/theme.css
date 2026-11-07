@@ -1,3 +1,5 @@
+/* 인쇄 창에서 "배경 그래픽"을 켜지 않아도 바탕색(부 표지, 장 머리 띠)이 찍히게 */
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 /* cyber 테마 — 담당: C. 약속: docs/INTERFACES.md 6·7절
    판형(@page size·bleed)은 layout이 문서에 따로 넣는다(src/layout/index.js PAPER_CSS).
    색은 아래 :root 표에서만 정한다. 윤전 4도 CMYK 값으로 바꿀 때는 이 표만 고친다. */
@@ -287,4 +289,6 @@ a.ref { color: inherit; text-decoration: none; }
 /* ================= 쪽·단 나눔 ================= */
 .pagebreak { break-before: page; }
 .columnbreak { break-before: column; }
+/* 문제 구간에서 ::columnbreak 바로 뒤 문항은 이미 새 단에서 시작하므로 한 번 더 넘기지 않음(빈 단 방지) */
+.problem-list > .columnbreak + .problem { break-before: auto; }
 .columns-2 { column-count: 2; column-gap: 7mm; word-break: normal; }

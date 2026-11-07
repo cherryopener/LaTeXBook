@@ -1,0 +1,53 @@
+/* 편집기 앱 화면 */
+:root { --line: #d9dde3; --muted: #6b7280; --bg: #f6f7f9; --accent: #1c6862; --danger: #b42318; --font-ui: "Apple SD Gothic Neo", "Pretendard", system-ui, sans-serif; }
+/* 미리보기(Vivliostyle)는 이 문서 안에 그려지므로 전역 규칙이 교재에 새지 않게 UI 영역으로 한정 */
+:where(#top, #banner, #toolbar, #editor, #status, #warn-list, dialog) * { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { display: flex; flex-direction: column; font: 14px/1.5 var(--font-ui); color: #1f2328; background: #fff; }
+#top button, #top select, #status button, dialog button, dialog input, #banner button, #warn-list button { font: inherit; }
+#top button, dialog button, #banner button { padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; cursor: pointer; }
+#top button:hover, dialog button:hover, #banner button:hover { background: var(--bg); }
+button.ui-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.ui-danger { color: var(--danger); }
+button.ui-link { border: none; background: none; padding: 0; color: inherit; text-decoration: underline; }
+#top select { padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.ui-muted { color: var(--muted); }
+.ui-error { color: var(--danger); }
+.ui-right { margin-left: auto; }
+
+#top { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--bg); }
+#top .grp { display: flex; gap: 8px; align-items: center; }
+#top label { display: flex; gap: 4px; align-items: center; color: var(--muted); }
+#book-title { max-width: 18em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#sel-chapter { max-width: 22em; }
+#save-state.ui-dirty { color: #b54708; }
+#save-state.ui-saved { color: #067647; }
+
+#banner { padding: 6px 12px; background: #fffaeb; border-bottom: 1px solid #fedf89; display: flex; gap: 10px; align-items: center; }
+#toolbar { border-bottom: 1px solid var(--line); }
+
+#main { flex: 1; min-height: 0; display: flex; }
+#editor { flex: 0 0 50%; min-width: 280px; height: 100%; overflow: hidden; }
+#split { flex: none; width: 6px; cursor: col-resize; background: var(--line); }
+#split:hover, #split.drag { background: var(--accent); }
+#preview { flex: 1; min-width: 280px; height: 100%; position: relative; background: #e5e7eb; }
+
+#status { display: flex; gap: 16px; align-items: center; padding: 3px 12px; border-top: 1px solid var(--line); background: var(--bg); font-size: 12.5px; }
+#btn-warn.ui-has { color: #b54708; font-weight: 600; }
+#warn-list { position: fixed; bottom: 28px; left: 12px; max-width: 640px; max-height: 40vh; overflow: auto; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.12); padding: 6px 0; font-size: 13px; z-index: 10; }
+#warn-list button { display: block; width: 100%; text-align: left; border: none; border-radius: 0; padding: 4px 12px; }
+#warn-list .ui-code { color: var(--muted); margin-right: 6px; font-size: 12px; }
+
+dialog { border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px; max-width: 640px; width: calc(100% - 32px); }
+dialog h2 { margin: 0 0 8px; font-size: 17px; }
+dialog menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; margin: 14px 0 0; }
+dialog label.ui-block { display: block; margin: 10px 0 6px; }
+dialog input[type=password] { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
+dialog ol { padding-left: 20px; }
+dialog code { background: var(--bg); padding: 0 4px; border-radius: 4px; }
+#dlg-conflict { max-width: 1000px; }
+#dlg-conflict .ui-two { display: flex; gap: 12px; }
+#dlg-conflict .ui-two label { flex: 1; display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+#dlg-conflict textarea { height: 45vh; font: 12px/1.5 ui-monospace, monospace; }
+#book-list { list-style: none; padding: 0; margin: 0; }
+#book-list button { width: 100%; text-align: left; margin: 3px 0; }

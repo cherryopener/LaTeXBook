@@ -1,0 +1,20 @@
+{
+ "books": [
+  {
+   "id": "sample-book",
+   "title": "견본 물리",
+   "files": [
+    "1-mechanics/01-velocity.md",
+    "1-mechanics/02-force.md",
+    "1-mechanics/part.json",
+    "2-electricity/01-charge.md",
+    "2-electricity/part.json",
+    "book.json",
+    "images/charges-same.svg",
+    "images/charges.svg",
+    "images/logo.svg",
+    "images/number-line.svg"
+   ]
+  }
+ ]
+}
