@@ -170,6 +170,7 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
 | `:::figs` | `<div class="figs"> figure.fig 여러 개 </div>` |
 | ` ```plot ` | `<figure class="fig plot" data-no="…"><div class="fig-body" style="width:70%">(SVG)</div></figure>` (설명 없으면 figcaption 없음, 번호 없음) |
 | 번호 없는 `$$` | KaTeX의 `<span class="katex-display">…` 그대로 |
+| 분수가 든 인라인 수식 | 바깥 `<span class="katex">`에 `has-frac` 클래스 추가(줄 겹침 방지용, DECISIONS 1-1절 2) |
 | `\label{x}` 있는 `$$` | `<div class="eq" id="eq-x" data-no="1.3"> (KaTeX, \tag{1.3}) </div>` |
 | `:ref[x]` | `<a class="ref" href="#eq-x">(1.3)</a>` 또는 `<a class="ref" href="#fig-x">그림 1.2</a>` |
 | `:blank[알짜힘]` 교사용 | `<span class="blank answer"><span class="slot">알</span><span class="slot">짜</span><span class="slot">힘</span></span>` |
