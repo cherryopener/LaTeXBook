@@ -3,7 +3,7 @@
 - 작성: 2026-11-07. 이전 세션이 길어져 새 세션으로 넘깁니다.
 - 새 세션은 **이 문서 → [PLAN.md](PLAN.md) → [DECISIONS.md](DECISIONS.md) → [FORMAT.md](FORMAT.md) → [INTERFACES.md](INTERFACES.md)** 순서로 읽고 시작합니다.
 - 다음 할 일: **8단계 — Physiklar의 브릿지 역학·전자기를 이 편집기 형식으로 옮기기**(아래 4절).
-- **2026-11-07 갱신: 8단계 1차 완료(4-5절).** 남은 것은 사용자 확인과 textbooks 반영.
+- **2026-11-07 갱신: 8단계 1차 완료(4-5절).** 책은 textbooks `books/bridge/`에 올림. 남은 것은 사용자의 PDF 확인.
 
 ## 1. 무엇을 만들었나
 
@@ -77,11 +77,12 @@
 ### 4-5. 8단계 1차 결과 (2026-11-07)
 
 - **책 구성 결정(사용자)**: 큰 표지(Part) → 부 → 장 3단계. Griffiths QM의 Part I·II를 본뜸.
-  - Part I Mechanics(붉은), Part II Electromagnetics(청록). 큰 표지는 짝수 쪽, 영어 제목.
+  - Part I Mechanics(붉은), Part II Electrodynamics(청록, 사용자 결정). 큰 표지는 짝수 쪽, 영어 제목.
   - 부 8개(Physiklar 단원 그대로)마다 흰 바탕 부 쪽(부 제목 크게 + 장 목록), 언제나 홀수 쪽.
   - 형식: `part.json`의 `print.cover`(FORMAT.md 1-2절). 편집기 구현: `src/render/index.js`, `themes/cyber/theme.css`, 시험 `tests/render.test.mjs`.
 - **이식 도구**: `tools/import-physiklar.mjs`(비공개 내용 없음. 책 제목 등은 설정 파일로 받음). 원고는 그림 경로만 바꾸고, 바꾼 경로를 되돌리면 원본과 바이트까지 같은지 스스로 검사. 그림 색 대응표 `RECOLOR`(+ 면·선 자리별 회색 2개).
   - 그림 검토(opus/medium) 반영: 노랑→올리브(주황과 구분), 빨강→자홍 쪽, 보조 점선 진하게, 회색 면 옅게.
 - 결과: 111쪽(빈 쪽 8, 쪽수 배수 16에 1쪽 모자람), 변환 경고 0. 원고에 빈칸·해설이 없어 교사용·학생용이 같다.
-- **남은 문제**: ✓ 場 ∝ ⊙ 네 글자가 테마 글꼴에 없어 시스템 글꼴(Unifont, WenQuanYi)로 찍힘 → 7단계 전에 글꼴 대체 목록 정하기. 원고의 "화면 밖(⊙)" 같은 화면 표현 7줄(종이에서는 보통 "지면").
-- textbooks 쓰기 권한이 이 세션에 없어 `books/bridge/`는 아직 저장소에 올리지 못함(로컬 생성만).
+- **사용자 지시 글자 고침(본문 불변 규칙의 예외)**: 종이 위 방향을 뜻하는 "화면" → "종이면" 13곳(그림 11-rail.svg 1곳 포함). "지면"은 학생들이 지표면과 헷갈려서 쓰지 않음. 스마트폰 화면·웹 실험 화면은 그대로. 이식 설정 `textbooks/imports/bridge.json`의 `edits`에 줄 번호까지 기록, 도구가 횟수를 검사함. **Physiklar 원본은 바뀌지 않았으므로 두 원고가 이 13곳에서 다름.**
+- **남은 문제**: ✓ 場 ∝ ⊙ 네 글자가 테마 글꼴에 없어 시스템 글꼴(Unifont, WenQuanYi)로 찍힘 → 7단계 전에 글꼴 대체 목록 정하기.
+- 다시 이식: `node tools/import-physiklar.mjs --physiklar <Physiklar> --out <textbooks>/books/bridge --config <textbooks>/imports/bridge.json --report …` 후 로고 `images/image01.png`를 견본 책에서 복사.

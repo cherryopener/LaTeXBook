@@ -13,6 +13,8 @@
 // 3) SVG 그림은 화면용 색(어두운 바탕)을 흰 종이용 인쇄 색으로 바꿔 images/에 넣는다(아래 RECOLOR). 두 책 그림 이름이 겹치면 멈춘다.
 // 4) 검사: (a) 결과 원고에서 그림 경로를 되돌리면 원본과 바이트까지 같은지, (b) 대응표에 없는 색이 남지 않았는지.
 // 5) 인쇄에서 빠지는 퀴즈·웹 실험·실험 절을 가리키는 듯한 문장 목록을 --report 파일로 쓴다(문장은 고치지 않음).
+// 6) 사용자가 정한 글자 고침(설정의 "edits")만 마지막에 적용한다. 줄과 고칠 횟수를 정확히 적고, 맞지 않으면 멈춘다.
+//    { "file": "<새 부 폴더>/<장>.md" 또는 "images/<그림>.svg", "line": 줄 번호(그림은 생략), "from": "화면", "to": "종이면", "count": 1 }
 import fs from "node:fs";
 import path from "node:path";
 
@@ -155,20 +157,34 @@ export function importBooks({ physiklar, out, config, report }) {
     }
   }
   for (const [file] of usedImages) if (!fs.existsSync(path.join(out, "images", file))) fails.push(`원고가 쓰는 그림이 없음: ${file}`);
+  // 6) 사용자가 정한 글자 고침
+  let edited = 0;
+  for (const e of config.edits ?? []) {
+    const f = path.join(out, e.file);
+    if (!fs.existsSync(f)) { fails.push(`고칠 파일 없음: ${e.file}`); continue; }
+    const text = fs.readFileSync(f, "utf8");
+    const lines = text.split("\n");
+    const idx = e.line ? [e.line - 1] : lines.map((_, i) => i);
+    let n = 0;
+    for (const i of idx) lines[i] = (lines[i] ?? "").split(e.from).map((seg, k, arr) => { if (k < arr.length - 1) n += 1; return seg; }).join(e.to);
+    if (n !== (e.count ?? 1)) { fails.push(`${e.file}${e.line ? `:${e.line}` : ""}: "${e.from}"가 ${e.count ?? 1}번이어야 하는데 ${n}번`); continue; }
+    fs.writeFileSync(f, lines.join("\n"));
+    edited += n;
+  }
   if (report) {
     const rows = pointerRows.map((r) => `| ${r.file}:${r.line} | ${r.text.replace(/\|/g, "\\|")} | ${r.why.join(", ")} |`);
     fs.writeFileSync(report, `# 인쇄에서 빠지는 것을 가리키는 듯한 문장 (후보 ${rows.length}개)\n\n` +
       `퀴즈·웹 실험·움직이는 그림·"${omit.join("\"·\"")}" 절은 인쇄에서 빠집니다. 아래는 인쇄에 남는 줄 가운데 그것을 가리키는 듯한 줄입니다.\n` +
       `낱말로 찾은 후보라 상관없는 줄도 섞여 있습니다. 문장은 고치지 않았습니다.\n\n| 파일:줄 | 문장 | 찾은 까닭 |\n|---|---|---|\n${rows.join("\n")}\n`);
   }
-  return { parts: partNo, chapters: mdCount, svgs: svgCount, images: usedImages.size, pointers: pointerRows.length, fails };
+  return { parts: partNo, chapters: mdCount, svgs: svgCount, images: usedImages.size, pointers: pointerRows.length, edited, fails };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const a = parseArgs(process.argv.slice(2));
   if (!a.physiklar || !a.out || !a.config) { console.error("사용: --physiklar <폴더> --out <책 폴더> --config <설정.json> [--report <목록.md>]"); process.exit(2); }
   const r = importBooks({ physiklar: a.physiklar, out: a.out, config: JSON.parse(fs.readFileSync(a.config, "utf8")), report: a.report });
-  console.log(`부 ${r.parts}개, 장 ${r.chapters}개, SVG ${r.svgs}개(원고가 쓰는 그림 ${r.images}개), 가리키는 문장 후보 ${r.pointers}개`);
+  console.log(`부 ${r.parts}개, 장 ${r.chapters}개, SVG ${r.svgs}개(원고가 쓰는 그림 ${r.images}개), 가리키는 문장 후보 ${r.pointers}개, 사용자 지정 고침 ${r.edited}곳`);
   if (r.fails.length) { console.error("실패:\n- " + r.fails.join("\n- ")); process.exit(1); }
-  console.log("검사 통과: 그림 경로 말고 바뀐 글자 없음, 대응표에 없는 색 없음, 그림 이름 겹침 없음");
+  console.log("검사 통과: 그림 경로와 사용자 지정 고침 말고 바뀐 글자 없음, 대응표에 없는 색 없음, 그림 이름 겹침 없음");
 }
