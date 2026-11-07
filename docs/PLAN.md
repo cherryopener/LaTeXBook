@@ -3,7 +3,7 @@
 워드처럼 편하게 쓰고, 수식은 LaTeX(KaTeX)로 곱게 나오며, 인쇄용 PDF까지 뽑는 웹 편집기를 만드는 계획입니다.
 
 - 작성: 2026-11-07, 1차 수정: 2026-11-07(답변 1~5), 2차 수정: 2026-11-07(답변 A~D)
-- 상태: **2단계 완료**(2026-11-07). 네 모듈을 합쳐 견본 책 통합 시험 통과(`tests/integration.test.mjs`). 다음은 3단계(GitHub 저장 + 한 화면으로 묶기).
+- 상태: **3단계 완료 + 사용자 요청 기능 추가 완료**(2026-11-07). 다음은 **8단계(브릿지 역학·전자기 이식)** — 새 세션은 [HANDOFF.md](HANDOFF.md)부터 읽을 것.
 - 참고한 것
   - `cherryopener/cherryopener.github.io`의 `CLAUDE.md`: 모델 배정 규칙(4절), 병렬 작업 절차(5절)
   - `cherryopener/Physiklar`의 `lib/markdown.tsx`, `docs/WRITING_GUIDE.md`, 브릿지 역학·전자기 원고: 원고 문법과 책 폴더 구조

@@ -39,6 +39,7 @@ Physiklar 원고의 퀴즈·웹 실험과 "실험으로 확인하기", "직접 �
 
 ## 문서
 
+- [docs/HANDOFF.md](docs/HANDOFF.md): 새 세션 인수인계(지금 상태와 다음 할 일)
 - [docs/PLAN.md](docs/PLAN.md): 구축 계획과 진행 상황
 - [docs/DECISIONS.md](docs/DECISIONS.md): 결정 사항과 근거
 - [docs/FORMAT.md](docs/FORMAT.md): 원고 형식 명세
