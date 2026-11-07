@@ -15,7 +15,7 @@ const sh = (cmd, args) => execFileSync(cmd, args, { encoding: "utf8" });
 const mm = (pt) => (pt * 25.4) / 72;
 
 // PDF에 들어가도 되는 글꼴(이 밖의 것은 시스템 대체 글꼴로 본다: WenQuanYi, Liberation, DejaVu 등)
-const ALLOWED_FONT = /^(KaTeX_|NotoSerifKR|Pretendard|Rajdhani|RubikGlitch|Wallpoet)/;
+const ALLOWED_FONT = /^(KaTeX_|NotoSerifKR|Pretendard|Rajdhani|RubikGlitch|Wallpoet|Tinos|EBGaramond)/;
 const SIZE = { "a4": [210, 297], "a4-bleed": [216, 303] };
 
 const t = await openBrowser({ port: 8803 });
@@ -178,7 +178,8 @@ for (const [name, q] of [["book", "edition=teacher&paper=a4&twice=1"], ["chapter
   });
   await page.close();
   check(/@font-face \{ font-family: "Test Body"; src: url\("http:\/\/localhost:\d+\/books\/x\/fonts\/body\.ttf"\)/.test(doc), "bodyFile → 절대 주소 @font-face");
-  check(doc.includes('--font-body: "Test Body", "Noto Serif KR", serif'), "bodyFile 글꼴이 본문 글꼴 맨 앞");
+  check(doc.includes('--font-body: "Test Body", "Noto Serif KR", "KaTeX_Main", "KaTeX_AMS", serif'), "bodyFile 글꼴이 본문 글꼴 맨 앞");
+  check(doc.includes('font-family: "BookLatin"') && doc.includes('tinos-latin-400-normal.woff2'), "영어 글꼴(BookLatin, 기본 Tinos)");
   check(/href="https:\/\/cdn\.jsdelivr\.net\/npm\/pretendard/.test(doc) && /href="http:\/\/localhost:\d+\/themes\/cyber\/theme\.css"/.test(doc), "글꼴·테마 CSS 주소가 절대 주소");
 }
 

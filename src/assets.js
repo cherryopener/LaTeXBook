@@ -12,6 +12,21 @@ export const FONT_CSS = {
   rajdhani600: `${CDN}/@fontsource/rajdhani@5.3.0/600.css`,
 };
 
+// 본문·옆 단의 영어 글자용 글꼴(외국 소설책 느낌). 로마자만 이 글꼴로, 숫자·한글은 본문 글꼴 그대로.
+// Tinos: Times New Roman과 글자 폭이 같은 Apache-2.0 글꼴. EB Garamond: 소설책에 흔한 가라몬드(OFL)
+export const LATIN_FONTS = {
+  "Tinos": { pkg: "@fontsource/tinos@5.3.0", file: "tinos" },
+  "EB Garamond": { pkg: "@fontsource/eb-garamond@5.3.0", file: "eb-garamond" },
+};
+const LATIN_RANGE = "U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-024F, U+2018-201E";
+/** 영어 글꼴 @font-face(가족 이름 "BookLatin") */
+export function latinFontCss(name = "Tinos") {
+  const f = LATIN_FONTS[name] ?? LATIN_FONTS.Tinos;
+  return [400, 700].flatMap((w) => ["normal", "italic"].map((st) => ["latin", "latin-ext"].map((sub) =>
+    `@font-face { font-family: "BookLatin"; font-style: ${st}; font-weight: ${w}; font-display: block; ` +
+    `src: url("${CDN}/${f.pkg}/files/${f.file}-${sub}-${w}-${st}.woff2") format("woff2"); unicode-range: ${LATIN_RANGE}; }`).join("\n"))).join("\n");
+}
+
 export const KATEX_CSS = `${CDN}/katex@0.16.47/dist/katex.min.css`;
 
 /** 인쇄 문서 <head>에 넣을 공통 스타일시트 주소 목록 (테마 CSS는 layout이 덧붙인다) */

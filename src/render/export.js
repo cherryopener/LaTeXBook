@@ -4,7 +4,7 @@ import { renderPlot } from "../plot/index.js";
 import { parseBody, text, splitFrontMatter, hash8, plotWidth, cleanSvg } from "./util.js";
 import { prepare, labelsOf } from "./prepare.js";
 
-const UNWRAP = new Set(["columns", "figs"]);
+const UNWRAP = new Set(["columns", "figs", "def"]);
 const DROP_LEAF = new Set(["pagebreak", "columnbreak", "space"]);
 const DROP_BOX = new Set(["teacher", "solution"]);
 

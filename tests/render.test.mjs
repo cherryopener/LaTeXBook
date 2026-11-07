@@ -137,7 +137,8 @@ console.log("1-2 힘과 운동");
   ok(h.includes("이 알짜힘은 빈칸이 되지 않는다"), "두 번째 알짜힘은 그대로");
   ok(h.includes('<span class="c-red">알짜힘</span>') && h.includes('<span class="c-blue">질량</span>'), "색 글자");
   ok(h.includes('<a class="ref" href="#eq-newton2">(2.1)</a>') && h.includes('<div class="eq" id="eq-newton2" data-no="2.1"'), "식 번호·참조 (2.1)");
-  ok(h.includes('<aside class="callout think" data-line="17"><p class="callout-title">생각해 보기</p>'), "think 기본 제목");
+  ok(h.includes('<aside class="callout think" data-line="17"><p class="callout-title">더 생각해 보기</p>'), "think 기본 제목");
+  { const d = renderChapter("---\ntitle: t\n---\n:::def\n**속도**란 단위 시간 동안의 변위이다.\n:::\n", { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print }); ok(/<div class="def"[^>]*><p[^>]*><strong>속도<\/strong>란[^<]*<\/p><\/div>/.test(d.html) && !d.warnings.length, ":::def 한 문장 정의"); }
   ok(h.includes('<div class="center" data-line="21">') && h.includes('<div class="right" data-line="25">'), "가운데·오른쪽");
   eq(count(h, /<div class="pagebreak" data-line="29"><\/div>/g), 1, "쪽 나눔");
   eq(count(h, /<div class="columns-2" data-line="33">/g), 1, "대칭 2단 구간");

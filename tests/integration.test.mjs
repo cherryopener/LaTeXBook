@@ -32,7 +32,7 @@ const exists = (src) => fs.existsSync(path.join(BOOK_DIR, src));
 const resolveAsset = (src) => (exists(src) ? `http://localhost:${PORT}/samples/sample-book/${src}` : null);
 const readSvg = (src) => (src.endsWith(".svg") && exists(src) ? fs.readFileSync(path.join(BOOK_DIR, src), "utf8") : null);
 
-const ALLOWED_FONT = /^(KaTeX_|NotoSerifKR|Pretendard|Rajdhani|RubikGlitch|Wallpoet)/;
+const ALLOWED_FONT = /^(KaTeX_|NotoSerifKR|Pretendard|Rajdhani|RubikGlitch|Wallpoet|Tinos|EBGaramond)/;
 const SIZE = { a4: [210, 297], "a4-bleed": [216, 303] };
 
 const t = await openBrowser({ port: PORT });

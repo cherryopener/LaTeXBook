@@ -1,6 +1,6 @@
 // 조판·인쇄 — 담당: C. 약속: docs/INTERFACES.md 7절. 원고 문법: docs/FORMAT.md
 // 아래 함수의 이름과 인자는 약속이므로 바꾸지 않는다(바꿀 것이 있으면 보고서에 제안).
-import { BASE_STYLESHEETS } from "../assets.js";
+import { BASE_STYLESHEETS, latinFontCss, LATIN_FONTS } from "../assets.js";
 // Vivliostyle은 브라우저 전용이라 필요할 때만 불러온다(buildDocument는 Node에서도 쓰므로)
 let V = null;
 const loadVivliostyle = async () => (V ??= await import("../../vendor/vivliostyle.js"));
@@ -71,10 +71,14 @@ export function buildDocument(bodyHtml, settings) {
     const bold = print.fonts.bodyBoldFile
       ? `\n@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyBoldFile))}"); font-weight: 700; font-display: block; }` : "";
     fontCss = `@font-face { font-family: "${esc(name)}"; src: url("${toAbs(resolveAsset(print.fonts.bodyFile))}"); font-weight: ${print.fonts.bodyBoldFile ? 400 : "normal"}; font-display: block; }${bold}
-:root { --font-body: "${esc(name)}", "Noto Serif KR", serif; }`;
+:root { --font-body: "${esc(name)}", "Noto Serif KR", "KaTeX_Main", "KaTeX_AMS", serif; }`;
   } else if (cssName(print.fonts?.body)) {
-    fontCss = `:root { --font-body: "${cssName(print.fonts.body)}", "Noto Serif KR", serif; }`;
+    fontCss = `:root { --font-body: "${cssName(print.fonts.body)}", "Noto Serif KR", "KaTeX_Main", "KaTeX_AMS", serif; }`;
   }
+
+  // 영어 글자 글꼴(print.fonts.latin: "Tinos"(기본) | "EB Garamond" | "none"). 테마가 "BookLatin"을 본문·옆 단 맨 앞에 둔다
+  const latin = print.fonts?.latin ?? "Tinos";
+  if (latin !== "none" && LATIN_FONTS[latin]) fontCss = `${latinFontCss(latin)}\n${fontCss}`;
 
   const links = [...BASE_STYLESHEETS, themeUrl(theme, baseUrl)].map((h) => `<link rel="stylesheet" href="${esc(h)}">`).join("\n");
   const attrs = [

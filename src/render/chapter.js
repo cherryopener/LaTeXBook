@@ -6,7 +6,7 @@ import { esc, text, splitFrontMatter, mapAssetPath, cleanSvg, plotWidth, clampPc
 import { prepare, stripLabels, HIDDEN } from "./prepare.js";
 import { checkRawHtml, sanitizeSvg } from "./sanitize.js";
 
-const CALLOUT_TITLE = { note: "참고", tip: "팁", warn: "주의", think: "생각해 보기" };
+const CALLOUT_TITLE = { note: "참고", tip: "팁", warn: "주의", think: "더 생각해 보기" };
 const COLORS = new Set(["red", "blue", "green"]);
 
 const toHast = unified().use(remarkRehype, { allowDangerousHtml: true });
@@ -182,6 +182,8 @@ export function renderChapterImpl(source, ctx = {}) {
         }
         return el("aside", { className: ["side"], ...dl(n) }, titled(n, { ...env, inSide: true }, "side-title", null));
       case "center": case "right": return box(name, txAll(unlabeled(n), env));
+      // 한 문장 정의: 굵게·가운데, 앞뒤에 독일식 따옴표 „ “ (테마가 붙임). 2026-11-07 사용자 요청
+      case "def": return box("def", txAll(unlabeled(n), env));
       case "columns": return box("columns-2", txAll(unlabeled(n), env));
       case "figs": return box("figs", txAll(unlabeled(n), env));
       // 학생용도 같은 자리를 차지하게 내보내고(테마가 글자를 숨김) 두 판의 쪽 위치를 맞춘다

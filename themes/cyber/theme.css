@@ -39,8 +39,9 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   --ink-red: #d6322a; --ink-blue: #1f5fb4; --ink-green: #178a52;
   --grid: #9a9a9a;
 
-  --font-body: "Noto Serif KR", serif;
-  --font-head: "Apple SD Gothic Neo", "Pretendard", sans-serif;
+  /* 테마 글꼴에 없는 기호(✓ ∝ ⊙)는 이미 실린 KaTeX 글꼴로, 한자(場 등)는 Noto Serif KR로 메운다 */
+  --font-body: "Noto Serif KR", "KaTeX_Main", "KaTeX_AMS", serif;
+  --font-head: "Apple SD Gothic Neo", "Pretendard", "Noto Serif KR", "KaTeX_Main", "KaTeX_AMS", sans-serif;
   --font-deco: "Wallpoet", "Pretendard", sans-serif;
   --font-num: "Rajdhani", "Pretendard", sans-serif;
   --font-big: "Rubik Glitch", "Pretendard", sans-serif;
@@ -111,11 +112,15 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 html { font-size: 10.4pt; }
 body {
   margin: 0; color: var(--ink);
-  font-family: var(--font-body); line-height: 1.78;
+  line-height: 1.78;
   word-break: keep-all; overflow-wrap: anywhere; /* 한글 단어 중간에서 줄을 바꾸지 않음 */
   font-kerning: normal;
 }
 h1, h2, h3, h4, th, .callout-title, .side, figcaption, .teacher-only::before, .solution::before { font-family: var(--font-head); }
+/* 본문·옆 단의 영어 글자는 "BookLatin"(Times 계열, layout이 로마자 범위로만 등록). 숫자·한글은 원래 글꼴 */
+body { font-family: "BookLatin", var(--font-body); }
+.side { font-family: "BookLatin", var(--font-head); }
+.side .side-title { font-family: var(--font-head); }
 p { margin: 0 0 2.4mm; orphans: 2; widows: 2; }
 ul, ol { padding-left: 5mm; margin: 0 0 2.4mm; }
 img, svg { max-width: 100%; }
@@ -354,3 +359,12 @@ a.ref { color: inherit; text-decoration: none; }
 /* 문제 구간에서 ::columnbreak 바로 뒤 문항은 이미 새 단에서 시작하므로 한 번 더 넘기지 않음(빈 단 방지) */
 .problem-list > .columnbreak + .problem { break-before: auto; }
 .columns-2 { column-count: 2; column-gap: 7mm; word-break: normal; }
+
+/* ================= 한 문장 정의(:::def) · § 표시 (2026-11-07 사용자 요청) ================= */
+/* 굵게·가운데, 앞뒤에 독일식 따옴표: 여는 „(아래), 닫는 “(위) */
+.def { margin: 4.5mm 6mm; text-align: center; font-weight: 700; break-inside: avoid; }
+.def > p { margin: 0 0 1mm; text-align: center; }
+.def > p:first-child::before { content: "\201E"; margin-right: 0.4mm; }
+.def > p:last-child::after { content: "\201C"; margin-left: 0.4mm; }
+/* 보충·생각 상자 제목 앞에 §(Section sign) */
+.callout.note .callout-title::before, .callout.think .callout-title::before { content: "\00A7\00A0"; }

@@ -56,6 +56,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
 | `series` | 객체 | 없음 | 왼쪽 쪽 머리말의 시리즈 글씨와 이름 태그 |
 | `logo` | 그림 경로 | 없음 | 오른쪽 쪽 머리말 로고 |
 | `front` | `{ "image": "images/front.png", "title": "Physics Bridge" }` | 없음 | 책 첫 쪽 윗부분 그림과 그 위의 영어 제목(사이버펑크 글꼴). 그림이 없으면 색 띠 |
+| `fonts.latin` | `"Tinos"` \| `"EB Garamond"` \| `"none"` | `"Tinos"` | 본문·옆 단 속 영어 글자(로마자)만 이 글꼴로. Tinos는 Times New Roman과 같은 꼴(Apache-2.0), EB Garamond는 소설책에 흔한 가라몬드(OFL). 숫자·한글은 본문 글꼴 |
 | `fonts.body` | 글꼴 이름 | Noto Serif KR | 본문 글꼴. `bodyFile`(보통 굵기)과 `bodyBoldFile`(굵은 글씨)이 있으면 그 파일을 불러옴. 경로는 책 폴더 기준(저장소의 `fonts/`는 `../../fonts/…`) |
 | `omitSections` | 제목 목록 | `[]` | 인쇄에서 **제목째 통으로** 뺄 절의 제목(3-3절) |
 | `headingNumbers` | 참/거짓 | `true` | 절 제목 앞 번호 자동(`1.`, `(1)`) |
@@ -179,7 +180,20 @@ week: 1
 | `note` | Physiklar | 참고 |
 | `tip` | Physiklar | 팁 |
 | `warn` | Physiklar | 주의 |
-| `think` | Physiklar | 생각해 보기 |
+| `think` | Physiklar | 더 생각해 보기 |
+
+- `note`와 `think` 상자의 제목 앞에는 §(Section sign)가 붙습니다(예: "§ 더 생각해 보기"). 2026-11-07 사용자 요청.
+
+### 3-4-1. 한 문장 정의 (편집기)
+
+```markdown
+:::def
+**변위**란 처음 위치에서 나중 위치까지의 **위치 변화**이다.
+:::
+```
+
+- 굵은 글씨·가운데 정렬로, 앞뒤에 독일식 따옴표 „ “(여는 따옴표는 아래쪽)가 붙습니다. 장마다 핵심 정의 몇 개에만 씁니다.
+- Physiklar로 내보낼 때는 울타리 줄만 지웁니다.
 
 ### 3-5. 옆 단 (개념 구간 전용)
 
@@ -301,7 +315,7 @@ w: 70
 | `\label{x}`, `:ref[x]` | `\tag{번호}`, `(번호)` 글자 |
 | ` ```plot ` | SVG 파일 + `::fig` |
 | `::pagebreak`, `::columnbreak`, `::space` | 지움 |
-| `:::columns`, `:::figs` | 울타리 줄만 지우고 안의 내용은 남김 |
+| `:::columns`, `:::figs`, `:::def` | 울타리 줄만 지우고 안의 내용은 남김 |
 | `book.json`·`part.json`의 `print` | 그대로 둠(Physiklar가 무시) |
 
 ## 5. 인쇄 설정 (PDF를 뽑을 때 고르는 것)
