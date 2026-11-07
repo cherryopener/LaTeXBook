@@ -3,7 +3,7 @@
 워드처럼 편하게 쓰고, 수식은 LaTeX(KaTeX)로 곱게 나오며, 인쇄용 PDF까지 뽑는 웹 편집기를 만드는 계획입니다.
 
 - 작성: 2026-11-07, 1차 수정: 2026-11-07(답변 1~5), 2차 수정: 2026-11-07(답변 A~D)
-- 상태: **0단계 거의 완료**(GitHub 저장 시험만 남음, `textbooks` 저장소 생성 대기). 결과는 [DECISIONS.md](DECISIONS.md).
+- 상태: **1단계 완료**(2026-11-07). 다음은 2단계 병렬 개발. 0단계 결과는 [DECISIONS.md](DECISIONS.md).
 - 참고한 것
   - `cherryopener/cherryopener.github.io`의 `CLAUDE.md`: 모델 배정 규칙(4절), 병렬 작업 절차(5절)
   - `cherryopener/Physiklar`의 `lib/markdown.tsx`, `docs/WRITING_GUIDE.md`, 브릿지 역학·전자기 원고: 원고 문법과 책 폴더 구조
@@ -29,7 +29,7 @@
 | H | 디자인 | 사용자가 보내 준 전자기학 교재 PDF를 기준 테마로. 개념은 비대칭 2단, 문제는 대칭 2단. **개념을 대칭 2단으로 나누지 않음** | 6단계를 2단계 C로 앞당김(5-6절) |
 | I | 색 테마 | 같은 배치에 색만 바꾼 테마 2종. **역학 = 붉은 계열, 전자기 = 청록 계열.** 부(part)마다 고를 수 있음 | 5-6절 색 표 |
 | J | 저작권 표시 | `textbooks` 저장소에만 `Copyright (c) 2026 cherryopener. All rights reserved.` **PDF에는 넣지 않음.** 책 저작권 등록 등은 사용자가 필요할 때 따로 진행 | 2026-11-07 `textbooks`에 `LICENSE` 추가 |
-| K | 장식 글꼴 | 부 표지 큰 숫자 = **Rubik Glitch**, THEORY / PROBLEMS 탭 = **Wallpoet**. 둘 다 무료(OFL) | Cyberway Riders(상업용 유료) 대체. 2026-11-07 사용자 선택 |
+| K | 장식 글꼴 | 부 표지 큰 숫자 = **Rubik Glitch**, THEORY / PROBLEMS 탭·머리말 "PHYSICS / LECTURE NOTES"·이름 태그 = **Wallpoet**(머리말 글씨는 원본보다 10~15% 키움). 문항 번호 = Rajdhani. 모두 무료(OFL) | Cyberway Riders(상업용 유료) 대체. 2026-11-07 사용자 선택 |
 
 ### 1-1. GitHub 저장 방식 (질문 4에 대한 답)
 
@@ -191,8 +191,8 @@ books/<책 id>/
 | KoPub World 바탕 | 상업적 사용 무료, 수정·판매 금지. 웹 재배포 조항은 확인 못 함 | 글꼴 파일을 **비공개 `textbooks` 저장소**에 두고, 편집기가 토큰으로 불러옴(공개 저장소에 올리지 않음) |
 | Apple SD Gothic Neo | macOS에 설치된 시스템 글꼴. 맥에서 문서를 만들고 인쇄하는 데는 쓸 수 있음. 글꼴 파일을 복사해 저장소에 올리거나 다른 컴퓨터에 배포하는 것은 안 됨 | 파일을 올리지 않고 **맥에 설치된 글꼴을 그대로 부름**. 맥이 아닌 컴퓨터에서는 Pretendard(정적판)로 대신 보임. **최종 인쇄 PDF는 맥에서 만듦**(7단계) |
 | Cyberway Riders | 개인·비상업용 무료, 상업적 사용은 유료 라이선스(Chequered Ink) | **Rubik Glitch로 대체**(OFL). 부 표지 큰 숫자 전용. 가는 조각이 많아 작은 글씨에는 쓰지 않음 |
-| Wallpoet | OFL(Google Fonts) | THEORY / PROBLEMS 탭 글씨 |
-| Rajdhani | OFL(Google Fonts) | 탭 외의 영문 장식(머리말 "PHYSICS LECTURE NOTES", 이름 태그, 문항 번호)에 그대로 사용 |
+| Wallpoet | OFL(Google Fonts) | THEORY / PROBLEMS 탭, 머리말 "PHYSICS / LECTURE NOTES", 이름 태그. 머리말 글씨는 끊긴 틈이 윤전 인쇄로 메워지지 않게 원본보다 10~15% 키움. 첫 시험 인쇄 후 다시 판단 |
+| Rajdhani | OFL(Google Fonts) | 문항 번호 `001` 등 숫자 장식 |
 | Latin Modern / Cambria Math | KaTeX 글꼴이 같은 계열(Computer Modern) | KaTeX 글꼴 사용 |
 
 ### 5-7. 함수 그래프 문법 (초안)
@@ -233,9 +233,10 @@ point: (0, 1)            "y절편"
 
 ### 1단계. 뼈대와 약속 (메인 세션 직접)
 
-- [ ] `docs/FORMAT.md`: 5절 확정본
-- [ ] `docs/INTERFACES.md`: `render(원고) → { html, meta }`, `paginate(html, settings)`, `storage.load/save`
-- [ ] 견본 원고 `samples/`: 모든 문법을 한 번씩 쓰는 1장(합격 시험지)
+- [x] `docs/FORMAT.md`: 원고 형식 명세 확정본
+- [x] `docs/INTERFACES.md`: 모듈 함수 모양, render↔layout HTML 모양, 담당 폴더, 시험 방법
+- [x] 공통 기반: `vendor/`(라이브러리 묶음 3개, `tools/bundle.mjs`), `src/assets.js`(CDN 주소), `src/types.js`, 모듈 틀, `tests/lib/browser.mjs`(CDN 주소를 내려받아 둔 npm 파일로 연결), `npm test`
+- [x] 견본 원고 `samples/sample-book/`: 2부 3장, 모든 문법 + 기대 결과 목록(`samples/README.md`)
 
 ### 2단계. 병렬 개발 (서브에이전트 4개 동시, 각자 별도 작업 사본)
 

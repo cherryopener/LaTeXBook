@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120">
+  <circle cx="80" cy="60" r="18" fill="none" stroke="#c92a2a" stroke-width="3"/><text x="80" y="66" font-size="20" text-anchor="middle" fill="#c92a2a">+</text>
+  <circle cx="160" cy="60" r="18" fill="none" stroke="#c92a2a" stroke-width="3"/><text x="160" y="66" font-size="20" text-anchor="middle" fill="#c92a2a">+</text>
+  <line x1="58" y1="60" x2="22" y2="60" stroke="#333" stroke-width="2"/><polygon points="16,60 26,55 26,65" fill="#333"/>
+  <line x1="182" y1="60" x2="218" y2="60" stroke="#333" stroke-width="2"/><polygon points="224,60 214,55 214,65" fill="#333"/>
+  <text x="120" y="100" font-size="13" text-anchor="middle" fill="#333">서로 밀어낸다</text>
+</svg>

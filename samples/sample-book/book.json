@@ -1,0 +1,16 @@
+{
+  "title": "견본 물리",
+  "subtitle": "편집기 기능 시험용 견본 책",
+  "description": "원고 형식 명세(docs/FORMAT.md)의 문법을 모두 한 번 이상 쓰는 견본입니다.",
+  "print": {
+    "theme": "cyber",
+    "palette": "teal",
+    "paper": "a4",
+    "series": { "label": ["PHYSICS", "LECTURE NOTES"], "tag": "SAMPLE" },
+    "logo": "images/logo.svg",
+    "omitSections": ["실험으로 확인하기", "직접 해 보기"],
+    "headingNumbers": true,
+    "problemNumber": "000",
+    "chapterStart": "right"
+  }
+}

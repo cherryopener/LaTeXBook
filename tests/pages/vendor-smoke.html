@@ -1,0 +1,15 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>vendor 시험</title></head><body>
+<div id="ed"></div><div id="vp" style="position:absolute;left:0;top:200px;width:900px;height:1200px"></div>
+<script type="module">
+import { unified, remarkParse, remarkMath, remarkRehype, rehypeKatex, rehypeStringify } from "../../vendor/remark.js";
+import { EditorView, basicSetup, markdown } from "../../vendor/codemirror.js";
+import { CoreViewer, ReadyState } from "../../vendor/vivliostyle.js";
+import { BASE_STYLESHEETS } from "../../src/assets.js";
+const html = String(unified().use(remarkParse).use(remarkMath).use(remarkRehype).use(rehypeKatex).use(rehypeStringify).processSync("수식 $F=ma$"));
+new EditorView({ doc: "# 원고", extensions: [basicSetup, markdown()], parent: document.getElementById("ed") });
+const links = BASE_STYLESHEETS.map((h) => `<link rel="stylesheet" href="${h}">`).join("");
+const doc = `<!doctype html><html lang="ko"><head><meta charset="utf-8">${links}<style>@page{size:A4}body{font-family:"Noto Serif KR"}h1{font-family:Wallpoet}</style></head><body><h1>THEORY</h1>${html}</body></html>`;
+const v = new CoreViewer({ viewportElement: document.getElementById("vp"), window }, { renderAllPages: true });
+v.addListener("readystatechange", () => { if (v.readyState === ReadyState.COMPLETE) window.__done = { katex: html.includes("katex"), editor: !!document.querySelector(".cm-editor") }; });
+v.loadDocument({ url: URL.createObjectURL(new Blob([doc], { type: "text/html" })) });
+</script></body></html>

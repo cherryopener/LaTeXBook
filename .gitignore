@@ -1,0 +1,4 @@
+node_modules/
+out/
+spike/out/
+.DS_Store
