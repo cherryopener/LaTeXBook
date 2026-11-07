@@ -12,13 +12,14 @@ export const FONT_CSS = {
   rajdhani600: `${CDN}/@fontsource/rajdhani@5.3.0/600.css`,
 };
 
-// 본문·옆 단의 영어 글자용 글꼴(외국 소설책 느낌). 로마자만 이 글꼴로, 숫자·한글은 본문 글꼴 그대로.
+// 본문·옆 단의 영어 글자용 글꼴(외국 소설책 느낌). 로마자와 숫자만 이 글꼴로, 한글은 본문 글꼴 그대로.
+// 숫자는 테마가 lining-nums(높이가 가지런한 숫자)로 찍는다(2026-11-07 사용자 요청).
 // Tinos: Times New Roman과 글자 폭이 같은 Apache-2.0 글꼴. EB Garamond: 소설책에 흔한 가라몬드(OFL)
 export const LATIN_FONTS = {
   "Tinos": { pkg: "@fontsource/tinos@5.3.0", file: "tinos" },
   "EB Garamond": { pkg: "@fontsource/eb-garamond@5.3.0", file: "eb-garamond" },
 };
-const LATIN_RANGE = "U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-024F, U+2018-201E";
+const LATIN_RANGE = "U+0030-0039, U+0041-005A, U+0061-007A, U+00C0-00D6, U+00D8-00F6, U+00F8-024F, U+2018-201E";
 /** 영어 글꼴 @font-face(가족 이름 "BookLatin") */
 export function latinFontCss(name = "Tinos") {
   const f = LATIN_FONTS[name] ?? LATIN_FONTS.Tinos;

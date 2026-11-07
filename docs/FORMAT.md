@@ -56,7 +56,7 @@ Physiklar가 쓰는 칸(`title`, `subtitle`, `colors`, `icon` 등)은 그대로 
 | `series` | 객체 | 없음 | 왼쪽 쪽 머리말의 시리즈 글씨와 이름 태그 |
 | `logo` | 그림 경로 | 없음 | 오른쪽 쪽 머리말 로고 |
 | `front` | `{ "image": "images/front.png", "title": "Physics Bridge" }` | 없음 | 책 첫 쪽 윗부분 그림과 그 위의 영어 제목(사이버펑크 글꼴). 그림이 없으면 색 띠 |
-| `fonts.latin` | `"Tinos"` \| `"EB Garamond"` \| `"none"` | `"Tinos"` | 본문·옆 단 속 영어 글자(로마자)만 이 글꼴로. Tinos는 Times New Roman과 같은 꼴(Apache-2.0), EB Garamond는 소설책에 흔한 가라몬드(OFL). 숫자·한글은 본문 글꼴 |
+| `fonts.latin` | `"Tinos"` \| `"EB Garamond"` \| `"none"` | `"Tinos"` | 본문·옆 단 속 로마자와 숫자를 이 글꼴로(숫자는 높이가 가지런한 lining 숫자). Tinos는 Times New Roman과 같은 꼴(Apache-2.0), EB Garamond는 소설책에 흔한 가라몬드(OFL). 한글은 본문 글꼴 |
 | `fonts.body` | 글꼴 이름 | Noto Serif KR | 본문 글꼴. `bodyFile`(보통 굵기)과 `bodyBoldFile`(굵은 글씨)이 있으면 그 파일을 불러옴. 경로는 책 폴더 기준(저장소의 `fonts/`는 `../../fonts/…`) |
 | `omitSections` | 제목 목록 | `[]` | 인쇄에서 **제목째 통으로** 뺄 절의 제목(3-3절) |
 | `headingNumbers` | 참/거짓 | `true` | 절 제목 앞 번호 자동(`1.`, `(1)`) |

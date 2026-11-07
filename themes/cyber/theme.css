@@ -118,7 +118,7 @@ body {
 }
 h1, h2, h3, h4, th, .callout-title, .side, figcaption, .teacher-only::before, .solution::before { font-family: var(--font-head); }
 /* 본문·옆 단의 영어 글자는 "BookLatin"(Times 계열, layout이 로마자 범위로만 등록). 숫자·한글은 원래 글꼴 */
-body { font-family: "BookLatin", var(--font-body); }
+body { font-family: "BookLatin", var(--font-body); font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1; }
 .side { font-family: "BookLatin", var(--font-head); }
 .side .side-title { font-family: var(--font-head); }
 p { margin: 0 0 2.4mm; orphans: 2; widows: 2; }
