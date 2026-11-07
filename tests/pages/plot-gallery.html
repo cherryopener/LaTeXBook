@@ -1,0 +1,30 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>plot 확인용</title>
+<script type="module">
+// 모든 예시를 그려 보는 확인 페이지. ?palette=red 처럼 바꾸지는 않고 예시마다 palette를 따른다.
+import { renderPlot } from "../../src/plot/index.js";
+import { EXAMPLES } from "../fixtures/plot-examples.mjs";
+import { BASE_STYLESHEETS } from "../../src/assets.js";
+for (const href of BASE_STYLESHEETS) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; document.head.append(l); }
+const style = document.createElement("style");
+style.textContent = `
+  body { font: 14px/1.5 sans-serif; margin: 16px; color: #1a1a1a; background: #fff }
+  .ex { display: inline-block; vertical-align: top; margin: 0 16px 16px 0; width: 420px }
+  .ex h3 { margin: 0 0 4px; font-size: 13px }
+  .box { border: 1px dashed #bbb; padding: 4px } .box svg { display: block; width: 100% }
+  .err { color: #a00; font-size: 12px; margin: 4px 0 0; white-space: pre-wrap }
+  [data-palette=red] { --plot-1: #690000; --plot-2: #1f5a85; --plot-3: #2d6a3a; --plot-4: #8a5d00; --plot-fill: rgba(105,0,0,.18) }
+  [data-palette=teal] { --plot-1: #1c6862; --plot-2: #b4571e; --plot-3: #3b5f9e; --plot-4: #7a6a14; --plot-fill: rgba(28,104,98,.22) }`;
+document.head.append(style);
+const only = new URLSearchParams(location.search).get("only");
+for (const ex of EXAMPLES) {
+  if (only && ex.name !== only) continue;
+  const { svg, errors } = renderPlot(ex.spec, { palette: ex.palette });
+  const d = document.createElement("div");
+  d.className = "ex"; d.dataset.palette = ex.palette; d.dataset.name = ex.name;
+  d.innerHTML = `<h3>${ex.name} (${ex.palette})</h3><div class="box" style="width:${(svg.match(/data-w="([\d.]+)"/)?.[1] ?? 70)}%">${svg}</div><div class="err">${errors.join("\n")}</div>`;
+  document.body.append(d);
+}
+await document.fonts.ready;
+await Promise.all([...document.fonts].map((f) => f.load().catch(() => null)));
+window.__done = true;
+</script></head><body></body></html>
