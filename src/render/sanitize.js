@@ -55,6 +55,39 @@ function clean(node) {
 }
 
 /**
+ * <use href="#id" x y>를 실제 도형으로 펼친다. 조판기(Vivliostyle)가 <use>를 그리지 못해 그림이 비는 문제(2026-11-08) 때문.
+ * 같은 그림 안의 id만 따르고, 깊이는 5단계까지.
+ */
+function expandUse(svg) {
+  const byId = new Map();
+  (function index(n) { if (n?.type !== "element") return; const id = n.properties?.id; if (id) byId.set(String(id), n); (n.children ?? []).forEach(index); })(svg);
+  if (!byId.size) return;
+  const clone = (n) => JSON.parse(JSON.stringify(n));
+  const num = (v) => (Number.isFinite(parseFloat(v)) ? parseFloat(v) : 0);
+  function walk(n, depth) {
+    if (n?.type !== "element" || !n.children) return;
+    n.children = n.children.map((c) => {
+      if (c?.type === "element" && c.tagName.toLowerCase() === "use" && depth < 5) {
+        const ref = String(c.properties?.href ?? c.properties?.xLinkHref ?? "").replace(/^#/, "");
+        const target = byId.get(ref);
+        if (!target) return null;
+        const copy = clone(target);
+        if (copy.properties) delete copy.properties.id;
+        const { href, xLinkHref, x, y, width, height, ...rest } = c.properties ?? {};
+        const tr = [num(x) || num(y) ? `translate(${num(x)},${num(y)})` : "", rest.transform ?? ""].filter(Boolean).join(" ");
+        delete rest.transform;
+        const g = { type: "element", tagName: "g", properties: { ...rest, ...(tr ? { transform: tr } : {}) }, children: [copy] };
+        walk(g, depth + 1);
+        return g;
+      }
+      walk(c, depth);
+      return c;
+    }).filter(Boolean);
+  }
+  walk(svg, 0);
+}
+
+/**
  * SVG 원문을 안전하게 거른다. 스크립트, 이벤트 속성(on*), foreignObject, 외부·javascript: 링크, 위험한 CSS를 지운다.
  * @returns {string|null} 거른 SVG 문자열. <svg>가 없으면 null
  */
@@ -64,5 +97,6 @@ export function sanitizeSvg(svgText) {
   (function find(n) { if (svg || !n) return; if (n.type === "element" && n.tagName.toLowerCase() === "svg") { svg = n; return; } (n.children ?? []).forEach(find); })(tree);
   if (!svg) return null;
   clean(svg);
+  expandUse(svg);
   return toHtml(svg, { space: "svg" });
 }
