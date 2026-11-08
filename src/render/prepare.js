@@ -118,5 +118,7 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn
       meta.problems.push({ number: n._no, hasSolution, line: lineOf(n) });
     }
   });
-  return { theory, problems, labels, meta };
+  // 한 쪽 문항 수: ::problems{per=4} 가 있으면 그것(2·4·6)
+  const problemsPer = idx >= 0 ? Number(tree.children[idx].attributes?.per) || null : null;
+  return { theory, problems, labels, meta, problemsPer };
 }

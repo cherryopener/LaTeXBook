@@ -57,7 +57,7 @@ for (const c of chapters) {
     ok(html.includes('<header class="chapter-head" data-mode="theory"><nav class="tabs"><span class="tab tab-theory on">THEORY</span><span class="tab tab-problems">PROBLEMS</span></nav>'), `${t}: THEORY 탭`);
     ok(html.includes('<header class="chapter-head" data-mode="problems"><nav class="tabs"><span class="tab tab-theory">THEORY</span><span class="tab tab-problems on">PROBLEMS</span></nav>'), `${t}: PROBLEMS 탭`);
     ok(html.includes(`<h1 class="chapter-title">${meta.title}</h1>`) && meta.title, `${t}: 장 제목`);
-    ok(count(html, /<div class="theory-body">/g) === 1 && count(html, /<div class="problem-list">/g) === 1, `${t}: 구간 2개`);
+    ok(count(html, /<div class="theory-body">/g) === 1 && count(html, /<div class="problem-list" data-per="2">/g) === 1, `${t}: 구간 2개`);
     const p = plain(html);
     ok(!/:{2,}\w|:blank|:ref|:hl|:red|:blue|\\label|\+\+\+/.test(p), `${t}: 남은 디렉티브 없음`, p.match(/:{2,}\w+|:blank|:ref|\\label|\+\+\+/g));
     ok(edition === "teacher" || (count(html, /class="solution"/g) === 0 && count(html, /class="teacher-only"/g) === 0), `${t}: 학생용에 해설·교사용 내용 없음(교사용 메모는 placeholder로만)`);
@@ -237,6 +237,17 @@ console.log("큰 표지(Part) 모드");
   ok(p3.html.includes('<div class="part-no">II</div>') && p3.html.includes('id="part-3"') && !p3.html.includes("cover-1"), "range 부 하나: 그 부의 큰 표지 번호 유지");
   const p2 = renderBook(cb, { ...base, edition: "student", range: { part: 2 } });
   ok(!p2.html.includes("part-cover") && p2.html.includes('id="part-2"'), "range 부 하나: 표지 없는 부");
+}
+
+// 한 쪽 문항 수(2026-11-08 사용자 요청): ::problems{per=4} > print.problemsPerPage > 2
+{
+  const src = "---\ntitle: t\n---\n개념\n\n::problems{per=4}\n\n::::problem\n가\n::::\n";
+  const r4 = renderChapter(src, { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print });
+  ok(r4.html.includes('<div class="problem-list" data-per="4">'), "::problems{per=4}");
+  const r6 = renderChapter(src.replace("{per=4}", ""), { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print: { ...print, problemsPerPage: 6 } });
+  ok(r6.html.includes('<div class="problem-list" data-per="6">'), "print.problemsPerPage 6");
+  const rx = renderChapter(src.replace("{per=4}", "{per=5}"), { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print });
+  ok(rx.html.includes('<div class="problem-list" data-per="2">'), "잘못된 값은 2");
 }
 
 console.log("여러 경우");

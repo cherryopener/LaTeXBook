@@ -363,6 +363,15 @@ a.ref { color: inherit; text-decoration: none; }
 .columnbreak { break-before: column; }
 /* 문제 구간에서 ::columnbreak 바로 뒤 문항은 이미 새 단에서 시작하므로 한 번 더 넘기지 않음(빈 단 방지) */
 .problem-list > .columnbreak + .problem { break-before: auto; }
+/* 한 쪽에 4문항(한 단에 2칸)·6문항(한 단에 3칸). 칸 높이는 고정이라 학생용 풀이 공간이 같고, 넘치면 조판 경고(problem-overflow).
+   문제 쪽 첫 장은 장 머리 띠 때문에 단 높이가 약 224 mm라 그 안에 들어가게 잡는다 */
+.problem-list[data-per="4"] article.problem, .problem-list[data-per="6"] article.problem { break-before: auto; break-inside: avoid; box-sizing: border-box; }
+.problem-list[data-per="4"] article.problem { height: 109mm; }
+.problem-list[data-per="6"] article.problem { height: 70mm; }
+.problem-list[data-per="4"] article.problem:nth-of-type(2n+1), .problem-list[data-per="6"] article.problem:nth-of-type(3n+1) { break-before: column; }
+.problem-list[data-per="4"] article.problem:first-of-type, .problem-list[data-per="6"] article.problem:first-of-type { break-before: auto; }
+.problem-list[data-per="4"] article.problem:nth-of-type(2n), .problem-list[data-per="6"] article.problem:nth-of-type(3n+2), .problem-list[data-per="6"] article.problem:nth-of-type(3n) { border-top: 0.6pt dashed var(--grid); padding-top: 3mm; }
+.problem-list[data-per="6"] .problem-no { font-size: 14pt; margin-bottom: 2.5mm; }
 .columns-2 { column-count: 2; column-gap: 7mm; word-break: normal; }
 
 /* ================= 한 문장 정의(:::def) · § 표시 (2026-11-07 사용자 요청) ================= */

@@ -41,7 +41,7 @@ export function renderChapterImpl(source, ctx = {}) {
   const dlAttr = (n) => { const l = lineOf(n); return l === undefined ? "" : ` data-line="${l}"`; };
   const srcOf = (n) => (n.position ? body.slice(n.position.start.offset, n.position.end.offset) : "");
 
-  const { theory, problems, labels, meta } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
+  const { theory, problems, labels, meta, problemsPer } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
   let svgCount = 0;
 
   // KaTeX: 오류는 경고로, 분수가 든 인라인 수식은 has-frac
@@ -306,7 +306,9 @@ export function renderChapterImpl(source, ctx = {}) {
     `<section class="theory">${head("theory")}\n<div class="theory-body">\n${theoryHtml}\n</div>\n</section>\n`;
   if (problems) {
     const probHtml = mdastToHtml(txAll(problems, { section: "problems" }));
-    out += `<section class="problems">${head("problems")}\n<div class="problem-list">\n${probHtml}\n</div>\n</section>\n`;
+    // 한 쪽에 문항 2개(기본)·4개·6개: 장의 ::problems{per=…} > 책의 print.problemsPerPage
+    const per = [2, 4, 6].includes(problemsPer) ? problemsPer : [2, 4, 6].includes(Number(print.problemsPerPage)) ? Number(print.problemsPerPage) : 2;
+    out += `<section class="problems">${head("problems")}\n<div class="problem-list" data-per="${per}">\n${probHtml}\n</div>\n</section>\n`;
   }
   out += `</section>`;
 
