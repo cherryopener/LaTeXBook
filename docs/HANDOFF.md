@@ -110,3 +110,9 @@
 - 문제 쪽: 한 쪽 2·4·6문항, `::problems{first=4 per=6}`, `::page{per=…}` (FORMAT.md 3-8절).
 - SVG `<use>`는 편집기가 펼쳐서 넣음(조판기가 `<use>`를 못 그림).
 - 책 옮기기 방법은 비공개 저장소 `textbooks/guides/PORTING-GUIDE.md`. 비공개 책 조판은 `node tools/build-book.mjs <책 폴더> <이름> both`.
+
+## 7. 2026-11-08 Word(docx) 원본 옮기기
+
+- `tools/import-docx.py`(pandoc 필요): 저자의 Word 교재를 책 폴더로 기계 변환. 단락 스타일(Chapter1·Chapter2Text·Body1·Body2·Side*·BodyTable*·Problem*)로 부·장·절·옆 단·표를 읽고, 수식(OMML)은 pandoc이 LaTeX로, 그림은 `images/<부번호>-figNN`으로 꺼냄(GIF는 첫 장면 PNG). 문제(Problem*/Choice*)와 서식 견본 글자는 뺌. 수식 속 한글은 `\text{}`, ℃·℉는 `{^\circ}\text{C}`. 설정 json: `parts[{slug, palette, cover, chapters[]}]`, `junk[]`.
+- `tools/text-diff.py`: 기계 변환 커밋과 지금 원고의 글자 차이만(빈칸·굵게·상자·그림 설명 무시) 뽑음 → 고친 곳 목록과 맞는지 대조.
+- 이것으로 textbooks `books/gifted-mech`·`gifted-em`·`gifted-wave`(영재 역학·전자기학·파동광학)를 만듦. 작업자 지시서 `textbooks/guides/brief-docx.md`, `brief-docx-svg.md`.
