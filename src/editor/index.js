@@ -67,9 +67,30 @@ const hangulKeys = EditorView.domEventHandlers({
     if (!k) return false;
     e.preventDefault();
     Vim.handleKey(cm, k, "user");
+    // i·a·o 등으로 입력 모드가 되면, 같은 키로 입력기가 이미 시작한 한글 조합(예: 세벌식 390의 I 자리 'ㅁ')이 본문에 들어온다.
+    // 웹 페이지는 조합 시작을 막을 수 없으므로, 조합을 강제로 끝낸 뒤(포커스를 잠깐 뺐다가 되돌림) 그때 들어온 한글 한 글자를 지운다.
+    if (cm.state.vim?.insertMode) swallowComposition(view);
     return true;
   },
 });
+const HANGUL = /^[\u1100-\u11FF\u3131-\u318E\uAC00-\uD7A3]{1,2}$/;
+function swallowComposition(view) {
+  const pos = view.state.selection.main.head;
+  const len = view.state.doc.length;
+  const cleanup = () => {
+    const added = view.state.doc.length - len;
+    if (added < 1 || added > 2) return;
+    const text = view.state.doc.sliceString(pos, pos + added);
+    if (HANGUL.test(text)) view.dispatch({ changes: { from: pos, to: pos + added }, selection: { anchor: pos }, userEvent: "delete.ime" });
+  };
+  setTimeout(() => {
+    const el = view.contentDOM;
+    el.blur();
+    view.focus();
+    setTimeout(cleanup, 30);
+    setTimeout(cleanup, 150); // 입력기가 늦게 확정하는 경우
+  }, 0);
+}
 
 const fromGoTo = Annotation.define();
 

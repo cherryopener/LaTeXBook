@@ -68,6 +68,19 @@ check(await text() === "def\n", "세벌식 390 자리 기준: 3x", await text())
 check(await page.locator(".cm-vim-panel input").count() === 1, "Shift+; 자리 → : 명령 줄");
 await page.keyboard.press("Escape");
 
+// 한글 자판에서 i 자리로 입력 모드가 될 때 입력기가 넣는 'ㅁ'을 지움(입력기 흉내: 키 처리 뒤 글자가 들어옴)
+await reset("abc\n");
+await page.evaluate(() => {
+  const el = document.querySelector(".pl-editor .cm-content");
+  el.dispatchEvent(new KeyboardEvent("keydown", { key: "ㅁ", code: "KeyI", bubbles: true, cancelable: true }));
+  const v = window.__ed.view; v.dispatch({ changes: { from: v.state.selection.main.head, insert: "ㅁ" }, userEvent: "input.type.compose" });
+});
+await page.waitForTimeout(250);
+check(await text() === "abc\n" && await page.evaluate(() => window.__ed.view.state.selection.main.head) === 0, "i 자리로 입력 모드 + 조합 글자 지움", await text());
+await page.keyboard.type("Z");
+check(await text() === "Zabc\n", "그 뒤 입력은 정상", await text());
+await page.keyboard.press("Escape");
+
 // 끄면 보통 편집
 await btn.click();
 await reset("abc\n");
