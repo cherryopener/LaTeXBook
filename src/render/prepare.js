@@ -119,6 +119,9 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn
     }
   });
   // 한 쪽 문항 수: ::problems{per=4} 가 있으면 그것(2·4·6)
-  const problemsPer = idx >= 0 ? Number(tree.children[idx].attributes?.per) || null : null;
-  return { theory, problems, labels, meta, problemsPer };
+  // 한 쪽 문항 수: ::problems{per=4} (모든 쪽), ::problems{first=4 per=6} (첫 쪽만 4)
+  const pa = idx >= 0 ? tree.children[idx].attributes ?? {} : {};
+  const problemsPer = Number(pa.per) || null;
+  const problemsFirst = Number(pa.first) || null;
+  return { theory, problems, labels, meta, problemsPer, problemsFirst };
 }

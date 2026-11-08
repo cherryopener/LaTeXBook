@@ -372,6 +372,8 @@ a.ref { color: inherit; text-decoration: none; }
 .problem-list[data-per="4"] article.problem:first-of-type, .problem-list[data-per="6"] article.problem:first-of-type { break-before: auto; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n), .problem-list[data-per="6"] article.problem:nth-of-type(3n+2), .problem-list[data-per="6"] article.problem:nth-of-type(3n) { border-top: 0.6pt dashed var(--grid); padding-top: 3mm; }
 .problem-list[data-per="6"] .problem-no { font-size: 14pt; margin-bottom: 2.5mm; }
+/* 쪽마다 문항 수가 바뀌는 곳(::problems{first=…}, ::page{per=…})은 새 쪽에서 */
+.problem-list.new-page { break-before: page; }
 .columns-2 { column-count: 2; column-gap: 7mm; word-break: normal; }
 
 /* ================= 한 문장 정의(:::def) · § 표시 (2026-11-07 사용자 요청) ================= */

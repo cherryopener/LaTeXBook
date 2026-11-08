@@ -41,7 +41,7 @@ export function renderChapterImpl(source, ctx = {}) {
   const dlAttr = (n) => { const l = lineOf(n); return l === undefined ? "" : ` data-line="${l}"`; };
   const srcOf = (n) => (n.position ? body.slice(n.position.start.offset, n.position.end.offset) : "");
 
-  const { theory, problems, labels, meta, problemsPer } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
+  const { theory, problems, labels, meta, problemsPer, problemsFirst } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
   let svgCount = 0;
 
   // KaTeX: 오류는 경고로, 분수가 든 인라인 수식은 has-frac
@@ -305,10 +305,30 @@ export function renderChapterImpl(source, ctx = {}) {
     `<section class="chapter" id="ch-${P}-${C}" data-palette="${esc(palette)}" data-part="${P}" data-chapter="${C}" data-edition="${edition}">\n` +
     `<section class="theory">${head("theory")}\n<div class="theory-body">\n${theoryHtml}\n</div>\n</section>\n`;
   if (problems) {
-    const probHtml = mdastToHtml(txAll(problems, { section: "problems" }));
-    // 한 쪽에 문항 2개(기본)·4개·6개: 장의 ::problems{per=…} > 책의 print.problemsPerPage
-    const per = [2, 4, 6].includes(problemsPer) ? problemsPer : [2, 4, 6].includes(Number(print.problemsPerPage)) ? Number(print.problemsPerPage) : 2;
-    out += `<section class="problems">${head("problems")}\n<div class="problem-list" data-per="${per}">\n${probHtml}\n</div>\n</section>\n`;
+    // 한 쪽에 문항 2개(기본)·4개·6개. 쪽마다 다르게 할 수 있다(2026-11-08 사용자 요청):
+    //  - ::problems{per=6}            모든 쪽 6문항
+    //  - ::problems{first=4 per=6}    첫 쪽(장 머리 띠가 있는 쪽)만 4문항, 다음 쪽부터 6문항
+    //  - 문항 사이 ::page{per=6}       여기서 새 쪽을 시작하고 그 뒤로 6문항씩
+    //  책 기본값: print.problemsPerPage
+    const ok = (n) => [2, 4, 6].includes(n);
+    const per = ok(problemsPer) ? problemsPer : ok(Number(print.problemsPerPage)) ? Number(print.problemsPerPage) : 2;
+    const isProblem = (n) => n.type === "containerDirective" && n.name === "problem";
+    const isPage = (n) => n.type === "leafDirective" && n.name === "page";
+    const groups = [{ per: ok(problemsFirst) ? problemsFirst : per, limit: ok(problemsFirst) ? problemsFirst : Infinity, nodes: [], count: 0 }];
+    for (const n of problems) {
+      let g = groups[groups.length - 1];
+      if (isPage(n)) {
+        const p = Number(n.attributes?.per);
+        groups.push({ per: ok(p) ? p : per, limit: Infinity, nodes: [], count: 0 });
+        continue;
+      }
+      if (isProblem(n) && g.count >= g.limit) { g = { per, limit: Infinity, nodes: [], count: 0 }; groups.push(g); }
+      g.nodes.push(n);
+      if (isProblem(n)) g.count++;
+    }
+    const lists = groups.filter((g) => g.nodes.length).map((g, i) =>
+      `<div class="problem-list${i ? " new-page" : ""}" data-per="${g.per}">\n${mdastToHtml(txAll(g.nodes, { section: "problems" }))}\n</div>`).join("\n");
+    out += `<section class="problems">${head("problems")}\n${lists}\n</section>\n`;
   }
   out += `</section>`;
 

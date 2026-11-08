@@ -250,6 +250,17 @@ console.log("큰 표지(Part) 모드");
   ok(rx.html.includes('<div class="problem-list" data-per="2">'), "잘못된 값은 2");
 }
 
+// 쪽마다 문항 수(2026-11-08): ::problems{first=4 per=6}, ::page{per=…}
+{
+  const pr = (n) => Array.from({ length: n }, (_, i) => `::::problem\n문항 ${i + 1}\n::::\n`).join("\n");
+  const r = renderChapter(`---\ntitle: t\n---\n개념\n\n::problems{first=4 per=6}\n\n${pr(10)}`, { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print });
+  eq(all(r.html, /<div class="problem-list[^"]*" data-per="(\d)">/g), ["4", "6"], "first=4 다음 per=6");
+  ok(r.html.includes('class="problem-list new-page" data-per="6"') && (r.html.match(/<article class="problem"/g) ?? []).length === 10 && r.html.includes("010"), "새 쪽 그룹, 문항 10개, 번호 이어짐");
+  const r2 = renderChapter(`---\ntitle: t\n---\n개념\n\n::problems{per=4}\n\n${pr(3)}\n::page{per=6}\n\n${pr(2)}`, { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print });
+  eq(all(r2.html, /<div class="problem-list[^"]*" data-per="(\d)">/g), ["4", "6"], "::page{per=6}");
+  ok(!r2.warnings.length, "::page 경고 없음");
+}
+
 console.log("여러 경우");
 const ctx0 = { ...base, edition: "student", partNo: 1, chapterNo: 3, palette: "teal", print };
 const rc = (src, extra = {}) => renderChapter(src, { ...ctx0, ...extra });
