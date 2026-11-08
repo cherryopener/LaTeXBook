@@ -55,6 +55,19 @@ await page.evaluate(() => {
 });
 check(await text() === " 자판 시험\n", "IME Process + KeyX → x", await text());
 
+// 세벌식 390: H 자리에서 'ㄴ'이 나와도 키 자리(KeyH) 기준으로 h. 숫자 자리(Digit3 → 3)도 자리 기준
+await reset("abcdef\n");
+await page.evaluate(() => {
+  const el = document.querySelector(".pl-editor .cm-content");
+  const kd = (key, code, shiftKey = false) => el.dispatchEvent(new KeyboardEvent("keydown", { key, code, shiftKey, bubbles: true, cancelable: true }));
+  kd("ㅅ", "Digit3"); kd("ㅌ", "KeyX");      // 3x (세벌식 390에서 3 자리는 ㅅ 받침)
+  kd("ㄷ", "KeyL"); kd("ㄴ", "KeyH");        // l h → 제자리
+  kd("ㅂ", "Semicolon", true);               // Shift+; → :
+});
+check(await text() === "def\n", "세벌식 390 자리 기준: 3x", await text());
+check(await page.locator(".cm-vim-panel input").count() === 1, "Shift+; 자리 → : 명령 줄");
+await page.keyboard.press("Escape");
+
 // 끄면 보통 편집
 await btn.click();
 await reset("abc\n");

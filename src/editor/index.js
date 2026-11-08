@@ -37,7 +37,20 @@ function defineVimEx() {
   Vim.defineEx("wq", "wq", () => vimSave?.());
   Vim.defineEx("xit", "x", () => vimSave?.());
 }
-// 노멀 모드에서 한글 자판이 켜져 있어도 명령이 되게: 자판 위치(event.code) 또는 두벌식 자모를 영문 글쇠로 바꿔 Vim에 넘긴다
+// 노멀 모드에서 한글 자판이 켜져 있어도 명령이 되게: 입력된 한글이 아니라 **눌린 키의 자리(event.code)** 를 미국 자판 글쇠로 바꿔 Vim에 넘긴다.
+// 그래서 두벌식·세벌식(390, 최종) 어느 자판이든 H 자리 = h. 세벌식은 숫자 줄·기호 자리에도 한글이 있으므로 숫자·기호도 자리로 바꾼다.
+// 영문 자판일 때(입력된 글자가 ASCII)는 손대지 않는다. event.code가 없을 때만 두벌식 자모 표로 짐작한다.
+const CODE_KEYS = {
+  Digit1: ["1", "!"], Digit2: ["2", "@"], Digit3: ["3", "#"], Digit4: ["4", "$"], Digit5: ["5", "%"],
+  Digit6: ["6", "^"], Digit7: ["7", "&"], Digit8: ["8", "*"], Digit9: ["9", "("], Digit0: ["0", ")"],
+  Minus: ["-", "_"], Equal: ["=", "+"], BracketLeft: ["[", "{"], BracketRight: ["]", "}"], Backslash: ["\\", "|"],
+  Semicolon: [";", ":"], Quote: ["'", '"'], Comma: [",", "<"], Period: [".", ">"], Slash: ["/", "?"], Backquote: ["`", "~"],
+};
+const keyFromCode = (code, shift) => {
+  if (/^Key[A-Z]$/.test(code)) return shift ? code.slice(3) : code.slice(3).toLowerCase();
+  const k = CODE_KEYS[code];
+  return k ? k[shift ? 1 : 0] : null;
+};
 const JAMO = { "ㅂ": "q", "ㅈ": "w", "ㄷ": "e", "ㄱ": "r", "ㅅ": "t", "ㅛ": "y", "ㅕ": "u", "ㅑ": "i", "ㅐ": "o", "ㅔ": "p",
   "ㅁ": "a", "ㄴ": "s", "ㅇ": "d", "ㄹ": "f", "ㅎ": "g", "ㅗ": "h", "ㅓ": "j", "ㅏ": "k", "ㅣ": "l",
   "ㅋ": "z", "ㅌ": "x", "ㅊ": "c", "ㅍ": "v", "ㅠ": "b", "ㅜ": "n", "ㅡ": "m",
@@ -48,10 +61,9 @@ const hangulKeys = EditorView.domEventHandlers({
     const cm = getCM(view);
     const vs = cm?.state?.vim;
     if (!vs || vs.insertMode) return false;
-    let k = JAMO[e.key] ?? null;
-    if (!k && (e.key === "Process" || e.isComposing || e.keyCode === 229) && /^Key[A-Z]$/.test(e.code)) {
-      k = e.shiftKey ? e.code.slice(3) : e.code.slice(3).toLowerCase();
-    }
+    const ascii = e.key.length === 1 && e.key.charCodeAt(0) < 128;
+    if (ascii || ["Escape", "Enter", "Backspace", "Tab", "Shift", "CapsLock"].includes(e.key) || e.key.startsWith("Arrow")) return false;
+    const k = (e.code && keyFromCode(e.code, e.shiftKey)) ?? JAMO[e.key] ?? null;
     if (!k) return false;
     e.preventDefault();
     Vim.handleKey(cm, k, "user");
