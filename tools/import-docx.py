@@ -70,8 +70,8 @@ def drawing_repl(m):
     return f'<w:t xml:space="preserve">⟦IMG:{len(images)-1}⟧</w:t>'
 
 # Wingdings 기호(w:sym)를 글자로(▪ 글머리, ➔ 화살표 등)
-SYM = {("Wingdings", "F0A7"): "▪", ("Wingdings", "F0E8"): "➔", ("Wingdings", "F0E0"): "→", ("Wingdings", "F0D8"): "➢",
-       ("Wingdings", "F0FC"): "✓", ("Wingdings", "F06C"): "●", ("Symbol", "F0B7"): "•", ("Wingdings 3", "F0C6"): "➔"}
+SYM = {("Wingdings", "F0A7"): "▪", ("Wingdings", "F0E8"): "→", ("Wingdings", "F0E0"): "→", ("Wingdings", "F0D8"): "➢",
+       ("Wingdings", "F0FC"): "✓", ("Wingdings", "F06C"): "●", ("Symbol", "F0B7"): "•", ("Wingdings 3", "F0C6"): "→"}
 def sym_repl(m):
     ch = SYM.get((m.group(1), m.group(2).upper()), "")
     if not ch: print("모르는 기호:", m.group(1), m.group(2), file=sys.stderr)
