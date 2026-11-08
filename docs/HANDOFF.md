@@ -109,3 +109,4 @@
 - 편집 칸 **Vim 모드**: 도구 막대 오른쪽 "Vim" 단추로 켜고 끔(브라우저에 기억). `@replit/codemirror-vim` 6.4.0을 `vendor/codemirror.js`에 함께 묶음. `:w`·`:wq`·`:x` = 저장. 노멀 모드에서 한글 자판이 켜져 있어도 **눌린 키 자리(event.code)** 를 미국 자판 글쇠로 바꿔 넘김(두벌식·세벌식 390·최종 모두, 숫자·기호 자리 포함)(`src/editor/index.js`). 시험 `tests/vim.test.mjs`. .vimrc는 읽지 않음.
 - 문제 쪽: 한 쪽 2·4·6문항, `::problems{first=4 per=6}`, `::page{per=…}` (FORMAT.md 3-8절).
 - SVG `<use>`는 편집기가 펼쳐서 넣음(조판기가 `<use>`를 못 그림).
+- 책 옮기기 방법은 비공개 저장소 `textbooks/guides/PORTING-GUIDE.md`. 비공개 책 조판은 `node tools/build-book.mjs <책 폴더> <이름> both`.
