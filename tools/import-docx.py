@@ -35,11 +35,18 @@ for m in re.finditer(r'<w:abstractNum [^>]*w:abstractNumId="(\d+)".*?</w:abstrac
         lv[int(l.group(1))] = (fmt.group(1) if fmt else "", txt.group(1) if txt else "")
     abstract[m.group(1)] = lv
 nums = {n: a for n, a in re.findall(r'<w:num w:numId="(\d+)"[^>]*>\s*<w:abstractNumId w:val="(\d+)"', numbering_xml)}
-style_num = {}
+style_num, based_on = {}, {}
 for m in re.finditer(r'<w:style [^>]*w:styleId="([^"]+)".*?</w:style>', styles_xml, re.S):
     n = re.search(r'<w:numId w:val="(\d+)"', m.group(0))
     il = re.search(r'<w:ilvl w:val="(\d+)"', m.group(0))
+    b = re.search(r'<w:basedOn w:val="([^"]+)"', m.group(0))
+    if b: based_on[m.group(1)] = b.group(1)
     if n: style_num[m.group(1)] = (n.group(1), int(il.group(1)) if il else 0)
+for st in list(based_on):  # 번호 매기기는 바탕 스타일에서 물려받는다
+    cur, seen = st, set()
+    while cur not in style_num and cur in based_on and cur not in seen:
+        seen.add(cur); cur = based_on[cur]
+    if st not in style_num and cur in style_num: style_num[st] = style_num[cur]
 
 def num_kind(num_id, ilvl):
     a = abstract.get(nums.get(num_id, ""), {})
