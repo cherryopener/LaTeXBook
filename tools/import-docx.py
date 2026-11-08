@@ -46,7 +46,7 @@ def num_kind(num_id, ilvl):
     fmt, txt = a.get(ilvl, ("", ""))
     if num_id == "0" or not fmt: return ""
     if fmt == "bullet":
-        return "bullet" if txt in ("", "•", "", "o", "▪", "■", "●", "", "") else "lit:" + txt
+        return "bullet"  # 글머리표 모양(•, ▪, Wingdings 등)은 모두 목록으로
     if fmt == "decimal" and re.fullmatch(r"%\d\.", txt): return "decimal"
     return "fmt:" + fmt + ":" + txt
 
@@ -57,9 +57,19 @@ def drawing_repl(m):
     e = re.search(r'<wp:extent cx="(\d+)" cy="(\d+)"', d)
     r = re.search(r'r:embed="(rId\d+)"', d)
     if not (e and r): return ""
-    images.append({"target": rels[r.group(1)], "cx": int(e.group(1)), "cy": int(e.group(2)), "anchor": "<wp:anchor" in d})
+    crop = re.search(r'<a:srcRect ([^/]*)/>', d)
+    crop = {k: int(v) for k, v in re.findall(r'(\w)="(-?\d+)"', crop.group(1))} if crop else {}
+    images.append({"target": rels[r.group(1)], "cx": int(e.group(1)), "cy": int(e.group(2)), "anchor": "<wp:anchor" in d, "crop": crop})
     return f'<w:t xml:space="preserve">⟦IMG:{len(images)-1}⟧</w:t>'
 
+# Wingdings 기호(w:sym)를 글자로(▪ 글머리, ➔ 화살표 등)
+SYM = {("Wingdings", "F0A7"): "▪", ("Wingdings", "F0E8"): "➔", ("Wingdings", "F0E0"): "→", ("Wingdings", "F0D8"): "➢",
+       ("Wingdings", "F0FC"): "✓", ("Wingdings", "F06C"): "●", ("Symbol", "F0B7"): "•", ("Wingdings 3", "F0C6"): "➔"}
+def sym_repl(m):
+    ch = SYM.get((m.group(1), m.group(2).upper()), "")
+    if not ch: print("모르는 기호:", m.group(1), m.group(2), file=sys.stderr)
+    return f'<w:t xml:space="preserve">{ch}</w:t>' if ch else ""
+doc = re.sub(r'<w:sym w:font="([^"]+)" w:char="([0-9A-Fa-f]+)"\s*/>', sym_repl, doc)
 # 장식 사각형(wps)은 통째로 지운다
 doc = re.sub(r'<mc:AlternateContent>.*?</mc:AlternateContent>', "", doc, flags=re.S)
 doc = re.sub(r'<w:drawing>.*?</w:drawing>', drawing_repl, doc, flags=re.S)
@@ -274,6 +284,17 @@ def save_image(i, part_no):
     ext = os.path.splitext(src)[1].lower().replace(".jpeg", ".jpg")
     img_count[part_no] = img_count.get(part_no, 0) + 1
     name = f"{part_no}-fig{img_count[part_no]:02d}"
+    if im.get("crop"):  # docx에서 일부만 잘라 쓴 그림(1/100000 단위)
+        from PIL import Image
+        c = im["crop"]; pic = Image.open(src); pic.seek(0)
+        if ext == ".gif": pic = pic.convert("RGBA")
+        Wd, Ht = pic.size
+        box = (round(Wd * c.get("l", 0) / 1e5), round(Ht * c.get("t", 0) / 1e5), round(Wd * (1 - c.get("r", 0) / 1e5)), round(Ht * (1 - c.get("b", 0) / 1e5)))
+        ext2 = ".png" if ext == ".gif" else ext
+        dst = os.path.join(OUT, "images", name + ext2)
+        pic.crop(box).save(dst)
+        report["images"].append({"file": name + ext2, "from": im["target"], "note": f"잘라 씀 {c}"})
+        return "images/" + os.path.basename(dst)
     if ext == ".gif":
         dst = os.path.join(OUT, "images", name + ".png")
         subprocess.run(["convert", src + "[0]", dst], check=True)
@@ -324,6 +345,9 @@ def para_md(p, part_no, ctx_side=False):
     text = re.sub(r"[ \t]+\n", "\n", text)
     if not re.sub(r"[\s\\]", "", text): return lines, figs
     num = p.get("num", "")
+    mb = re.match(r"^[▪•●]\s*", text)
+    if mb and st not in ("Body1", "Body2", "BodySectionSign"):  # 글자로 들어간 글머리표(Wingdings 기호)
+        text = text[mb.end():]; num = "bullet"
     if st == "Body1": lines.append("## " + text)
     elif st == "Body2": lines.append("### " + text)
     elif st == "BodySectionSign": lines.append("#### § " + text)
