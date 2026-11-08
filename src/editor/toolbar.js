@@ -194,6 +194,18 @@ export function createToolbar(parent, editor) {
     bar.append(group);
   }
 
+  // Vim 모드 켜기·끄기(편집기가 지원할 때만)
+  if (typeof editor.setVim === "function") {
+    const group = el("div", "pl-group pl-group-vim", { role: "group", "aria-label": "편집 방식" });
+    const b = baseButton({ glyph: "Vi", name: "Vim", desc: "Vim처럼 편집(노멀·입력 모드, :w 저장). 다시 누르면 끔" });
+    b.classList.add("pl-toggle");
+    const sync = () => { b.setAttribute("aria-pressed", editor.vim ? "true" : "false"); b.classList.toggle("on", !!editor.vim); };
+    b.addEventListener("click", () => { closeAll(); editor.setVim(!editor.vim); sync(); });
+    sync();
+    group.append(b);
+    bar.append(group);
+  }
+
   // 바깥을 누르거나 Esc를 누르면 펼침 닫기
   const onDocDown = (e) => { if (!bar.contains(e.target)) closeAll(); };
   const onDocKey = (e) => {

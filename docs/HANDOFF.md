@@ -103,3 +103,9 @@
 - 도구: `tools/import-physiklar.mjs`(RECOLOR 표), `tools/recolor-svg.mjs`, `tools/strip-web-only.mjs`, `tools/tone-check.mjs`(`--grow`), `tools/check-chapter.mjs`(경고·닫히지 않은 굵게).
 - 비공개 책 조판: 세션 scratchpad의 build-book.mjs 요지 — 책 폴더의 json·md → assembleBook → renderBook → buildDocument → tests/pages/integration.html → page.pdf. 그림은 `out/private/<이름>/books/b/images`, 글꼴은 `out/private/<이름>/fonts`로 복사(책 폴더 기준 `../../fonts`).
 - 저자 결정 대기: textbooks/PLAN.md 3절과 mid-corrections.md의 "저자 확인" 줄.
+
+## 6. 2026-11-08 추가
+
+- 편집 칸 **Vim 모드**: 도구 막대 오른쪽 "Vim" 단추로 켜고 끔(브라우저에 기억). `@replit/codemirror-vim` 6.4.0을 `vendor/codemirror.js`에 함께 묶음. `:w`·`:wq`·`:x` = 저장. 노멀 모드에서 한글 자판이 켜져 있어도 두벌식 자모·IME(Process) 글쇠를 영문 글쇠로 바꿔 넘김(`src/editor/index.js`). 시험 `tests/vim.test.mjs`. .vimrc는 읽지 않음.
+- 문제 쪽: 한 쪽 2·4·6문항, `::problems{first=4 per=6}`, `::page{per=…}` (FORMAT.md 3-8절).
+- SVG `<use>`는 편집기가 펼쳐서 넣음(조판기가 `<use>`를 못 그림).

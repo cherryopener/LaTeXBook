@@ -253,6 +253,7 @@ createEditor(parent: HTMLElement, opts: {
 
 type Editor = {
   getText(): string; setText(text: string): void;   // setText는 onChange를 부르지 않고 되돌리기·경고를 비움(app이 setWarnings를 다시 부를 것)
+  vim: boolean; setVim(on: boolean): void;        // Vim 모드(약속 밖 덧붙임, 2026-11-08). @replit/codemirror-vim. 켜짐은 브라우저 localStorage "pl-editor-vim"에 기억. :w = onSave
   focus(): void; pickImage(): void;                 // 덧붙임(2단계 A)
   goToLine(line: number): void;
   setWarnings(list: Warning[]): void;     // 해당 줄에 표시

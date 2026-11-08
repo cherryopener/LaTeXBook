@@ -8,6 +8,7 @@
 // - 스타일(editor.css)은 createEditor가 자동으로 불러온다. 직접 넣으려면 <link rel="stylesheet" href=".../src/editor/editor.css">.
 // - setText()는 onChange를 부르지 않는다(바꾼 쪽이 이미 아는 글이므로). goToLine()은 onCursorLine을 부르지 않는다(되돌아 울림 방지).
 import {
+  vim, Vim, getCM, Compartment,
   EditorView, EditorState, keymap, Prec, markdown, markdownLanguage, history, historyKeymap, defaultKeymap,
   drawSelection, dropCursor, highlightActiveLine, highlightSpecialChars, lineNumbers, placeholder,
   search, searchKeymap, Annotation, EditorSelection,
@@ -20,6 +21,43 @@ import { imageSupport } from "./images.js";
 import { createToolbar } from "./toolbar.js";
 
 export { createToolbar, COMMAND_NAMES, SHORTCUTS };
+
+// ───── Vim 모드(2026-11-08 사용자 요청) ─────
+// @replit/codemirror-vim: 노멀·입력·비주얼 모드, 이동(hjkl w b e 0 $ gg G), 편집(x dd yy p u Ctrl-r . ciw 등), 숫자 반복,
+// 검색(/ ? n N), 매크로(q), 마크(m '), 레지스터. :w 는 저장. .vimrc는 읽지 않는다.
+const VIM_KEY = "pl-editor-vim";
+const vimPref = { get() { try { return localStorage.getItem(VIM_KEY) === "1"; } catch { return false; } },
+  set(on) { try { localStorage.setItem(VIM_KEY, on ? "1" : "0"); } catch { /* 저장 못 해도 동작 */ } } };
+let vimSave = null; // :w 가 부를 저장 함수(지금 편집기의 onSave)
+let vimExReady = false;
+function defineVimEx() {
+  if (vimExReady) return;
+  vimExReady = true;
+  Vim.defineEx("write", "w", () => vimSave?.());
+  Vim.defineEx("wq", "wq", () => vimSave?.());
+  Vim.defineEx("xit", "x", () => vimSave?.());
+}
+// 노멀 모드에서 한글 자판이 켜져 있어도 명령이 되게: 자판 위치(event.code) 또는 두벌식 자모를 영문 글쇠로 바꿔 Vim에 넘긴다
+const JAMO = { "ㅂ": "q", "ㅈ": "w", "ㄷ": "e", "ㄱ": "r", "ㅅ": "t", "ㅛ": "y", "ㅕ": "u", "ㅑ": "i", "ㅐ": "o", "ㅔ": "p",
+  "ㅁ": "a", "ㄴ": "s", "ㅇ": "d", "ㄹ": "f", "ㅎ": "g", "ㅗ": "h", "ㅓ": "j", "ㅏ": "k", "ㅣ": "l",
+  "ㅋ": "z", "ㅌ": "x", "ㅊ": "c", "ㅍ": "v", "ㅠ": "b", "ㅜ": "n", "ㅡ": "m",
+  "ㅃ": "Q", "ㅉ": "W", "ㄸ": "E", "ㄲ": "R", "ㅆ": "T", "ㅒ": "O", "ㅖ": "P" };
+const hangulKeys = EditorView.domEventHandlers({
+  keydown(e, view) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return false;
+    const cm = getCM(view);
+    const vs = cm?.state?.vim;
+    if (!vs || vs.insertMode) return false;
+    let k = JAMO[e.key] ?? null;
+    if (!k && (e.key === "Process" || e.isComposing || e.keyCode === 229) && /^Key[A-Z]$/.test(e.code)) {
+      k = e.shiftKey ? e.code.slice(3) : e.code.slice(3).toLowerCase();
+    }
+    if (!k) return false;
+    e.preventDefault();
+    Vim.handleKey(cm, k, "user");
+    return true;
+  },
+});
 
 const fromGoTo = Annotation.define();
 
@@ -83,7 +121,14 @@ export function createEditor(parent, opts = {}) {
     { key: "Shift-Tab", run: (v) => !v.composing && tableNavigate(v, -1) },
   ];
 
+  defineVimEx();
+  vimSave = () => opts.onSave?.();
+  let vimOn = opts.vim ?? vimPref.get();
+  const vimComp = new Compartment();
+  const vimExt = (on) => (on ? [Prec.highest(hangulKeys), vim({ status: true })] : []);
+
   const extensions = [
+    vimComp.of(vimExt(vimOn)), // Vim 키맵은 다른 키맵보다 앞에
     warningGutter, // 경고 표시 칸은 줄 번호보다 왼쪽
     lineNumbers(),
     history(),
@@ -116,7 +161,7 @@ export function createEditor(parent, opts = {}) {
     }),
   ];
   let lastLine = 1;
-  const makeState = (doc) => EditorState.create({ doc, extensions });
+  const makeState = (doc) => EditorState.create({ doc, extensions: [vimComp.of(vimExt(vimOn)), ...extensions.slice(1)] });
   view = new EditorView({ state: makeState(opts.doc ?? ""), parent: body });
 
   function runCommand(name, arg) {
@@ -165,6 +210,14 @@ export function createEditor(parent, opts = {}) {
     },
     // 약속 밖 덧붙임
     focus: () => view.focus(),
+    /** Vim 모드 켜기·끄기(브라우저에 기억) */
+    get vim() { return vimOn; },
+    setVim(on) {
+      vimOn = !!on;
+      vimPref.set(vimOn);
+      view.dispatch({ effects: vimComp.reconfigure(vimExt(vimOn)) });
+      view.focus();
+    },
     pickImage: () => pickImage(),
     get canPickImage() { return typeof opts.onImage === "function"; },
     view,

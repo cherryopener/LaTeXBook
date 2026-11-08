@@ -37,7 +37,7 @@ export const { CoreViewer, ReadyState, PageViewMode, ZoomType, Navigation, PageP
   },
   {
     out: "vendor/codemirror.js",
-    license: "MIT (CodeMirror 6)",
+    license: "MIT (CodeMirror 6, @replit/codemirror-vim)",
     src: `
 export { basicSetup, minimalSetup } from "codemirror";
 export * from "@codemirror/state";
@@ -47,6 +47,7 @@ export * from "@codemirror/language";
 export * from "@codemirror/search";
 export * from "@codemirror/autocomplete";
 export { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+export { vim, Vim, getCM } from "@replit/codemirror-vim";
 `,
   },
 ];
