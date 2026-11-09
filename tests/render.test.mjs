@@ -368,5 +368,16 @@ console.log("exportPhysiklar");
   ok(np.source.includes("```plot") && np.files.length === 0, "plot 실패 시 블록 유지");
 }
 
+// 예제 상자 (2026-11-09)
+{
+  const src = "---\ntitle: 예\n---\n\n## 절\n\n:::example[지레]\n문제.\n\n**풀이** 답.\n:::\n\n:::example\n둘째.\n:::\n";
+  const r = renderChapter(src, { partNo: 1, chapterNo: 1 });
+  ok(/<aside class="callout example"[^>]*><p class="callout-title"><span class="example-no">예제 1<\/span> 지레<\/p>/.test(r.html), "예제 1 + 제목");
+  ok(r.html.includes('<span class="example-no">예제 2</span></p>'), "예제 2 (제목 없음)");
+  ok(!r.warnings.some((w) => w.code === "unknown-directive"), "예제: 모르는 상자 경고 없음");
+  const e = exportPhysiklar(src, {}).source;
+  ok(e.includes(":::note[예제 · 지레]") && e.includes(":::note[예제]\n둘째.") && !e.includes("example"), "예제 → note[예제 · …]");
+}
+
 console.log(`\nrender 시험: ${pass}개 통과, ${fail}개 실패 (결과: out/render/)`);
 process.exit(fail ? 1 : 0);

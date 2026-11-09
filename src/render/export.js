@@ -51,6 +51,11 @@ export function exportPhysiklarImpl(source, ctx = {}) {
         const m = /^(:+)side/.exec(body.slice(s));
         if (m) edits.push([s + m[1].length, s + m[0].length, "note"]);
       }
+      // 예제 → 참고 상자. 제목이 없으면 [예제]를 붙인다
+      if (n.type === "containerDirective" && n.name === "example") {
+        const m = /^(:+)example(\[)?/.exec(body.slice(s));
+        if (m) edits.push([s + m[1].length, s + m[1].length + "example".length + (m[2] ? 1 : 0), m[2] ? "note[예제 · " : "note[예제]"]);
+      }
       if (n.type === "textDirective" && n.name === "blank") {
         const k = n.children;
         if (!k.length) { edits.push([s, e, ""]); continue; }

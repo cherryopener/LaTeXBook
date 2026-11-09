@@ -7,6 +7,7 @@ import { parseRich, richWidth, richTspans, esc, FONT_MAIN } from "./rich.js";
 const PALETTES = {
   teal: { lines: ["#1c6862", "#b4571e", "#3b5f9e", "#7a6a14"], fill: "rgba(28,104,98,0.22)" },
   red: { lines: ["#690000", "#1f5a85", "#2d6a3a", "#8a5d00"], fill: "rgba(105,0,0,0.18)" },
+  violet: { lines: ["#3d1066", "#b4571e", "#1f6f8b", "#7a6a14"], fill: "rgba(61,16,102,0.18)" },
 };
 
 const BASE_W = 360;          // w=70%일 때 그림 너비(단위). w가 다르면 비례 → 글자 크기가 종이에서 일정

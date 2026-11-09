@@ -1,7 +1,7 @@
 // 모듈끼리 주고받는 데이터의 모양 (docs/INTERFACES.md 3절). 메인 세션 담당.
 
 /** @typedef {"teacher"|"student"} Edition */
-/** @typedef {"teal"|"red"} Palette */
+/** @typedef {"teal"|"red"|"violet"} Palette */
 /** @typedef {"a4"|"a4-bleed"} Paper  재단선판은 만들지 않음(인쇄소가 처리) */
 /**
  * @typedef {Object} PrintConfig

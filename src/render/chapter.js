@@ -43,6 +43,7 @@ export function renderChapterImpl(source, ctx = {}) {
 
   const { theory, problems, labels, meta, problemsPer, problemsFirst } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
   let svgCount = 0;
+  let exampleCount = 0;
 
   // KaTeX: 오류는 경고로, 분수가 든 인라인 수식은 has-frac
   function tex(src, display, node) {
@@ -174,6 +175,14 @@ export function renderChapterImpl(source, ctx = {}) {
   function container(n, env) {
     const name = n.name;
     const box = (cls, kids) => el("div", { className: [cls], ...dl(n) }, kids);
+    // 예제(풀이까지 본문에 보이는 계산 예): 장마다 "예제 1, 2, …" 자동 번호, [제목]은 번호 뒤에 붙는다. 2026-11-09 사용자 요청
+    if (name === "example") {
+      exampleCount++;
+      const kids = n.children ?? [];
+      const lab = kids[0]?.data?.directiveLabel ? kids[0] : null;
+      const title = el("p", { className: ["callout-title"] }, [html(`<span class="example-no">예제 ${exampleCount}</span>`), ...(lab ? [{ type: "text", value: " " }, ...txAll(lab.children, env)] : [])]);
+      return el("aside", { className: ["callout", "example"], ...dl(n) }, [title, ...txAll(lab ? kids.slice(1) : kids, env)]);
+    }
     if (CALLOUT_TITLE[name]) return el("aside", { className: ["callout", name], ...dl(n) }, titled(n, env, "callout-title", CALLOUT_TITLE[name]));
     switch (name) {
       case "side":

@@ -34,6 +34,20 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   --red-em: #d8322a;
   --red-tint: #fbeceb;
   --red-mark: #fff6a0;
+  /* 보라(빛과 물질) — 2026-11-09 시안. 짙은 보라 바탕 + 네온 분홍·하늘색 */
+  --violet-base: #3d1066;
+  --violet-dark: #1f0838;
+  --violet-accent: #ff4fd8;
+  --violet-side: #c77dff;
+  --violet-big: #ff4fd8;
+  --violet-shadow: #37ebf3;
+  --violet-title: #f0b8ff;
+  --violet-hi: #c77dff;
+  --violet-rule: #c77dff;
+  --violet-frame: #ff4fd8;
+  --violet-em: #7b2cbf;
+  --violet-tint: #f3ebfb;
+  --violet-mark: #fbd5f3;
   /* 색 묶음과 관계없는 인쇄 색 */
   --ink: #1a1a1a;
   --ink-red: #d6322a; --ink-blue: #1f5fb4; --ink-green: #178a52;
@@ -62,6 +76,15 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   --c-em: var(--red-em); --c-tint: var(--red-tint); --c-mark: var(--red-mark);
   --plot-1: var(--red-base); --plot-2: var(--red-side); --plot-3: var(--red-shadow); --plot-4: var(--red-dark);
   --plot-fill: var(--red-tint);
+}
+
+[data-palette="violet"] {
+  --c-base: var(--violet-base); --c-dark: var(--violet-dark); --c-accent: var(--violet-accent); --c-side: var(--violet-side);
+  --c-big: var(--violet-big); --c-shadow: var(--violet-shadow); --c-rule: var(--violet-rule);
+  --c-title: var(--violet-title); --c-hi: var(--violet-hi); --c-frame: var(--violet-frame);
+  --c-em: var(--violet-em); --c-tint: var(--violet-tint); --c-mark: var(--violet-mark);
+  --plot-1: var(--violet-base); --plot-2: var(--violet-side); --plot-3: var(--violet-shadow); --plot-4: var(--violet-dark);
+  --plot-fill: var(--violet-tint);
 }
 
 /* ================= 쪽 =================
@@ -100,7 +123,7 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 /* 부 표지(도련까지 바탕색)·부 목차 */
 /* 부 표지·부 목차 쪽: 여백 0, 머리말·꼬리말 없음. 바탕색은 쪽(@page background)이 아니라 표지 요소가 칠한다.
    Vivliostyle이 표지 다음 쪽(부 목차)에도 표지 쪽의 바탕을 칠하는 문제가 있어서(2026-11-07 확인) */
-@page cover-teal, cover-red, part-toc { margin: 0;
+@page cover-teal, cover-red, cover-violet, part-toc { margin: 0;
   @top-left { content: none; } @top-center { content: none; } @top-right { content: none; }
   @bottom-left { content: none; } @bottom-center { content: none; } @bottom-right { content: none; } }
 /* 책 첫 쪽: 책 제목 + 한 쪽짜리 목차(쪽수 자동) */
@@ -134,6 +157,7 @@ img, svg { max-width: 100%; }
 [data-paper="a4-bleed"] .part-cover::before { top: 17mm; right: 23mm; bottom: 17mm; left: 23mm; }
 .part-cover[data-palette="teal"] { page: cover-teal; }
 .part-cover[data-palette="red"] { page: cover-red; }
+.part-cover[data-palette="violet"] { page: cover-violet; }
 .part-no { font-family: var(--font-big); font-size: 180pt; line-height: 1; color: var(--c-big);
   text-shadow: 1.2mm 1.2mm 0 var(--c-shadow); margin: 0 0 4mm; }
 .part-title { font-family: var(--font-head); font-weight: 800; font-size: 58pt; line-height: 1.45; color: var(--c-big);
@@ -299,6 +323,11 @@ h4 { font-size: 10pt; font-weight: 700; margin: 4mm 0 1.5mm; }
 .callout.warn { border-left-color: var(--c-side); }
 .callout.think { border-style: dashed; border-left-style: solid; }
 .callout > :last-child { margin-bottom: 0; }
+/* 예제: 흰 바탕 + 위쪽 굵은 선, 제목 앞 "예제 n" 띠. "풀이" 문단은 **풀이** 로 시작 */
+.callout.example { background: #fff; border: 0.6pt solid var(--c-base); border-top: 1.2mm solid var(--c-base); }
+.callout.example .callout-title { font-size: 10pt; color: var(--ink); }
+.callout.example .example-no { display: inline-block; margin-right: 1.5mm; padding: 0.2mm 2mm; background: var(--c-base); color: var(--c-title);
+  font-family: var(--font-head); font-weight: 700; }
 .teacher-only { margin: 3mm 0; padding: 2mm 3mm; border: 0.6pt dashed var(--c-em); color: var(--c-em); font-size: 9pt; line-height: 1.6; break-inside: avoid; }
 .teacher-only::before { content: "교사용"; display: block; font-weight: 700; font-size: 8pt; margin-bottom: 0.5mm; }
 .teacher-only > :last-child { margin-bottom: 0; }
