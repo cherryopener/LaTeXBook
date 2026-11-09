@@ -116,3 +116,5 @@
 - `tools/import-docx.py`(pandoc 필요): 저자의 Word 교재를 책 폴더로 기계 변환. 단락 스타일(Chapter1·Chapter2Text·Body1·Body2·Side*·BodyTable*·Problem*)로 부·장·절·옆 단·표를 읽고, 수식(OMML)은 pandoc이 LaTeX로, 그림은 `images/<부번호>-figNN`으로 꺼냄(GIF는 첫 장면 PNG). 문제(Problem*/Choice*)와 서식 견본 글자는 뺌. 수식 속 한글은 `\text{}`, ℃·℉는 `{^\circ}\text{C}`. 설정 json: `parts[{slug, palette, cover, chapters[]}]`, `junk[]`.
 - `tools/text-diff.py`: 기계 변환 커밋과 지금 원고의 글자 차이만(빈칸·굵게·상자·그림 설명 무시) 뽑음 → 고친 곳 목록과 맞는지 대조.
 - 이것으로 textbooks `books/gifted-mech`·`gifted-em`·`gifted-wave`(영재 역학·전자기학·파동광학)를 만듦. 작업자 지시서 `textbooks/guides/brief-docx.md`, `brief-docx-svg.md`.
+- 책 첫 쪽 목차 깊이 `print.tocDepth`(1 = 장까지, 2 = 절까지). 영재 3권은 2.
+- 영재 3권 상태(2026-11-09): 저자 확인 거리 모두 반영, 그림은 저자 도식 71개(PNG)를 빼고 모두 SVG. 문제는 저자가 직접 넣을 예정(장마다 `::problems`).
