@@ -199,6 +199,15 @@ img, svg { max-width: 100%; }
 .has-covers .book-toc .toc-part a { font-size: 11.5pt; }
 .has-covers .book-toc .toc-part .toc-no { min-width: 9mm; }
 .has-covers .book-toc .toc-chapter a { font-size: 9.6pt; line-height: 1.75; padding-left: 9mm; }
+/* 목차 깊이 2(print.tocDepth): 장 아래 절. 작게, 한 칸 더 들여 씀 */
+.book-toc .toc-section a { font-size: 8.6pt; line-height: 1.6; padding-left: 13mm; color: #4b5563; }
+.book-toc .toc-section .toc-no { font-family: var(--font-num); font-weight: 500; color: var(--c-side); min-width: 5mm; }
+.book-toc .toc-section a::after { font-size: 8pt; font-weight: 500; color: #6b7280; }
+.has-covers .book-toc .toc-section a { font-size: 8.4pt; line-height: 1.55; padding-left: 10.5mm; }
+.toc-deep .book-toc .toc-chapter a { font-weight: 700; }
+.has-covers .book-toc li { break-inside: avoid; }
+.has-covers[data-covers="3"] .book-toc .toc-section a, .has-covers[data-covers="4"] .book-toc .toc-section a { padding-left: 7mm; font-size: 8pt; }
+.has-covers[data-covers="3"] .book-toc .toc-section .toc-no, .has-covers[data-covers="4"] .book-toc .toc-section .toc-no { min-width: 4mm; }
 
 /* ================= 장·구간 ================= */
 /* 쪽 시작 규칙(chapterStart). 기본 left: 부 표지·개념 시작·문제 시작이 모두 짝수(왼쪽) 쪽 — 사용자 교재 방식(2026-11-07)

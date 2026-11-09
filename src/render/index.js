@@ -75,6 +75,12 @@ export function renderBook(book, opts = {}) {
     }
     for (const c of chapters) {
       toc.push({ part: P, chapter: c.no, seq: c.seq, title: c.meta.title, palette });
+      // print.tocDepth 2: 책 첫 쪽 목차에 장 아래 절(##)까지
+      if ((print.tocDepth ?? 1) >= 2) {
+        for (const h of c.meta.headings ?? []) {
+          if (h.level === 2 && h.id) toc.push({ part: P, chapter: c.no, section: h.id, no: h.number, title: h.text, palette });
+        }
+      }
       html.push(c.html);
     }
   });
@@ -101,11 +107,14 @@ function bookFront(book, print, toc, resolveAsset = (s) => s, coverMode = false)
     `<li class="${cls}"${palette ? ` data-palette="${esc(palette)}"` : ""}><a href="#${href}"><span class="toc-no">${esc(no)}</span><span class="toc-title">${esc(title)}</span><span class="toc-fill"></span></a></li>`;
   const items = toc.map((t) => t.cover
     ? item("toc-cover", `cover-${t.cover}`, `${t.label} ${t.no}`, t.title, t.palette)
+    : t.section
+      ? item("toc-section", t.section, t.no ?? "", t.title, t.palette)
     : t.chapter
       ? item("toc-chapter", `ch-${t.part}-${t.chapter}`, `${t.seq ?? t.chapter}`, t.title, t.palette)
       : item("toc-part", `part-${t.part}`, String(t.part).padStart(2, "0"), t.title, t.palette)).join("");
   const covers = toc.filter((t) => t.cover).length;
-  return `<section class="book-front${coverMode ? " has-covers" : ""}"${coverMode ? ` data-covers="${covers}"` : ""} data-palette="${esc(print.palette ?? "teal")}">\n` +
+  const deep = toc.some((t) => t.section);
+  return `<section class="book-front${coverMode ? " has-covers" : ""}${deep ? " toc-deep" : ""}"${coverMode ? ` data-covers="${covers}"` : ""} data-palette="${esc(print.palette ?? "teal")}">\n` +
     `${art}\n` +
     `<nav class="book-toc"><h2>CONTENTS</h2><ol>${items}</ol></nav>\n</section>`;
 }

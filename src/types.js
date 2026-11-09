@@ -16,6 +16,7 @@
  * @property {"000"|"0"} problemNumber
  * @property {"left"|"right"|"any"} chapterStart
  * @property {"outside"|"left"} sideColumn
+ * @property {1|2} [tocDepth]  책 첫 쪽 목차 깊이: 1 = 장까지, 2 = 절(##)까지
  */
 /**
  * @typedef {Object} BookSource
@@ -35,6 +36,7 @@ export const PRINT_DEFAULTS = Object.freeze({
   problemNumber: "000",
   chapterStart: "left",
   sideColumn: "outside",
+  tocDepth: 1,
 });
 
 /** book.json 전체를 받아 print 칸에 기본값을 채운 PrintConfig를 돌려준다 */
