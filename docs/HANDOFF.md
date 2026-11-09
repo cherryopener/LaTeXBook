@@ -119,3 +119,9 @@
 - 이것으로 textbooks `books/gifted-mech`·`gifted-em`·`gifted-wave`(영재 역학·전자기학·파동광학)를 만듦. 작업자 지시서 `textbooks/guides/brief-docx.md`, `brief-docx-svg.md`.
 - 책 첫 쪽 목차 깊이 `print.tocDepth`(1 = 장까지, 2 = 절까지). 영재 3권은 2.
 - 영재 3권 상태(2026-11-09): 저자 확인 거리 모두 반영, 그림은 저자 도식 71개(PNG)를 빼고 모두 SVG. 문제는 저자가 직접 넣을 예정(장마다 `::problems`).
+
+## 8. 2026-11-10 추가 (물리학 고2 선행 교재)
+
+- 새 기능: 보라 색 묶음 `palette: "violet"`(빛과 물질), 예제 상자 `:::example[제목]`(장마다 "예제 n" 자동 번호, 교사용·학생용 모두 보임, Physiklar로는 `:::note[예제 · 제목]`), Part 가 셋 이상일 때 첫 쪽 목차의 Part 머리를 두 줄로(겹침 고침). FORMAT.md 3-4-0절. 웹 편집기 브랜치(`claude/textbook-webapp-plan-4xtu34`)에도 반영함.
+- 책: 비공개 textbooks `books/physics`(21장, 178쪽). 계획·저자 지침은 `textbooks/PLAN.md` 5절, 종이 교재를 처음부터 쓰는 가이드는 `textbooks/guides/new-book/print-style-guide.md`, 저자 확인 거리는 `textbooks/notes/physics-author-check.md`.
+- 참고 교과서 PDF 두 권은 저자의 OneDrive 공유 링크로 받음(저장소에 넣지 않음). 받으려면 OneDrive 주소를 허용한 환경 "교재 제작 (OneDrive 받기)"이 필요하고, 내려받기 주소는 `https://my.microsoftpersonalcontent.com/personal/<소유자 id>/_layouts/15/download.aspx?share=<공유 id>` 꼴.
