@@ -97,7 +97,8 @@
 
 ## 5. 2026-11-07 밤 상태 (중등 이식)
 
-- 책 셋(모두 비공개 `textbooks`): `books/bridge`(133쪽, 살 붙이기·사실 확인 끝), `books/mid-1`(중등 역학, Part 3개, 18장, 66쪽), `books/mid-2`(중등 전자기 + 파동, Part 2개, 18장, 63쪽).
+- 책 셋(모두 비공개 `textbooks`): `books/bridge`(133쪽, 살 붙이기·사실 확인 끝), `books/mid-1`(중등 역학, Part 3개, 부 9개, 17장, 64쪽), `books/mid-2`(중등 전자기 + 파동, Part 2개, 부 8개, 16장, 58쪽).
+  - 처음 옮길 때는 두 권 모두 18장이었다. 2026-11-08 저자 지시로 장을 합침: 1권 16·17장, 2권 전류+전압·옴의 법칙+저항 연결(textbooks 커밋 1414fd1). 쪽수는 2026-11-09 교사용 조판 기준.
 - 책 제작 계획·저자 결정은 `textbooks/PLAN.md`, 중등 고친 곳 목록은 `textbooks/notes/mid-corrections.md`, 축약 분석은 `textbooks/notes/simplification-analysis.md`.
 - 이번에 더한 편집기 기능: `:::def`(„ “ 한 문장 정의), note·think 제목 앞 §, `print.fonts.latin`(로마자·숫자만 Tinos/EB Garamond, lining 숫자), 빠진 기호를 KaTeX·Noto로 메움, 굵은 빈칸 `**:blank[…]**`, 목차 Part 수만큼 단, 장 번호 상자 위치.
 - 도구: `tools/import-physiklar.mjs`(RECOLOR 표), `tools/recolor-svg.mjs`, `tools/strip-web-only.mjs`, `tools/tone-check.mjs`(`--grow`), `tools/check-chapter.mjs`(경고·닫히지 않은 굵게).
