@@ -103,6 +103,12 @@ function wrapOrInsert(state, head, tailLine, placeholder, selWord) {
   return placeBlock(state, block, { sel });
 }
 
+/** 줄마다 번호가 붙는 상자(선지·보기). 고른 줄이 있으면 감싸고, 없으면 빈 상자를 넣고 안쪽 첫 줄에 커서 */
+function listBox(state, head) {
+  if (selectedLines(state)) return wrapOrInsert(state, head, ":::", "");
+  return placeBlock(state, `${head}\n\n:::`, { sel: [head.length + 1, head.length + 1] });
+}
+
 // ───────────────────────── 글 속 서식 ─────────────────────────
 
 /** 양쪽 공백은 감싸는 범위에서 뺀다("**a **" 같은 깨진 서식 방지) */
@@ -384,6 +390,9 @@ export const COMMANDS = {
   },
   problem,
   solution,
+  // 5지선다·<보기>: 줄마다 ①②③…, ㄱ. ㄴ. ㄷ.이 인쇄에서 자동으로 붙는다. 첫 줄에 커서
+  choices: (state) => listBox(state, ":::choices"),
+  bogi: (state) => listBox(state, ":::bogi"),
   space: (state) => {
     const block = "::space{h=30}";
     return placeBlock(state, block, { sel: selOf(block, "30") });

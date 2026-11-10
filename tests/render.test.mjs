@@ -272,6 +272,24 @@ console.log("연습문제 장(Q)");
   ok(r.html.includes('<span class="fig-no">그림 1.2</span> 이름 있는 그림') && r.html.includes('>그림 1.2</a>을 보시오'), "문제 그림도 #이름이 있으면 번호·참조");
 }
 
+// 5지선다(:::choices)와 <보기>(:::bogi): 줄마다 ①②③…, ㄱ. ㄴ. ㄷ. (2026-11-10 사용자 요청)
+{
+  const mk = (box) => `---\ntitle: t\n---\n::problems\n\n::::problem\n물음\n\n${box}\n::::\n`;
+  const rc = (box, ex = {}) => renderChapter(mk(box), { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print: { ...print, ...ex } }).html;
+  const short = rc(":::choices\n1 m/s²\n2 m/s²\n3 m/s²\n4 m/s²\n5 m/s²\n:::");
+  eq(all(short, /<span class="choice-no">(.)<\/span>/g), ["①", "②", "③", "④", "⑤"], "선지 번호 ①~⑤");
+  ok(short.includes('data-cols="5"') && short.includes('<span class="choice"><span class="choice-no">①</span>1 m/s²</span>'), "짧은 선지는 한 줄에 다섯");
+  ok(rc(":::choices\nㄱ\nㄷ\nㄱ, ㄴ\nㄴ, ㄷ\nㄱ, ㄴ, ㄷ\n:::").includes('data-cols="5"'), "ㄱㄴㄷ 선지도 한 줄에 다섯");
+  const long = rc(":::choices\n물체의 속력은 일정하다.\n물체에 작용하는 알짜힘은 0이다.\n물체의 가속도는 $a$이다.\n물체는 등속 원운동을 한다.\n물체의 운동 에너지는 감소한다.\n:::");
+  ok(long.includes('data-cols="1"') && long.includes("<span class=\"choice-no\">③</span>물체의 가속도는 <span class=\"katex"), "긴 선지는 한 줄에 하나, 수식 그대로");
+  ok(rc(":::choices{cols=2}\n가\n나\n다\n라\n마\n:::").includes('data-cols="2"'), "{cols=2}로 직접 정함");
+  ok(rc(":::choices\n가\n\n나\n:::").match(/class="choice"/g).length === 2, "빈 줄은 항목이 아님");
+  const bg = rc(":::bogi\nA의 속력은 $2v$이다.\nB는 정지해 있다.\nC의 에너지는 증가한다.\n:::");
+  eq(all(bg, /<span class="bogi-no">([^<]+)<\/span>/g), ["ㄱ.", "ㄴ.", "ㄷ."], "보기 번호 ㄱ. ㄴ. ㄷ.");
+  ok(bg.includes('<div class="bogi-title">보기</div>'), "보기 제목");
+  ok(rc(":::bogi[조건]\n가\n:::").includes('<div class="bogi-title">조건</div>'), "보기 제목 바꾸기 [조건]");
+}
+
 // 한 쪽 문항 수(2026-11-08 사용자 요청): ::problems{per=4} > print.problemsPerPage > 2
 {
   const src = "---\ntitle: t\n---\n개념\n\n::problems{per=4}\n\n::::problem\n가\n::::\n";

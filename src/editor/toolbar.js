@@ -44,6 +44,8 @@ const GROUPS = [
   { label: "문제", items: [
     { cmd: "problem", glyph: "Q", name: "문제 추가", desc: "문항 틀(풀이 포함)을 넣기. 문제 구간이 없으면 장 끝에 만듦" },
     { cmd: "solution", glyph: "해", name: "해설", desc: "문항 안에 해설(:::solution) 넣기" },
+    { cmd: "choices", glyph: "①", name: "선지", desc: "5지선다(:::choices). 한 줄에 하나씩 쓰면 ①②③④⑤가 차례로 붙음" },
+    { cmd: "bogi", glyph: "ㄱ", name: "보기", desc: "<보기> 상자(:::bogi). 한 줄에 하나씩 쓰면 ㄱ. ㄴ. ㄷ.이 차례로 붙음" },
     { cmd: "space", glyph: "↕", name: "풀이 공간", desc: "학생이 풀 빈 공간 (::space)" },
   ] },
 ];

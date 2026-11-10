@@ -8,6 +8,48 @@ import { checkRawHtml, sanitizeSvg } from "./sanitize.js";
 
 const CALLOUT_TITLE = { note: "참고", tip: "팁", warn: "주의", think: "더 생각해 보기" };
 const COLORS = new Set(["red", "blue", "green"]);
+// 5지선다 번호와 <보기> 번호(2026-11-10 사용자 요청). 줄 하나 = 항목 하나
+const CHOICE_NO = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
+const BOGI_NO = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+
+/** 상자 안의 글을 줄(엔터)마다 나눈다. 문단 안의 줄바꿈·빈 줄 모두 항목 경계. 문단이 아닌 덩어리(식 등)는 그 자체로 한 항목 */
+function splitLines(kids) {
+  const items = [];
+  for (const k of kids) {
+    if (k.type !== "paragraph") { items.push([k]); continue; }
+    let cur = [];
+    const push = () => { if (cur.some((c) => c.type !== "text" || c.value.trim())) items.push(cur); cur = []; };
+    for (const c of k.children ?? []) {
+      if (c.type === "break") { push(); continue; }
+      if (c.type !== "text" || !c.value.includes("\n")) { cur.push(c); continue; }
+      c.value.split("\n").forEach((part, i) => { if (i) push(); if (part) cur.push({ ...c, value: part }); });
+    }
+    push();
+  }
+  // 줄 앞뒤 공백 정리
+  for (const it of items) {
+    const a = it[0], b = it[it.length - 1];
+    if (a?.type === "text") it[0] = { ...a, value: a.value.replace(/^\s+/, "") };
+    if (b?.type === "text") it[it.length - 1] = { ...it[it.length - 1], value: it[it.length - 1].value.replace(/\s+$/, "") };
+  }
+  return items;
+}
+
+/** 글 폭 어림(em). 한글 1, 로마자·숫자 0.47, 빈칸·좁은 기호 0.25~0.3, 수식은 명령을 한 글자로 쳐서 0.55 + 관계 기호 앞뒤 띄움 */
+function textWidthEm(nodes) {
+  let w = 0;
+  const chars = (s) => { for (const ch of s) w += /[\u1100-\u11ff\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(ch) ? 1 : /\s/.test(ch) ? 0.25 : /[.,;:'"()\[\]|/²³¹°]/.test(ch) ? 0.3 : 0.47; };
+  const walk = (n) => {
+    if (n.type === "text") chars(n.value);
+    else if (n.type === "inlineMath" || n.type === "math") {
+      const v = String(n.value);
+      w += 0.55 * v.replace(/\\[a-zA-Z]+/g, "x").replace(/[{}^_\s]/g, "").length + 0.55 * (v.match(/[<>=]|\\(?:le|ge|leq|geq|ne|neq|approx|propto|sim)\b/g) ?? []).length;
+    }
+    else for (const c of n.children ?? []) walk(c);
+  };
+  nodes.forEach(walk);
+  return w;
+}
 
 const toHast = unified().use(remarkRehype, { allowDangerousHtml: true });
 const toText = unified().use(rehypeStringify, { allowDangerousHtml: true });
@@ -172,6 +214,36 @@ export function renderChapterImpl(source, ctx = {}) {
     return el("article", props, out);
   }
 
+  // 5지선다: 줄마다 ①②③④⑤. 한 줄에 몇 개 놓을지(5·3·2·1)는 가장 긴 항목의 글 폭으로 정한다. {cols=…}로 직접 정할 수도 있음
+  function choices(n, env) {
+    const items = splitLines(unlabeled(n));
+    if (items.length > CHOICE_NO.length) warn("too-many-choices", `선지가 ${items.length}개입니다. ${CHOICE_NO.length}개까지만 번호를 붙입니다.`, n);
+    const fsz = print.fontSizes ?? {};
+    const pt = Number(env.section === "problems" ? fsz.problem ?? 9.6 : fsz.body ?? 10.4) || 10;
+    const widthMm = env.section === "problems" ? 84.5 : env.inSide ? 38 : 132; // 문제 한 단 / 옆 단 / 개념 본문 폭
+    const lineEm = widthMm / (pt * 0.3528);
+    const widths = items.map((it) => textWidthEm(it) + 1.45); // 글 + 번호
+    const want = Number(n.attributes?.cols);
+    // 다섯 개를 한 줄에: 글 폭대로 놓고 사이를 고르게 벌림(시험지처럼). 사이 최소 0.8em
+    const oneRow = widths.reduce((a, b) => a + b, 0) + (items.length - 1) * 0.8 <= lineEm;
+    // 여러 줄: 같은 폭 칸(3·2·1개). 칸 폭 = 가장 긴 항목 + 오른쪽 띄움 0.6em
+    const need = Math.max(0, ...widths) + 0.6;
+    const cols = [1, 2, 3, 4, 5].includes(want) ? want : items.length >= 4 && oneRow ? 5 : [3, 2].find((c) => c < items.length && need * c <= lineEm) ?? 1;
+    const kids = items.map((it, i) => el("span", { className: ["choice"] }, [html(`<span class="choice-no">${CHOICE_NO[i] ?? ""}</span>`), ...txAll(it, env)]));
+    return el("div", { className: ["choices"], dataCols: String(cols), ...dl(n) }, kids);
+  }
+
+  // <보기> 상자: 줄마다 ㄱ. ㄴ. ㄷ. … [제목]이 있으면 "보기" 대신 그 제목
+  function bogi(n, env) {
+    const kids = n.children ?? [];
+    const lab = kids[0]?.data?.directiveLabel ? kids[0] : null;
+    const items = splitLines(unlabeled(n));
+    if (items.length > BOGI_NO.length) warn("too-many-choices", `보기가 ${items.length}개입니다. ${BOGI_NO.length}개까지만 번호를 붙입니다.`, n);
+    const title = el("div", { className: ["bogi-title"] }, lab ? txAll(lab.children, env) : [{ type: "text", value: "보기" }]);
+    const list = items.map((it, i) => el("div", { className: ["bogi-item"] }, [html(`<span class="bogi-no">${BOGI_NO[i] ?? ""}.</span>`), ...txAll(it, env)]));
+    return el("div", { className: ["bogi"], ...dl(n) }, [title, el("div", { className: ["bogi-body"] }, list)]);
+  }
+
   function container(n, env) {
     const name = n.name;
     const box = (cls, kids) => el("div", { className: [cls], ...dl(n) }, kids);
@@ -200,6 +272,8 @@ export function renderChapterImpl(source, ctx = {}) {
       case "teacher": return box(teacher ? "teacher-only" : "teacher-only placeholder", txAll(unlabeled(n), env));
       case "solution": return teacher ? box("solution", txAll(unlabeled(n), env)) : null;
       case "problem": return problem(n, env);
+      case "choices": return choices(n, env);
+      case "bogi": return bogi(n, env);
       default:
         if (HIDDEN.has(name)) return null;
         warn("unknown-directive", `모르는 상자 디렉티브 :::${name} — 안의 내용만 넣었습니다.`, n);
