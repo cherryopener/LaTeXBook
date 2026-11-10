@@ -234,6 +234,7 @@ export function createGitHubStore({ owner, repo, branch = "main", token } = {}) 
     await pool(rels, CONCURRENCY, async ([rel, info]) => { files[rel] = await fetchText(info.sha, info.size); });
     const book = assembleBook(id, files);
     for (const part of book.parts) for (const ch of part.chapters) ch.sha = idx.get(prefix + ch.path)?.sha;
+    book.configSha = idx.get(`${prefix}book.json`)?.sha; // 책 설정(글자 크기 등)을 저장할 때 씀
     return book;
   }
 

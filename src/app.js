@@ -3,7 +3,7 @@
 import { createEditor, createToolbar } from "./editor/index.js";
 import { renderBook } from "./render/index.js";
 import { splitFrontMatter } from "./render/util.js";
-import { buildDocument, createPreview, printPdf } from "./layout/index.js";
+import { buildDocument, createPreview, printPdf, FONT_SIZES, fontSizeValue, fontSizesOf } from "./layout/index.js";
 import * as storage from "./storage/index.js";
 import { createSampleSource, createGitHubSource, collectAssetSrcs } from "./sources.js";
 
@@ -48,6 +48,11 @@ function makePreview() {
 
 // ---------- 책·장 ----------
 const chapterAt = ({ part, chapter }) => state.book?.parts[part - 1]?.chapters[chapter - 1] ?? null;
+// 저장하지 않은 것: 고친 장, 또는 바꾼 책 설정(본문 글자 크기)
+const chaptersDirty = () => !!state.book?.parts.some((p) => p.chapters.some((c) => c.source !== c.saved));
+const sameSizes = (a, b) => Object.keys(FONT_SIZES).every((k) => a[k] === b[k]);
+const configDirty = () => !!state.book && !sameSizes(fontSizesOf(state.book.print), state.book.fontSizesSaved);
+const bookDirty = () => chaptersDirty() || configDirty();
 const draftKey = (ch) => `${state.source.kind}:${state.book.id}/${ch.path}`;
 
 async function useSource(source, bookId) {
@@ -74,7 +79,9 @@ async function openBook(id, { asked = false, at = null } = {}) {
   $("#book-title").textContent = "불러오는 중…";
   const book = await state.source.loadBook(id);
   for (const p of book.parts) for (const ch of p.chapters) ch.saved = ch.source; // 저장된 내용(고침 여부 판단)
+  book.fontSizesSaved = fontSizesOf(book.print);
   state.book = book;
+  for (const k of Object.keys(FONT_SIZES)) $(`#fs-${k}`).value = String(book.fontSizesSaved[k] ?? FONT_SIZES[k].default);
   app.book = book;
   $("#book-title").textContent = book.config.title ?? id;
   const sel = $("#sel-chapter");
@@ -223,24 +230,28 @@ $("#btn-warn").onclick = () => { if (state.warnings.length) $("#warn-list").hidd
 // ---------- 저장 ----------
 function updateSaveState() {
   const s = $("#save-state");
-  const dirty = state.book?.parts.some((p) => p.chapters.some((c) => c.source !== c.saved));
+  const dirty = bookDirty();
   s.textContent = state.source?.readOnly ? "견본 책: 저장 안 됨" : dirty ? "저장 안 한 내용 있음" : "저장됨";
   s.className = state.source?.readOnly ? "ui-muted" : dirty ? "ui-dirty" : "ui-saved";
 }
 function confirmLeave() {
-  const dirty = state.book?.parts.some((p) => p.chapters.some((c) => c.source !== c.saved));
+  const dirty = bookDirty();
   return !dirty || state.source?.readOnly || confirm("저장하지 않은 내용이 있습니다. 그래도 다른 책을 열까요? (고친 내용은 임시 저장되어 있습니다)");
 }
 window.addEventListener("beforeunload", (e) => {
   if (state.source?.readOnly) return;
-  if (state.book?.parts.some((p) => p.chapters.some((c) => c.source !== c.saved))) e.preventDefault();
+  if (bookDirty()) e.preventDefault();
 });
 
 async function saveCurrent() {
   if (!state.source || state.source.readOnly) { alert("견본 책은 저장되지 않습니다. 위의 \"GitHub 연결\"로 원고 저장소에 연결하세요."); return; }
   const chs = state.book.parts.flatMap((p) => p.chapters).filter((c) => c.source !== c.saved);
-  if (!chs.length) { updateSaveState(); return; }
+  if (!chs.length && !configDirty()) { updateSaveState(); return; }
   $("#save-state").textContent = "저장 중…";
+  if (configDirty()) {
+    try { await saveConfig(); }
+    catch (e) { alert(`책 설정(글자 크기)을 저장하지 못했습니다: ${e.message}`); }
+  }
   for (const ch of chs) {
     try {
       const r = await state.source.save(ch.path, ch.source, ch.sha);
@@ -253,6 +264,31 @@ async function saveCurrent() {
     }
   }
   updateSaveState();
+}
+
+/** 책 설정(book.json)에 본문 글자 크기를 쓴다. 다른 곳에서 book.json이 바뀌었으면 그 내용에 글자 크기만 얹어 다시 저장 */
+async function saveConfig() {
+  const book = state.book;
+  const sizes = fontSizesOf(book.print);
+  const set = Object.fromEntries(Object.entries(sizes).filter(([, v]) => v !== null));
+  const withSize = (cfg) => {
+    const print = { ...(cfg.print ?? {}) };
+    if (Object.keys(set).length) print.fontSizes = set; else delete print.fontSizes;
+    return JSON.stringify({ ...cfg, print }, null, 2) + "\n";
+  };
+  let r;
+  try {
+    r = await state.source.save("book.json", withSize(book.config), book.configSha);
+  } catch (e) {
+    if (e.name !== "ConflictError" || !e.remote) throw e;
+    let remoteCfg;
+    try { remoteCfg = JSON.parse(e.remote.text); } catch { throw new Error("저장소의 book.json 형식이 올바르지 않습니다."); }
+    r = await state.source.save("book.json", withSize(remoteCfg), e.remote.sha);
+    book.config = remoteCfg;
+  }
+  book.config = JSON.parse(withSize(book.config));
+  book.configSha = r.sha;
+  book.fontSizesSaved = sizes;
 }
 
 async function resolveConflict(ch, remote) {
@@ -360,7 +396,7 @@ async function newThing(kind) {
   const v = await new Promise((ok) => dlg.addEventListener("close", () => ok(dlg.returnValue), { once: true }));
   if (v !== "ok") return;
   const k = isBook ? "book" : $("#new-kind").value;
-  if (k !== "book" && state.book?.parts.some((p) => p.chapters.some((c) => c.source !== c.saved))) {
+  if (k !== "book" && bookDirty()) {
     alert("먼저 저장해 주세요. 저장하지 않은 내용이 있으면 새 장·새 부를 만들 수 없습니다.");
     return;
   }
@@ -425,6 +461,31 @@ $("#sel-chapter").onchange = (e) => { const [p, c] = e.target.value.split(":").m
 $("#sel-edition").onchange = (e) => { state.edition = e.target.value; scheduleRender(0); };
 $("#sel-paper").onchange = (e) => { state.paper = e.target.value; scheduleRender(0); };
 $("#sel-scope").onchange = (e) => { state.scope = e.target.value; scheduleRender(0); };
+// 글자 크기(본문·옆 단·문제): 입력하는 동안 미리보기를 다시 그리고, 저장하면 book.json에 남는다
+function setFontSize(kind, v) {
+  const cur = fontSizesOf(state.book.print);
+  if (cur[kind] === v) return false;
+  state.book.print.fontSizes = { ...(state.book.print.fontSizes ?? {}), [kind]: v };
+  updateSaveState();
+  return true;
+}
+for (const inp of document.querySelectorAll("#top input[data-kind]")) {
+  const kind = inp.dataset.kind, spec = FONT_SIZES[kind];
+  inp.addEventListener("input", () => {
+    if (!state.book) return;
+    const v = fontSizeValue(kind, inp.value);
+    if (v !== null && setFontSize(kind, v)) scheduleRender(RENDER_DELAY); // 지우는 중이거나 범위 밖이면 칸을 떠날 때 바로잡음
+  });
+  inp.addEventListener("change", () => {
+    if (!state.book) return;
+    const n = Number(inp.value);
+    const v = inp.value !== "" && Number.isFinite(n)
+      ? Math.min(spec.max, Math.max(spec.min, Math.round(n * 10) / 10))
+      : (fontSizesOf(state.book.print)[kind] ?? spec.default);
+    inp.value = String(v);
+    if (setFontSize(kind, v)) scheduleRender(0);
+  });
+}
 $("#btn-save").onclick = () => saveCurrent();
 $("#btn-pdf").onclick = () => makePdf().catch((e) => alert(`PDF를 만들지 못했습니다: ${e.message}`));
 

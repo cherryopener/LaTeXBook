@@ -74,6 +74,30 @@ check(cur === probPage, `커서 따라가기: 정전기 장 문제 쪽(${probPag
 // 커서 위치 → 미리보기 쪽 맞춤(오류 없이 동작하는지)
 await page.evaluate(() => window.__app.editor.goToLine(20));
 
+// 글자 크기 칸(본문·옆 단·문제): 바꾸면 미리보기의 해당 글자만 바뀜
+const sizes = () => page.evaluate(() => {
+  const pt = (sel) => { const el = document.querySelector(`#preview ${sel}`); return el ? Math.round(parseFloat(getComputedStyle(el).fontSize) * 0.75 * 10) / 10 : null; };
+  return { body: pt(".theory-body > p"), side: pt(".side"), problem: pt(".problem-body"), solution: pt(".solution") };
+});
+r = await page.evaluate(() => window.__app.lastRender);
+await page.selectOption("#sel-edition", "teacher"); // 해설은 교사용에만
+await waitRender(r.at);
+const s0 = await sizes();
+check(s0.body === 10.4 && s0.side === 7.6 && s0.problem === 9.6 && s0.solution === 9.2, `글자 크기 기본값 ${JSON.stringify(s0)}`);
+for (const [kind, v] of [["body", "11.5"], ["side", "8.2"], ["problem", "10.4"]]) {
+  r = await page.evaluate(() => window.__app.lastRender);
+  await page.fill(`#fs-${kind}`, v);
+  await waitRender(r.at);
+}
+const s1 = await sizes();
+check(s1.body === 11.5 && s1.side === 8.2 && s1.problem === 10.4 && Math.abs(s1.solution - 10.4 * 9.2 / 9.6) < 0.15, `글자 크기 바꿈 → 미리보기 ${JSON.stringify(s1)}`);
+check((await page.locator("#save-state").textContent()).includes("견본"), "견본 책은 글자 크기를 바꿔도 저장 안 됨 표시");
+r = await page.evaluate(() => window.__app.lastRender);
+await page.fill("#fs-body", "99");
+await page.locator("#fs-body").blur();
+await waitRender(r.at);
+check(await page.inputValue("#fs-body") === "14" && (await sizes()).body === 14, "범위 밖(99) → 최대 14로 맞춤");
+
 // PDF: 안내 끄고 문서 만들기
 await page.evaluate(() => { localStorage.setItem("latexbook.pdf-tip-off", "1"); });
 await page.click("#btn-pdf");

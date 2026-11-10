@@ -5,6 +5,42 @@ import { BASE_STYLESHEETS, latinFontCss, LATIN_FONTS } from "../assets.js";
 let V = null;
 const loadVivliostyle = async () => (V ??= await import("../../vendor/vivliostyle.js"));
 
+/**
+ * 글자 크기(pt) 칸: 본문·옆 단(좁은 단)·문제. book.json의 print.fontSizes = { body, side, problem }.
+ * default는 테마(cyber)의 값. 해설은 문제 크기를 따라간다(테마 비율 9.2/9.6).
+ */
+export const FONT_SIZES = Object.freeze({
+  body: Object.freeze({ label: "본문", min: 8, max: 14, default: 10.4 }),
+  side: Object.freeze({ label: "옆 단", min: 6, max: 11, default: 7.6 }),
+  problem: Object.freeze({ label: "문제", min: 7, max: 13, default: 9.6 }),
+});
+
+/** 값 하나 → 쓸 수 있는 수(0.1 단위). 범위 밖·숫자 아님이면 null(테마 기본값 사용) */
+export function fontSizeValue(kind, v) {
+  const spec = FONT_SIZES[kind];
+  if (!spec || v == null || v === "") return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < spec.min || n > spec.max) return null;
+  return Math.round(n * 10) / 10;
+}
+
+/** print.fontSizes → { body, side, problem } (각각 수 또는 null) */
+export function fontSizesOf(print = {}) {
+  const fs = print?.fontSizes ?? {};
+  return Object.fromEntries(Object.keys(FONT_SIZES).map((k) => [k, fontSizeValue(k, fs[k])]));
+}
+
+/** 글자 크기 CSS(테마 값을 덮어씀). 숫자만 넣으므로 CSS가 깨질 일이 없다 */
+function fontSizeCss(print) {
+  const { body, side, problem } = fontSizesOf(print);
+  const r = (n) => Math.round(n * 100) / 100;
+  const out = [];
+  if (body !== null) out.push(`html { font-size: ${body}pt; }`);
+  if (side !== null) out.push(`.side { font-size: ${side}pt; } .side .side-title { font-size: ${r(side * 8 / 7.6)}pt; }`);
+  if (problem !== null) out.push(`.problem-body { font-size: ${problem}pt; } .solution { font-size: ${r(problem * 9.2 / 9.6)}pt; }`);
+  return out.join("\n");
+}
+
 /** 인쇄소 배수(전체 쪽수가 이 수의 배수여야 함) */
 export const PAGE_MULTIPLE = 16;
 
@@ -79,6 +115,10 @@ export function buildDocument(bodyHtml, settings) {
   // 영어 글자 글꼴(print.fonts.latin: "Tinos"(기본) | "EB Garamond" | "none"). 테마가 "BookLatin"을 본문·옆 단 맨 앞에 둔다
   const latin = print.fonts?.latin ?? "Tinos";
   if (latin !== "none" && LATIN_FONTS[latin]) fontCss = `${latinFontCss(latin)}\n${fontCss}`;
+
+  // 글자 크기(본문·옆 단·문제)
+  const sizeCss = fontSizeCss(print);
+  if (sizeCss) fontCss += `\n${sizeCss}`;
 
   const links = [...BASE_STYLESHEETS, themeUrl(theme, baseUrl)].map((h) => `<link rel="stylesheet" href="${esc(h)}">`).join("\n");
   const attrs = [

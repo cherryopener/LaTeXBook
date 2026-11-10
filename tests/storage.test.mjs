@@ -113,8 +113,9 @@ try {
   r = note(await page.evaluate(() => window.attempt(() => window.store.loadBook("sample-book"))));
   check("loadBook 성공", r.ok, r);
   const got = r.value;
-  const stripSha = (b) => JSON.parse(JSON.stringify(b, (k, v) => (k === "sha" ? undefined : v)));
+  const stripSha = (b) => JSON.parse(JSON.stringify(b, (k, v) => (k === "sha" || k === "configSha" ? undefined : v)));
   eq("loadBook == assembleBook(Node)", stripSha(got), stripSha(expectBook));
+  check("loadBook: book.json sha(configSha) 있음", typeof got.configSha === "string" && got.configSha.length === 40, got.configSha);
   const chaptersOk = got.parts.every((p) => p.chapters.every((c) => c.sha === fake.shaOf(`books/sample-book/${c.path}`)));
   check("각 장에 sha가 채워짐(git blob sha와 일치)", chaptersOk && got.parts.length === 2 && got.parts[0].chapters.length === 2, got.parts.map((p) => p.chapters.map((c) => c.sha)));
   const nText = Object.keys(sampleFiles).length;

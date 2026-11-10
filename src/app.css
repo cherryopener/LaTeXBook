@@ -11,6 +11,8 @@ button.ui-primary { background: var(--accent); border-color: var(--accent); colo
 button.ui-danger { color: var(--danger); }
 button.ui-link { border: none; background: none; padding: 0; color: inherit; text-decoration: underline; }
 #top select { padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+#top .fs-grp { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+#top input[type=number] { width: 4.6em; padding: 3px 4px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font: inherit; }
 .ui-muted { color: var(--muted); }
 .ui-error { color: var(--danger); }
 .ui-right { margin-left: auto; }

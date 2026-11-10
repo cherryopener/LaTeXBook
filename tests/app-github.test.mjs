@@ -54,6 +54,28 @@ await page.waitForFunction(() => document.querySelector("#save-state").textConte
 check(fake.files.get(chPath).toString("utf8").includes("저장 시험 문장."), "저장소에 저장됨");
 check(fake.commits.some((c) => (c.message ?? "").includes("원고 저장")), "커밋 메시지 한국어");
 
+// 글자 크기 → 저장하면 book.json에 기록(다른 설정은 그대로)
+const bookJson = "books/sample-book/book.json";
+const cfg0 = JSON.parse(fake.files.get(bookJson).toString("utf8"));
+await page.fill("#fs-body", "11");
+await page.fill("#fs-problem", "10");
+await page.waitForFunction(() => document.querySelector("#save-state").textContent.includes("저장 안 한"), null, { timeout: 10000 });
+await page.click("#btn-save");
+await page.waitForFunction(() => document.querySelector("#save-state").textContent === "저장됨", null, { timeout: 30000 });
+let cfg1 = JSON.parse(fake.files.get(bookJson).toString("utf8"));
+check(JSON.stringify(cfg1.print.fontSizes) === JSON.stringify({ body: 11, problem: 10 }) && cfg1.title === cfg0.title && cfg1.print.palette === cfg0.print.palette,
+  `글자 크기 저장 → book.json ${JSON.stringify(cfg1.print.fontSizes)}`);
+// 다른 곳에서 book.json이 바뀐 뒤 저장 → 그 내용에 글자 크기만 얹음
+fake.setFile(bookJson, JSON.stringify({ ...cfg1, subtitle: "다른 곳에서 바꾼 부제" }, null, 2) + "\n");
+await page.fill("#fs-side", "8");
+await page.waitForFunction(() => document.querySelector("#save-state").textContent.includes("저장 안 한"), null, { timeout: 10000 });
+await page.click("#btn-save");
+await page.waitForFunction(() => document.querySelector("#save-state").textContent === "저장됨", null, { timeout: 30000 });
+cfg1 = JSON.parse(fake.files.get(bookJson).toString("utf8"));
+check(cfg1.subtitle === "다른 곳에서 바꾼 부제" && cfg1.print.fontSizes.side === 8 && cfg1.print.fontSizes.body === 11, "book.json 충돌 시 다른 곳의 변경을 지우지 않고 글자 크기만 얹음");
+await page.locator(".cm-content").click(); // 아래 시험은 원고 칸에 입력한다
+await page.keyboard.press("Control+End");
+
 // 충돌: 다른 곳에서 먼저 저장
 fake.setFile(chPath, fake.files.get(chPath).toString("utf8") + "\n다른 컴퓨터에서 쓴 문장.\n");
 await page.keyboard.insertText("이 창에서 쓴 문장.\n");

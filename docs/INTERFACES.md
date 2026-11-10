@@ -53,6 +53,7 @@ type PrintConfig = {
   omitSections: string[]; headingNumbers: boolean;
   problemNumber: "000" | "0"; chapterStart: "left" | "right" | "any";
   sideColumn: "outside" | "left";
+  fontSizes?: { body?: number; side?: number; problem?: number }; // pt. layout의 FONT_SIZES·fontSizesOf 참고
 };
 
 /** 저장소에서 읽은 책 하나 */
