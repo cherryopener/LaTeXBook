@@ -263,6 +263,15 @@ console.log("연습문제 장(Q)");
   ok(isExerciseChapter("---\ntitle: t\n---\n\n::problems\n") && !isExerciseChapter("---\ntitle: t\n---\n글\n::problems\n") && !isExerciseChapter("---\ntitle: t\n---\n\n") && isExerciseChapter("::problems{first=4 per=6}\n"), "isExerciseChapter");
 }
 
+// 문제 구간 그림은 번호 없음(#이름이 있을 때만), 개념 구간 그림은 그대로(2026-11-10 사용자 결정)
+{
+  const src = "---\ntitle: t\n---\n::fig[개념 그림]{src=images/a.svg}\n\n::problems\n\n::::problem\n::fig[문제 그림]{src=images/b.svg}\n\n::fig[이름 있는 그림]{src=images/c.svg #named}\n\n:ref[named]을 보시오.\n::::\n";
+  const r = renderChapter(src, { ...base, edition: "teacher", partNo: 1, chapterNo: 1, palette: "teal", print });
+  ok(r.html.includes('<span class="fig-no">그림 1.1</span> 개념 그림'), "개념 그림은 번호 1.1");
+  ok(/<figcaption>문제 그림<\/figcaption>/.test(r.html) && !r.html.includes("그림 1.2</span> 문제 그림"), "문제 그림은 번호 없음");
+  ok(r.html.includes('<span class="fig-no">그림 1.2</span> 이름 있는 그림') && r.html.includes('>그림 1.2</a>을 보시오'), "문제 그림도 #이름이 있으면 번호·참조");
+}
+
 // 한 쪽 문항 수(2026-11-08 사용자 요청): ::problems{per=4} > print.problemsPerPage > 2
 {
   const src = "---\ntitle: t\n---\n개념\n\n::problems{per=4}\n\n::::problem\n가\n::::\n";

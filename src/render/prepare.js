@@ -90,6 +90,7 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn
   // 수식·그림·문항 번호(문서 순서, 판과 관계없이 같게)
   let eq = 0, fig = 0, pr = 0;
   const all = [...theory, ...(problems ?? [])];
+  const probSet = new Set(problems ?? []); // 문제 구간의 맨 위 노드들
   walk(all, (n, anc) => {
     if (n.type === "math") {
       const names = labelsOf(n.value);
@@ -103,8 +104,9 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn
     } else if (n.type === "leafDirective" && n.name === "fig") {
       const name = (n.attributes?.id ?? "").trim();
       const inSide = anc.some((a) => a.type === "containerDirective" && a.name === "side");
-      // 옆 단 안의 작은 그림은 #이름이 있을 때만 번호
-      if (inSide && !name) return;
+      const inProblems = probSet.has(anc[0] ?? n);
+      // 옆 단 안의 작은 그림과 문제 구간의 그림은 #이름이 있을 때만 번호(2026-11-10 사용자 결정: 문제 그림은 번호 없음)
+      if ((inSide || inProblems) && !name) return;
       fig++;
       n._no = `${N}.${fig}`;
       n._id = name ? `fig-${name}` : `fig-${P}-${C}-${fig}`;
