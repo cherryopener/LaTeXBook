@@ -34,6 +34,22 @@ export function splitFrontMatter(source) {
   return { meta, head, body: src.slice(head.length), lineOffset: (head.match(/\n/g) ?? []).length };
 }
 
+/** 문제 구간 시작 줄(::problems, ::problems{per=4} 등) */
+export const PROBLEMS_LINE = /^::problems(\{[^}]*\})?[ \t]*$/;
+/** 연습문제 장(Q 장)의 번호 자리 글자 */
+export const EXERCISE_NO = "Q";
+
+/**
+ * 문제만 있는 장(연습문제 장)인가: 머리 부분 뒤, 첫 ::problems 줄 앞에 아무것도 없음(빈 줄·HTML 주석만).
+ * 이런 장은 장 번호를 쓰지 않고(뒤 장 번호가 밀리지 않음) 번호 자리에 Q를 쓰며, 빈 개념 쪽을 만들지 않는다.
+ */
+export function isExerciseChapter(source) {
+  const lines = splitFrontMatter(source).body.split("\n");
+  const i = lines.findIndex((l) => PROBLEMS_LINE.test(l));
+  if (i < 0) return false;
+  return lines.slice(0, i).join("\n").replace(/<!--[\s\S]*?-->/g, "").trim() === "";
+}
+
 /** Physiklar 그림 경로 /books/<id>/파일 → images/파일 */
 export function mapAssetPath(src) {
   const s = String(src ?? "").trim();

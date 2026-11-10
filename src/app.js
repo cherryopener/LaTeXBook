@@ -2,7 +2,7 @@
 // 모듈 약속: docs/INTERFACES.md
 import { createEditor, createToolbar } from "./editor/index.js";
 import { renderBook } from "./render/index.js";
-import { splitFrontMatter } from "./render/util.js";
+import { splitFrontMatter, isExerciseChapter, EXERCISE_NO } from "./render/util.js";
 import { buildDocument, createPreview, printPdf, FONT_SIZES, fontSizeValue, fontSizesOf } from "./layout/index.js";
 import * as storage from "./storage/index.js";
 import { createSampleSource, createGitHubSource, collectAssetSrcs } from "./sources.js";
@@ -86,14 +86,14 @@ async function openBook(id, { asked = false, at = null } = {}) {
   $("#book-title").textContent = book.config.title ?? id;
   const sel = $("#sel-chapter");
   sel.innerHTML = "";
-  let seq = 0; // 장 번호는 책 전체로 이어진다
+  let seq = 0; // 장 번호는 책 전체로 이어진다(연습문제 장은 Q, 번호를 쓰지 않음)
   book.parts.forEach((p, pi) => {
     const g = document.createElement("optgroup");
     g.label = `${pi + 1}부 ${p.config.title ?? p.dir}`;
     p.chapters.forEach((ch, ci) => {
       const o = document.createElement("option");
       o.value = `${pi + 1}:${ci + 1}`;
-      o.textContent = `${++seq}. ${splitFrontMatter(ch.source).meta.title ?? ch.path}`;
+      o.textContent = `${isExerciseChapter(ch.source) ? EXERCISE_NO : ++seq}. ${splitFrontMatter(ch.source).meta.title ?? ch.path}`;
       g.appendChild(o);
     });
     sel.appendChild(g);
@@ -370,6 +370,8 @@ $("#dlg-github").addEventListener("close", async () => {
 const pad2 = (n) => String(n).padStart(2, "0");
 const yaml = (t) => JSON.stringify(String(t)); // 머리 부분 제목(따옴표·콜론 안전)
 const chapterText = (title) => `---\ntitle: ${yaml(title)}\n---\n\n## 첫 절 제목\n\n여기에 본문을 씁니다.\n`;
+// 연습문제 장: 문제만 있는 장(장 번호 자리 Q). ::problems 앞에 아무것도 쓰지 않아야 연습문제 장으로 인식된다
+const exerciseText = (title) => `---\ntitle: ${yaml(title)}\n---\n\n::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::\n`;
 
 /** kind: "book" | "chapter" | "part" (chapter·part는 대화창에서 고를 수 있음) */
 async function newThing(kind) {
@@ -387,8 +389,10 @@ async function newThing(kind) {
   const sync = () => {
     const k = isBook ? "book" : $("#new-kind").value;
     $("#new-book-row").hidden = k !== "book";
-    $("#new-part-row").hidden = k === "chapter";
-    $("#new-pal-row").hidden = k === "chapter";
+    $("#new-part-row").hidden = k === "chapter" || k === "exercise";
+    $("#new-pal-row").hidden = k === "chapter" || k === "exercise";
+    if (k === "exercise" && !$("#new-chapter").value.trim()) $("#new-chapter").value = "연습문제";
+    if (k !== "exercise" && $("#new-chapter").value === "연습문제") $("#new-chapter").value = "";
   };
   $("#new-kind").onchange = sync;
   sync();
@@ -402,7 +406,7 @@ async function newThing(kind) {
   }
   const bookT = $("#new-book").value.trim(), partT = $("#new-part").value.trim(), chT = $("#new-chapter").value.trim();
   const pal = $("#new-pal").value;
-  if ((k === "book" && !bookT) || (k !== "chapter" && !partT) || !chT) { alert("제목을 모두 적어 주세요."); return newThing(kind); }
+  if ((k === "book" && !bookT) || (k !== "chapter" && k !== "exercise" && !partT) || !chT) { alert("제목을 모두 적어 주세요."); return newThing(kind); }
   try {
     setBanner("만드는 중…");
     if (k === "book") {
@@ -430,7 +434,7 @@ async function newThing(kind) {
     } else {
       const part = state.book.parts[state.cur.part - 1];
       const m = part.chapters.length + 1;
-      await state.source.createFiles({ [`${part.dir}/${pad2(m)}-chapter${m}.md`]: chapterText(chT) });
+      await state.source.createFiles({ [`${part.dir}/${pad2(m)}-chapter${m}.md`]: (k === "exercise" ? exerciseText : chapterText)(chT) });
       await openBook(state.book.id, { asked: true, at: { part: state.cur.part, chapter: m } });
     }
     setBanner(null);

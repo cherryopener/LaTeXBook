@@ -310,9 +310,11 @@ export function renderChapterImpl(source, ctx = {}) {
 
   // 문항 처리를 위해 개념 구간을 먼저 변환(그림·SVG 순서가 원고 순서와 같게)
   const theoryHtml = mdastToHtml(txAll(theory, { section: "theory" }));
+  // 연습문제 장(문제만 있는 장, 번호 자리 Q): 빈 개념 쪽을 만들지 않고 바로 문제 구간
+  const exercise = !!ctx.exercise && !!problems;
   let out =
-    `<section class="chapter" id="ch-${P}-${C}" data-palette="${esc(palette)}" data-part="${P}" data-chapter="${C}" data-edition="${edition}">\n` +
-    `<section class="theory">${head("theory")}\n<div class="theory-body">\n${theoryHtml}\n</div>\n</section>\n`;
+    `<section class="chapter${exercise ? " exercise" : ""}" id="ch-${P}-${C}" data-palette="${esc(palette)}" data-part="${P}" data-chapter="${C}" data-edition="${edition}">\n` +
+    (exercise ? "" : `<section class="theory">${head("theory")}\n<div class="theory-body">\n${theoryHtml}\n</div>\n</section>\n`);
   if (problems) {
     // 한 쪽에 문항 2개(기본)·4개·6개. 쪽마다 다르게 할 수 있다(2026-11-08 사용자 요청):
     //  - ::problems{per=6}            모든 쪽 6문항

@@ -1,7 +1,7 @@
 // 원고 변환 — 담당: B. 약속: docs/INTERFACES.md 4절·6절. 원고 문법: docs/FORMAT.md
 // 아래 함수의 이름과 인자는 약속이므로 바꾸지 않는다(바꿀 것이 있으면 보고서에 제안).
 import { withPrintDefaults, partPalette } from "../types.js";
-import { esc } from "./util.js";
+import { esc, isExerciseChapter, EXERCISE_NO } from "./util.js";
 import { renderChapterImpl } from "./chapter.js";
 import { exportPhysiklarImpl } from "./export.js";
 
@@ -30,12 +30,12 @@ export function renderBook(book, opts = {}) {
   const parts = book?.parts ?? [];
   const coverOf = (part) => { const c = part?.config?.print?.cover; return c && typeof c === "object" ? c : c ? {} : null; };
   const coverMode = parts.some(coverOf);
-  let seq = 0; // 책 전체에서 몇 번째 장인지(식·그림 번호 앞자리). 미리보기로 일부만 그려도 같은 번호가 나오게 건너뛴 장도 센다
+  let seq = 0; // 책 전체에서 몇 번째 장인지(식·그림 번호 앞자리). 미리보기로 일부만 그려도 같은 번호가 나오게 건너뛴 장도 센다. 연습문제 장(Q)은 세지 않는다
   let coverNo = 0; // 큰 표지 번호(I, II, …). 건너뛴 부의 표지도 센다
   parts.forEach((part, pi) => {
     const P = pi + 1;
-    const seqBase = seq;
-    seq += (part.chapters ?? []).length;
+    // 장마다 번호(연습문제 장은 "Q", 번호를 쓰지 않음)
+    const seqs = (part.chapters ?? []).map((ch) => (isExerciseChapter(ch.source) ? EXERCISE_NO : ++seq));
     const cover = coverOf(part);
     if (cover) coverNo += 1;
     if (range.part && range.part !== P) return;
@@ -44,9 +44,9 @@ export function renderBook(book, opts = {}) {
     const one = range.part && range.chapter ? range.chapter : null;
     const chapters = (part.chapters ?? []).map((ch, ci) => {
       if (one && one !== ci + 1) return null;
-      const r = renderChapterImpl(ch.source ?? "", { ...base, partNo: P, chapterNo: ci + 1, chapterSeq: seqBase + ci + 1, palette, print });
+      const r = renderChapterImpl(ch.source ?? "", { ...base, partNo: P, chapterNo: ci + 1, chapterSeq: seqs[ci], exercise: seqs[ci] === EXERCISE_NO, palette, print });
       for (const w of r.warnings) warnings.push(ch.path ? { ...w, path: ch.path } : w);
-      return { no: ci + 1, seq: seqBase + ci + 1, ...r };
+      return { no: ci + 1, seq: seqs[ci], ...r };
     }).filter(Boolean);
     if (!one) {
       const list = `<ol>` + chapters.map((c) => `<li><span class="toc-no">${c.seq}.</span> ${esc(c.meta.title)}</li>`).join("") + `</ol>`;

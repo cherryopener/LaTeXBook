@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderChapter, renderBook, exportPhysiklar } from "../src/render/index.js";
+import { isExerciseChapter } from "../src/render/util.js";
 import { withPrintDefaults, partPalette } from "../src/types.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -237,6 +238,29 @@ console.log("큰 표지(Part) 모드");
   ok(p3.html.includes('<div class="part-no">II</div>') && p3.html.includes('id="part-3"') && !p3.html.includes("cover-1"), "range 부 하나: 그 부의 큰 표지 번호 유지");
   const p2 = renderBook(cb, { ...base, edition: "student", range: { part: 2 } });
   ok(!p2.html.includes("part-cover") && p2.html.includes('id="part-2"'), "range 부 하나: 표지 없는 부");
+}
+
+// 연습문제 장(2026-11-10 사용자 요청): ::problems 앞에 아무것도 없는 장은 번호 대신 Q, 뒤 장 번호가 밀리지 않음, 빈 개념 쪽 없음
+console.log("연습문제 장(Q)");
+{
+  const ch = (t, body) => ({ path: `${t}.md`, source: `---\ntitle: ${t}\n---\n${body}` });
+  const PB = "::::problem\n문제\n\n:::solution\n풀이\n:::\n::::\n";
+  const eb = { id: "e", config: { title: "책" }, print, parts: [
+    { dir: "1-a", config: { title: "운동" }, palette: "red", chapters: [ch("속도", "개념 글\n\n::problems\n\n" + PB), ch("1부 연습문제", "\n<!-- 메모 -->\n\n::problems{per=4}\n\n" + PB)] },
+    { dir: "2-b", config: { title: "에너지" }, palette: "red", chapters: [ch("일", "개념 글\n")] },
+  ] };
+  const r = renderBook(eb, { ...base, edition: "teacher" });
+  const h = r.html;
+  ok(/id="ch-1-2"[\s\S]*?<span class="chapter-no">Q<\/span><h1 class="chapter-title">1부 연습문제<\/h1>/.test(h), "연습문제 장: 번호 자리 Q");
+  ok(/id="ch-2-1"[\s\S]*?<span class="chapter-no">2<\/span>/.test(h), "연습문제 장 뒤 장 번호가 밀리지 않음(2)");
+  ok(h.includes('<li><span class="toc-no">1.</span> 속도</li><li><span class="toc-no">Q.</span> 1부 연습문제</li>'), "부 목차: Q. 1부 연습문제");
+  ok(h.includes('<span class="toc-no">Q</span><span class="toc-title">1부 연습문제</span>'), "책 목차: Q");
+  const exHtml = h.slice(h.indexOf('id="ch-1-2"'), h.indexOf('id="part-2"'));
+  ok(h.includes('<section class="chapter exercise" id="ch-1-2"') && !exHtml.includes('class="theory"') && exHtml.includes('class="problems"') && exHtml.includes('data-per="4"'), "연습문제 장: 개념 구간 없이 문제 구간만");
+  ok(/id="ch-1-1"[\s\S]*?class="theory"/.test(h) && !h.includes('class="chapter exercise" id="ch-1-1"'), "개념 글이 있는 장은 그대로");
+  const one = renderBook(eb, { ...base, edition: "teacher", range: { part: 2, chapter: 1 } });
+  ok(/<span class="chapter-no">2<\/span>/.test(one.html), "장 하나만 미리보기해도 번호 같음");
+  ok(isExerciseChapter("---\ntitle: t\n---\n\n::problems\n") && !isExerciseChapter("---\ntitle: t\n---\n글\n::problems\n") && !isExerciseChapter("---\ntitle: t\n---\n\n") && isExerciseChapter("::problems{first=4 per=6}\n"), "isExerciseChapter");
 }
 
 // 한 쪽 문항 수(2026-11-08 사용자 요청): ::problems{per=4} > print.problemsPerPage > 2
