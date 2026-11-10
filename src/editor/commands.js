@@ -233,7 +233,7 @@ export function scanStructure(doc) {
     const f = /^\s*(`{3,}|~{3,})/.exec(t);
     if (fence) { if (f && f[1][0] === fence[0] && f[1].length >= fence.length && /^\s*[`~]+\s*$/.test(t)) fence = null; continue; }
     if (f) { fence = f[1]; continue; }
-    if (problemsLine == null && /^::problems\s*$/.test(t)) problemsLine = n;
+    if (problemsLine == null && /^::problems(\{[^}]*\})?\s*$/.test(t)) problemsLine = n; // ::problems{per=4} 도
     if (/^::::problem(?![\w-])/.test(t)) { if (cur) blocks.push(cur); cur = { open: n, close: null, solution: null }; continue; }
     if (cur) {
       if (/^::::\s*$/.test(t)) { cur.close = n; blocks.push(cur); cur = null; }

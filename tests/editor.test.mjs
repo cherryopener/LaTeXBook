@@ -111,6 +111,7 @@ const THEORY = "---\ntitle: 장\n---\n\n## 절\n\n본문 문장.";
   eq("문제: ::problems 뒤 커서 자리에 넣음", b.text, "본문\n\n::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::");
   eq("scanStructure", JSON.stringify(scanStructure(EditorState.create({ doc: withProblems }).doc)), '{"problemsLine":3,"blocks":[{"open":5,"close":10,"solution":7}]}');
   eq("scanStructure: 코드 울타리 안은 무시", scanStructure(EditorState.create({ doc: "```\n::problems\n```\n\n본문" }).doc).problemsLine, null);
+  eq("scanStructure: ::problems{per=4} 도 문제 구간", scanStructure(EditorState.create({ doc: "# 장\n\n::problems{first=4 per=6}\n\n::::problem\n문\n::::" }).doc).problemsLine, 3);
   const s = run("::problems\n\n::::problem\n본문|\n::::", "solution");
   eq("해설: 문항 안에서 닫는 줄 앞에 넣음", s.text, "::problems\n\n::::problem\n본문\n\n:::solution\n풀이\n:::\n::::");
   const s2 = run("::::problem\n본문|\n\n:::solution\n내용\n:::\n::::", "solution");
