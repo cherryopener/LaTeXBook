@@ -413,6 +413,12 @@ a.ref { color: inherit; text-decoration: none; }
 .choices[data-cols="2"] > .choice { width: 50%; }
 .choices[data-cols="1"] > .choice { width: 100%; }
 .choice-no { display: inline-block; width: 1.45em; text-indent: 0; }
+/* 짝짓기 선지(:::choices 안에 | ): 테두리·바탕 없는 표. 머리 줄 (가)(나), 왼쪽 세로로 ①~⑤ */
+table.choice-table { width: 100%; table-layout: fixed; margin: 2.5mm 0 1mm; font-size: inherit; line-height: 1.75; break-inside: avoid; }
+table.choice-table th, table.choice-table td { border: 0; background: none; padding: 0 1mm; text-align: center; font-weight: 400; font-family: inherit; }
+table.choice-table thead th { border: 0; background: none; }
+table.choice-table col.c-no { width: 1.8em; }
+table.choice-table .choice-no { padding: 0; text-align: left; }
 /* <보기> 상자(:::bogi): 위 테두리 가운데에 제목, 줄마다 ㄱ. ㄴ. ㄷ. (절대 위치는 Vivliostyle에서 사라질 수 있어 보통 흐름 + 음수 여백) */
 .bogi { margin: 4.5mm 0 3mm; padding: 0 3mm 2mm; border: 0.6pt solid var(--ink); break-inside: avoid; text-align: left; }
 .bogi-title { display: table; margin: -0.62em auto 1mm; padding: 0 2mm; background: #fff; line-height: 1.2; font-weight: 700; }

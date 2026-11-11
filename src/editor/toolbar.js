@@ -44,7 +44,10 @@ const GROUPS = [
   { label: "문제", items: [
     { cmd: "problem", glyph: "Q", name: "문제 추가", desc: "문항 틀(풀이 포함)을 넣기. 문제 구간이 없으면 장 끝에 만듦" },
     { cmd: "solution", glyph: "해", name: "해설", desc: "문항 안에 해설(:::solution) 넣기" },
-    { cmd: "choices", glyph: "①", name: "선지", desc: "5지선다(:::choices). 한 줄에 하나씩 쓰면 ①②③④⑤가 차례로 붙음" },
+    { menu: "choices", glyph: "①", name: "선지", desc: "5지선다(:::choices). 한 줄에 하나씩 쓰면 ①②③④⑤가 차례로 붙음", options: [
+      { cmd: "choices", arg: "plain", name: "보통 선지", hint: "한 줄에 하나: ①②③④⑤" },
+      { cmd: "choices", arg: "pair", name: "짝짓기 선지", hint: "(가)·(나)에 들어갈 말: 칸은 | 로 나눔, 인쇄에 테두리 없음" },
+    ] },
     { cmd: "bogi", glyph: "ㄱ", name: "보기", desc: "<보기> 상자(:::bogi). 한 줄에 하나씩 쓰면 ㄱ. ㄴ. ㄷ.이 차례로 붙음" },
     { cmd: "space", glyph: "↕", name: "풀이 공간", desc: "학생이 풀 빈 공간 (::space)" },
   ] },
@@ -137,6 +140,12 @@ export function createToolbar(parent, editor) {
           mi.prepend(el("span", `pl-dot pl-dot-${o.kind}`, { "aria-hidden": "true" }));
           panel.append(mi);
         }
+      });
+    }
+    if (item.menu === "choices") {
+      return menuButton(item, (panel, close) => {
+        panel.setAttribute("role", "menu");
+        for (const o of item.options) panel.append(menuItem(o.name, o.hint, () => { close(); editor.command(o.cmd, o.arg); }, { cmd: o.cmd, arg: o.arg }));
       });
     }
     if (item.menu === "figure") {

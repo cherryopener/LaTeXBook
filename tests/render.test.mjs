@@ -284,6 +284,13 @@ console.log("연습문제 장(Q)");
   ok(long.includes('data-cols="1"') && long.includes("<span class=\"choice-no\">③</span>물체의 가속도는 <span class=\"katex"), "긴 선지는 한 줄에 하나, 수식 그대로");
   ok(rc(":::choices{cols=2}\n가\n나\n다\n라\n마\n:::").includes('data-cols="2"'), "{cols=2}로 직접 정함");
   ok(rc(":::choices\n가\n\n나\n:::").match(/class="choice"/g).length === 2, "빈 줄은 항목이 아님");
+  // 짝짓기 선지: | 로 칸, 첫 줄은 머리, 다음 줄부터 ①②③. 수식 안의 |는 칸 나눔이 아님
+  const pair = rc(":::choices\n| (가) | (나)\n속력 | 가속도\n$|v|$ | 운동량 |\n| 가속도 | 운동량\n:::");
+  ok(pair.includes('<table class="choice-table" data-cols="2"'), "짝짓기 선지: 표(2칸)");
+  ok(pair.includes("<th>(가)</th><th>(나)</th>"), "짝짓기 선지: 머리 줄");
+  eq(all(pair, /<td class="choice-no">(.)<\/td>/g), ["①", "②", "③"], "짝짓기 선지: 왼쪽 세로 번호");
+  ok(pair.includes('<td class="choice-no">①</td><td>속력</td><td>가속도</td>') && pair.includes('<td class="choice-no">③</td><td>가속도</td><td>운동량</td>'), "짝짓기 선지: 앞뒤 |는 있어도 없어도 됨");
+  ok(/<td class="choice-no">②<\/td><td><span class="katex">[\s\S]*?<\/td><td>운동량<\/td>/.test(pair), "짝짓기 선지: 수식 안의 |는 칸을 나누지 않음");
   const bg = rc(":::bogi\nA의 속력은 $2v$이다.\nB는 정지해 있다.\nC의 에너지는 증가한다.\n:::");
   eq(all(bg, /<span class="bogi-no">([^<]+)<\/span>/g), ["ㄱ.", "ㄴ.", "ㄷ."], "보기 번호 ㄱ. ㄴ. ㄷ.");
   ok(bg.includes('<div class="bogi-title">보기</div>'), "보기 제목");

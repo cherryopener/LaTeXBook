@@ -391,7 +391,13 @@ export const COMMANDS = {
   problem,
   solution,
   // 5지선다·<보기>: 줄마다 ①②③…, ㄱ. ㄴ. ㄷ.이 인쇄에서 자동으로 붙는다. 첫 줄에 커서
-  choices: (state) => listBox(state, ":::choices"),
+  choices: (state, arg) => {
+    if (arg !== "pair" || selectedLines(state)) return listBox(state, ":::choices");
+    // 짝짓기 선지: 머리 줄 + 빈 줄 다섯. 첫 선지 줄 맨 앞에 커서
+    const block = ":::choices\n| (가) | (나)\n | \n | \n | \n | \n | \n:::";
+    const i = block.indexOf("\n | ") + 1;
+    return placeBlock(state, block, { sel: [i, i] });
+  },
   bogi: (state) => listBox(state, ":::bogi"),
   space: (state) => {
     const block = "::space{h=30}";

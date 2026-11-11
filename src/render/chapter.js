@@ -35,6 +35,27 @@ function splitLines(kids) {
   return items;
 }
 
+/** 한 줄(인라인 노드들)을 | 로 칸 나눔. 수식 안의 |는 나누지 않음. 맨 앞·맨 끝의 |는 있어도 없어도 됨 */
+function splitCells(nodes) {
+  const cells = [[]];
+  for (const c of nodes) {
+    if (c.type !== "text" || !c.value.includes("|")) { cells[cells.length - 1].push(c); continue; }
+    c.value.split("|").forEach((part, i) => { if (i) cells.push([]); if (part) cells[cells.length - 1].push({ ...c, value: part }); });
+  }
+  const trim = (cell) => {
+    const out = cell.map((x) => x);
+    if (out[0]?.type === "text") out[0] = { ...out[0], value: out[0].value.replace(/^\s+/, "") };
+    const k = out.length - 1;
+    if (out[k]?.type === "text") out[k] = { ...out[k], value: out[k].value.replace(/\s+$/, "") };
+    return out.filter((x) => x.type !== "text" || x.value);
+  };
+  const t = cells.map(trim);
+  if (t.length > 1 && !t[0].length) t.shift();
+  if (t.length > 1 && !t[t.length - 1].length) t.pop();
+  return t;
+}
+const hasPipe = (nodes) => nodes.some((c) => c.type === "text" && c.value.includes("|"));
+
 /** 글 폭 어림(em). 한글 1, 로마자·숫자 0.47, 빈칸·좁은 기호 0.25~0.3, 수식은 명령을 한 글자로 쳐서 0.55 + 관계 기호 앞뒤 띄움 */
 function textWidthEm(nodes) {
   let w = 0;
@@ -217,6 +238,21 @@ export function renderChapterImpl(source, ctx = {}) {
   // 5지선다: 줄마다 ①②③④⑤. 한 줄에 몇 개 놓을지(5·3·2·1)는 가장 긴 항목의 글 폭으로 정한다. {cols=…}로 직접 정할 수도 있음
   function choices(n, env) {
     const items = splitLines(unlabeled(n));
+    // 짝짓기 선지: 줄에 |가 있으면 표. 첫 줄은 머리((가) | (나)), 다음 줄부터 ①②③… 테두리 없음
+    if (items.some(hasPipe)) {
+      const rows = items.map(splitCells);
+      const head = rows.shift() ?? [];
+      const ncol = Math.max(head.length, ...rows.map((r) => r.length));
+      if (rows.length > CHOICE_NO.length) warn("too-many-choices", `선지가 ${rows.length}개입니다. ${CHOICE_NO.length}개까지만 번호를 붙입니다.`, n);
+      const cells = (r, tag) => Array.from({ length: ncol }, (_, i) => el(tag, {}, txAll(r[i] ?? [], env)));
+      // 칸 폭은 colgroup으로 정한다(번호 칸은 좁게, 나머지는 고르게)
+      const cols = [el("col", { className: ["c-no"] }, []), ...Array.from({ length: ncol }, () => el("col", { style: `width:${(100 / ncol).toFixed(3)}%` }, []))];
+      return el("table", { className: ["choice-table"], dataCols: String(ncol), ...dl(n) }, [
+        el("colgroup", {}, cols),
+        el("thead", {}, [el("tr", {}, [el("th", { className: ["choice-no"] }, []), ...cells(head, "th")])]),
+        el("tbody", {}, rows.map((r, i) => el("tr", {}, [el("td", { className: ["choice-no"] }, [{ type: "text", value: CHOICE_NO[i] ?? "" }]), ...cells(r, "td")]))),
+      ]);
+    }
     if (items.length > CHOICE_NO.length) warn("too-many-choices", `선지가 ${items.length}개입니다. ${CHOICE_NO.length}개까지만 번호를 붙입니다.`, n);
     const fsz = print.fontSizes ?? {};
     const pt = Number(env.section === "problems" ? fsz.problem ?? 9.6 : fsz.body ?? 10.4) || 10;
