@@ -436,9 +436,12 @@ table.choice-table thead th { border: 0; background: none; }
 table.choice-table col.c-no { width: 1.8em; }
 table.choice-table .choice-no { padding: 0; text-align: left; }
 /* <보기> 상자(:::bogi): 위 테두리 가운데에 제목, 줄마다 ㄱ. ㄴ. ㄷ. (절대 위치는 Vivliostyle에서 사라질 수 있어 보통 흐름 + 음수 여백) */
-.bogi { margin: 4.5mm 0 3mm; padding: 0 3mm 2mm; border: 0.6pt solid var(--ink); break-inside: avoid; text-align: left; }
-.bogi-title { display: table; margin: -0.62em auto 1mm; padding: 0 2mm; background: #fff; line-height: 1.2; font-weight: 700; }
-.bogi-title::before { content: "<"; } .bogi-title::after { content: ">"; }
+/* <제시문> 상자(:::jesi)도 같은 테두리·제목. 안은 보통 글(번호·들여쓰기·내어쓰기 없음) */
+.bogi, .jesi { margin: 4.5mm 0 3mm; padding: 0 3mm 2mm; border: 0.6pt solid var(--ink); break-inside: avoid; text-align: left; }
+.bogi-title, .jesi-title { display: table; margin: -0.62em auto 1mm; padding: 0 2mm; background: #fff; line-height: 1.2; font-weight: 700; }
+.bogi-title::before, .jesi-title::before { content: "<"; } .bogi-title::after, .jesi-title::after { content: ">"; }
+.jesi-body p { text-indent: 0; padding-left: 0; }
+.jesi-body > :last-child { margin-bottom: 0; }
 .bogi-item { padding-left: 1.5em; text-indent: -1.5em; }
 .bogi-no { display: inline-block; width: 1.5em; text-indent: 0; }
 

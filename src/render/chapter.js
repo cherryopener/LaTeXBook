@@ -297,6 +297,14 @@ export function renderChapterImpl(source, ctx = {}) {
     return el("div", { className: ["bogi"], ...dl(n) }, [title, el("div", { className: ["bogi-body"] }, list)]);
   }
 
+  // <제시문> 상자: <보기>와 같은 테두리·제목, 안은 번호·내어쓰기 없이 보통 글(빈 줄로 문단 나눔). [제목]이 있으면 그 제목. 2026-11-12 사용자 요청
+  function jesi(n, env) {
+    const kids = n.children ?? [];
+    const lab = kids[0]?.data?.directiveLabel ? kids[0] : null;
+    const title = el("div", { className: ["jesi-title"] }, lab ? txAll(lab.children, env) : [{ type: "text", value: "제시문" }]);
+    return el("div", { className: ["jesi"], ...dl(n) }, [title, el("div", { className: ["jesi-body"] }, txAll(unlabeled(n), env))]);
+  }
+
   function container(n, env) {
     const name = n.name;
     const box = (cls, kids) => el("div", { className: [cls], ...dl(n) }, kids);
@@ -328,6 +336,7 @@ export function renderChapterImpl(source, ctx = {}) {
       case "problem": return problem(n, env);
       case "choices": return choices(n, env);
       case "bogi": return bogi(n, env);
+      case "jesi": return jesi(n, env);
       default:
         if (HIDDEN.has(name)) return null;
         warn("unknown-directive", `모르는 상자 디렉티브 :::${name} — 안의 내용만 넣었습니다.`, n);

@@ -301,6 +301,12 @@ console.log("연습문제 장(Q)");
   eq(all(bg, /<span class="bogi-no">([^<]+)<\/span>/g), ["ㄱ.", "ㄴ.", "ㄷ."], "보기 번호 ㄱ. ㄴ. ㄷ.");
   ok(bg.includes('<div class="bogi-title">보기</div>'), "보기 제목");
   ok(rc(":::bogi[조건]\n가\n:::").includes('<div class="bogi-title">조건</div>'), "보기 제목 바꾸기 [조건]");
+  // <제시문>(:::jesi): 같은 상자, 번호 없이 보통 문단. 2026-11-12 사용자 요청
+  const js = rc(":::jesi\n첫 문단이다. 물체의 속력은 $v$이다.\n\n둘째 문단이다.\n:::");
+  ok(js.includes('<div class="jesi-title">제시문</div>'), "제시문 제목");
+  eq(all(js.slice(js.indexOf('class="jesi"')), /<p( [^>]*)?>/g).length, 2, "제시문 안 문단 둘");
+  ok(!/bogi-no|choice-no/.test(js) && js.includes("katex"), "제시문: 번호 없음, 수식 됨");
+  ok(rc(":::jesi[자료]\n가\n:::").includes('<div class="jesi-title">자료</div>'), "제시문 제목 바꾸기 [자료]");
 }
 
 // 칸 수가 맞지 않는 표(첫 줄 6칸, |---| 5칸)도 표로 그리고 경고(2026-11-12: 이 때문에 표가 글자로 찍혔음)

@@ -408,6 +408,8 @@ export const COMMANDS = {
     return placeBlock(state, block, { sel: [i, i] });
   },
   bogi: (state) => listBox(state, ":::bogi"),
+  // <제시문>: 번호 없는 보통 글 상자. 고른 줄을 감싸거나 빈 상자를 넣고 안쪽에 커서
+  jesi: (state) => listBox(state, ":::jesi"),
   space: (state) => {
     const block = "::space{h=30}";
     return placeBlock(state, block, { sel: selOf(block, "30") });

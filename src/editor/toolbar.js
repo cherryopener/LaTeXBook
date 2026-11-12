@@ -55,6 +55,7 @@ const GROUPS = [
       { cmd: "choices", arg: "pair", name: "짝짓기 선지", hint: "(가)·(나)에 들어갈 말: 칸은 | 로 나눔, 인쇄에 테두리 없음" },
     ] },
     { cmd: "bogi", glyph: "ㄱ", name: "보기", desc: "<보기> 상자(:::bogi). 한 줄에 하나씩 쓰면 ㄱ. ㄴ. ㄷ.이 차례로 붙음" },
+    { cmd: "jesi", glyph: "제", name: "제시문", desc: "<제시문> 상자(:::jesi). 번호 없이 글을 그대로 넣음. 문단은 빈 줄로 나눔" },
     { cmd: "space", glyph: "↕", name: "풀이 공간", desc: "학생이 풀 빈 공간 (::space)" },
   ] },
 ];

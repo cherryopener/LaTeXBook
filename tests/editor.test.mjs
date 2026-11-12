@@ -116,6 +116,7 @@ const THEORY = "---\ntitle: 장\n---\n\n## 절\n\n본문 문장.";
   eq("탭 맞춤 틀", run("|", "tab").shown, ":::tab\n(가) | |\n(나) | \n:::");
   eq("정렬: 고른 줄을 가운데 상자로", run("⟦가운데 글⟧", "align", "center").text, ":::center\n가운데 글\n:::");
   eq("보기 단추: 고른 줄을 감쌈", run("⟦가\n나⟧", "bogi").text, ":::bogi\n가\n나\n:::");
+  eq("제시문 단추: 고른 줄을 감쌈", run("⟦가\n나⟧", "jesi").text, ":::jesi\n가\n나\n:::");
   eq("scanStructure: ::problems{per=4} 도 문제 구간", scanStructure(EditorState.create({ doc: "# 장\n\n::problems{first=4 per=6}\n\n::::problem\n문\n::::" }).doc).problemsLine, 3);
   const s = run("::problems\n\n::::problem\n본문|\n::::", "solution");
   eq("해설: 문항 안에서 닫는 줄 앞에 넣음", s.text, "::problems\n\n::::problem\n본문\n\n:::solution\n풀이\n:::\n::::");
