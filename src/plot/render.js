@@ -74,14 +74,17 @@ export function renderPlot(spec, opts = {}) {
   const xlabel = plot.xlabel ?? varName, ylabel = plot.ylabel ?? "y";
 
   const wOf = (s) => richWidth(parseRich(s), FS);
-  const mt = ylabel ? 24 : 14, mr = xlabel ? 28 : 16;
+  const wAxis = (s) => richWidth(parseRich(s), FS_AXIS);
+  // 축 이름이 길면(예: "시간(h)") 오른쪽 여백을 넓혀 잘리지 않게 한다
+  const mt = ylabel ? 24 : 14, mr = xlabel ? Math.max(28, Math.ceil(wAxis(xlabel)) + ARROW + 8) : 16;
   const mbBase = cy === ya ? 22 : 12;
   const mb = mbBase;
   // 눈금은 여백 계산 전에 대략의 길이로 만든 뒤 확정한다
   const tickLenY = H - mt - mb;
   const yTicks = makeTicks(ya, yb, tickLenY, plot.yPi ? 40 : 30, plot.yPi, wOf);
   const widest = Math.max(0, ...yTicks.map((t) => wOf(t.label)));
-  const ml = cx === xa ? Math.max(18, Math.ceil(widest) + 12) : 14;
+  // 세로축 이름은 축 위 가운데에 놓이므로, 이름 폭의 절반이 왼쪽 여백보다 크면 여백을 넓힌다
+  const ml = Math.max(cx === xa ? Math.max(18, Math.ceil(widest) + 12) : 14, ylabel && cx === xa ? Math.ceil(wAxis(ylabel) / 2) + 4 : 0);
   const L = ml, R = W - mr, T = mt, B = H - mb;
   const xTicks = makeTicks(xa, xb, R - L, plot.xPi ? 54 : 40, plot.xPi, wOf);
 

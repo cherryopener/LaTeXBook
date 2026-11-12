@@ -55,7 +55,7 @@ export function boldBlanks(body) {
   return String(body).replace(/\*\*(:blank\[[^\]\n]*\])\*\*/g, "$1{.strong}");
 }
 
-export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn, lineOf }) {
+export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, problemStart = 0, warn, lineOf }) {
   const N = chapterSeq ?? C;
   const tree = parseBody(boldBlanks(body));
   const idx = tree.children.findIndex((n) => n.type === "leafDirective" && n.name === "problems");
@@ -88,7 +88,8 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, warn
   }
 
   // 수식·그림·문항 번호(문서 순서, 판과 관계없이 같게)
-  let eq = 0, fig = 0, pr = 0;
+  // 문항 번호는 problemStart 다음부터(책 전체로 이어 매길 때 앞 장들의 문항 수, 2026-11-12 사용자 결정)
+  let eq = 0, fig = 0, pr = problemStart;
   const all = [...theory, ...(problems ?? [])];
   const probSet = new Set(problems ?? []); // 문제 구간의 맨 위 노드들
   walk(all, (n, anc) => {

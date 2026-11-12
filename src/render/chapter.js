@@ -106,7 +106,7 @@ export function renderChapterImpl(source, ctx = {}) {
   const dlAttr = (n) => { const l = lineOf(n); return l === undefined ? "" : ` data-line="${l}"`; };
   const srcOf = (n) => (n.position ? body.slice(n.position.start.offset, n.position.end.offset) : "");
 
-  const { theory, problems, labels, meta, problemsPer, problemsFirst } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, warn, lineOf });
+  const { theory, problems, labels, meta, problemsPer, problemsFirst } = prepare(body, { print, partNo: P, chapterNo: C, chapterSeq: ctx.chapterSeq, problemStart: ctx.problemStart ?? 0, warn, lineOf });
   let svgCount = 0;
   let exampleCount = 0;
 

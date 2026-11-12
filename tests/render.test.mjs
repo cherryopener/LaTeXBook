@@ -260,6 +260,14 @@ console.log("연습문제 장(Q)");
   ok(/id="ch-1-1"[\s\S]*?class="theory"/.test(h) && !h.includes('class="chapter exercise" id="ch-1-1"'), "개념 글이 있는 장은 그대로");
   const one = renderBook(eb, { ...base, edition: "teacher", range: { part: 2, chapter: 1 } });
   ok(/<span class="chapter-no">2<\/span>/.test(one.html), "장 하나만 미리보기해도 번호 같음");
+  // 문항 번호는 책 전체로 이어 매김(2026-11-12 사용자 결정): 1장 001, 1부 연습문제 002, 3부의 문항은 003부터
+  const nos = (html) => [...html.matchAll(/<div class="problem-no">(\d+)<\/div>/g)].map((m) => m[1]).join(",");
+  eq(nos(h), "001,002", "문항 번호 책 전체로 이어짐");
+  const eb3 = { ...eb, parts: [...eb.parts, { dir: "3-c", config: { title: "c" }, palette: "red", chapters: [ch("3부 연습문제", "::problems\n\n" + PB + "\n" + PB)] }] };
+  eq(nos(renderBook(eb3, { ...base, edition: "teacher" }).html), "001,002,003,004", "문항 번호: 뒤 부로 이어짐");
+  eq(nos(renderBook(eb3, { ...base, edition: "teacher", range: { part: 3 } }).html), "003,004", "부 하나만 미리보기해도 문항 번호 같음");
+  eq(nos(renderBook(eb3, { ...base, edition: "teacher", range: { part: 1, chapter: 2 } }).html), "002", "장 하나만 미리보기해도 문항 번호 같음");
+  eq(nos(renderBook({ ...eb3, print: { ...print, problemNumbering: "chapter" } }, { ...base, edition: "teacher" }).html), "001,001,001,002", "problemNumbering chapter: 장마다 001부터");
   ok(isExerciseChapter("---\ntitle: t\n---\n\n::problems\n") && !isExerciseChapter("---\ntitle: t\n---\n글\n::problems\n") && !isExerciseChapter("---\ntitle: t\n---\n\n") && isExerciseChapter("::problems{first=4 per=6}\n"), "isExerciseChapter");
 }
 

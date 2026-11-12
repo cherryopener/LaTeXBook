@@ -10,6 +10,17 @@ export function renderChapter(source, ctx) {
   return renderChapterImpl(source, ctx ?? {});
 }
 
+/** 장 원고 속 문항(::::problem) 수. 미리보기에서 건너뛴 장의 문항을 셀 때 쓴다(코드 블록 안은 세지 않음) */
+function countProblems(src) {
+  let n = 0, fence = null;
+  for (const line of String(src ?? "").split("\n")) {
+    const f = line.match(/^\s*(`{3,}|~{3,})/);
+    if (f) { if (!fence) fence = f[1][0]; else if (f[1][0] === fence) fence = null; continue; }
+    if (!fence && /^\s*:{3,}problem(?=$|[\s{\[])/.test(line)) n++;
+  }
+  return n;
+}
+
 /** 로마 숫자(Part I, II, …) */
 const roman = (n) => [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]
   .reduce((out, [v, r]) => { while (n >= v) { out += r; n -= v; } return out; }, "");
@@ -32,19 +43,24 @@ export function renderBook(book, opts = {}) {
   const coverMode = parts.some(coverOf);
   let seq = 0; // 책 전체에서 몇 번째 장인지(식·그림 번호 앞자리). 미리보기로 일부만 그려도 같은 번호가 나오게 건너뛴 장도 센다. 연습문제 장(Q)은 세지 않는다
   let coverNo = 0; // 큰 표지 번호(I, II, …). 건너뛴 부의 표지도 센다
+  // 문항 번호: print.problemNumbering "book"(기본)이면 책 전체로 이어 매긴다. 건너뛴 장의 문항도 센다
+  const bookWide = (print.problemNumbering ?? "book") !== "chapter";
+  let prSeq = 0;
   parts.forEach((part, pi) => {
     const P = pi + 1;
     // 장마다 번호(연습문제 장은 "Q", 번호를 쓰지 않음)
     const seqs = (part.chapters ?? []).map((ch) => (isExerciseChapter(ch.source) ? EXERCISE_NO : ++seq));
     const cover = coverOf(part);
     if (cover) coverNo += 1;
-    if (range.part && range.part !== P) return;
+    if (range.part && range.part !== P) { for (const ch of part.chapters ?? []) prSeq += countProblems(ch.source); return; }
     const palette = part.palette ?? partPalette(part.config ?? {}, print);
     const partTitle = part.config?.title ?? part.dir ?? "";
     const one = range.part && range.chapter ? range.chapter : null;
     const chapters = (part.chapters ?? []).map((ch, ci) => {
-      if (one && one !== ci + 1) return null;
-      const r = renderChapterImpl(ch.source ?? "", { ...base, partNo: P, chapterNo: ci + 1, chapterSeq: seqs[ci], exercise: seqs[ci] === EXERCISE_NO, palette, print });
+      const problemStart = bookWide ? prSeq : 0;
+      if (one && one !== ci + 1) { prSeq += countProblems(ch.source); return null; }
+      const r = renderChapterImpl(ch.source ?? "", { ...base, partNo: P, chapterNo: ci + 1, chapterSeq: seqs[ci], problemStart, exercise: seqs[ci] === EXERCISE_NO, palette, print });
+      prSeq += r.meta.problems.length;
       for (const w of r.warnings) warnings.push(ch.path ? { ...w, path: ch.path } : w);
       return { no: ci + 1, seq: seqs[ci], ...r };
     }).filter(Boolean);

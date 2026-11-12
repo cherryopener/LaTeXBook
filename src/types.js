@@ -14,6 +14,7 @@
  * @property {string[]} omitSections
  * @property {boolean} headingNumbers
  * @property {"000"|"0"} problemNumber
+ * @property {"book"|"chapter"} problemNumbering  문항 번호를 책 전체로 이어 매김(기본) / 장마다 001부터
  * @property {"left"|"right"|"any"} chapterStart
  * @property {"outside"|"left"} sideColumn
  * @property {1|2} [tocDepth]  책 첫 쪽 목차 깊이: 1 = 장까지, 2 = 절(##)까지
@@ -34,6 +35,7 @@ export const PRINT_DEFAULTS = Object.freeze({
   omitSections: ["실험으로 확인하기", "직접 해 보기"],
   headingNumbers: true,
   problemNumber: "000",
+  problemNumbering: "book",
   chapterStart: "left",
   sideColumn: "outside",
   tocDepth: 1,

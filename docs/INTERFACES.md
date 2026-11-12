@@ -51,7 +51,7 @@ type PrintConfig = {
   logo?: string;                       // 책 폴더 기준 경로
   fonts?: { body?: string; bodyFile?: string; bodyBoldFile?: string };
   omitSections: string[]; headingNumbers: boolean;
-  problemNumber: "000" | "0"; chapterStart: "left" | "right" | "any";
+  problemNumber: "000" | "0"; problemNumbering?: "book" | "chapter"; chapterStart: "left" | "right" | "any";
   sideColumn: "outside" | "left";
   fontSizes?: { body?: number; side?: number; problem?: number }; // pt. layout의 FONT_SIZES·fontSizesOf 참고
 };
