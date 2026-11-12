@@ -295,6 +295,14 @@ test("이름표: 첨자·기울임", () => {
 test("svgToPng는 함수(브라우저 전용: Node에서는 거부)", () => {
   ok(typeof svgToPng === "function");
 });
+test("xstep·ystep: 눈금 간격을 직접 정함(2026-11-12)", () => {
+  const r = renderPlot("x: 0 .. 5\ny: 0 .. 300\nf: y = 60x\nxstep: 1\nystep: 100\nw: 50", { palette: "teal", scale: 84.5 / 132 });
+  const t = text(r.svg);
+  for (const s of ["1", "2", "3", "4", "5", "100", "200", "300"]) ok(t.includes(s), `눈금 ${s}`);
+  ok(!r.errors.length, r.errors.join(","));
+  ok(parsePlot("x: 0 .. 1\ny: 0 .. 1\nf: y = x\nystep: -2").errors.some((e) => e.includes("ystep")), "음수 간격은 오류");
+});
+
 total++;
 await svgToPng("<svg viewBox=\"0 0 10 10\"></svg>").then(
   () => { failed++; console.log("  실패: Node에서 svgToPng가 성공함(브라우저 전용이어야 함)"); },

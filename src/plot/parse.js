@@ -1,7 +1,7 @@
 // plot 블록 글자 → 그래프 설명(plot 객체). DOM 없음.
 import { compileExpr, evalConst } from "./expr.js";
 
-const KEYS = new Set(["x", "y", "grid", "w", "fill", "slope", "point", "xlabel", "ylabel"]);
+const KEYS = new Set(["x", "y", "grid", "w", "fill", "slope", "point", "xlabel", "ylabel", "xstep", "ystep"]);
 export const DEFAULT_W = 70;
 
 const unquote = (s) => s.replace(/[“”]/g, '"');
@@ -46,7 +46,7 @@ export function parsePlot(spec) {
   const errors = [];
   const plot = {
     x: null, y: null, xPi: false, yPi: false, grid: false, w: DEFAULT_W,
-    xlabel: null, ylabel: null, funcs: [], fills: [], slopes: [], points: [],
+    xlabel: null, ylabel: null, xstep: null, ystep: null, funcs: [], fills: [], slopes: [], points: [],
   };
   const seen = new Set();
   const err = (n, msg) => errors.push(`${n}번째 줄: ${msg}`);
@@ -70,7 +70,7 @@ export function parsePlot(spec) {
     const lk = key.toLowerCase();
 
     if (KEYS.has(lk) && !(lk === "y" && /^\s*y\s*=/.test(value))) {
-      if (["x", "y", "grid", "w", "xlabel", "ylabel"].includes(lk)) {
+      if (["x", "y", "grid", "w", "xlabel", "ylabel", "xstep", "ystep"].includes(lk)) {
         if (seen.has(lk)) err(n, `"${lk}:"가 두 번 나왔습니다. 뒤의 것을 씁니다`);
         seen.add(lk);
       }
@@ -92,6 +92,11 @@ export function parsePlot(spec) {
         if (!Number.isFinite(v) || !/^\s*[\d.]+\s*%?\s*$/.test(value)) err(n, `w는 숫자(단 너비 %)여야 합니다("${value.trim()}")`);
         else if (v < 20 || v > 100) err(n, `w는 20~100 사이여야 합니다(받은 값 ${v}). 기본값 ${DEFAULT_W}를 씁니다`);
         else plot.w = v;
+      } else if (lk === "xstep" || lk === "ystep") {
+        // 눈금 간격을 직접 정함(2026-11-12). 예: ystep: 100
+        const v = Number(value.trim());
+        if (!Number.isFinite(v) || v <= 0) err(n, `${lk}는 0보다 큰 수여야 합니다("${value.trim()}")`);
+        else plot[lk] = v;
       } else if (lk === "xlabel" || lk === "ylabel") {
         const s = splitLabel(value);
         const t = (s.label ?? s.body).trim();

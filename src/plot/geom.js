@@ -103,7 +103,12 @@ const PI_STEPS = [[1, 6], [1, 4], [1, 3], [1, 2], [1, 1], [3, 2], [2, 1], [3, 1]
  * @param {boolean} isPi @param {(label:string)=>number} widthOf 글자 폭 어림
  * @returns {{v:number, label:string}[]}
  */
-export function makeTicks(a, b, len, per, isPi, widthOf) {
+export function makeTicks(a, b, len, per, isPi, widthOf, step = null) {
+  if (step > 0 && (b - a) / step <= 200) { // 간격을 직접 정했으면 그대로(xstep·ystep)
+    const out = [];
+    for (let k = Math.ceil(a / step - 1e-9); k <= Math.floor(b / step + 1e-9); k++) { const v = Number((k * step).toPrecision(12)); out.push({ v, label: formatNum(v) }); }
+    return out;
+  }
   let count = Math.max(2, Math.floor(len / per));
   for (let tries = 0; tries < 8; tries++) {
     const ticks = isPi ? piTicks(a, b, count) : plainTicks(a, b, count);
