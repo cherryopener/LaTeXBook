@@ -208,6 +208,7 @@ export function createPreview(container, opts = {}) {
     doc.head.appendChild(st);
   }
   let viewer = null;
+  let zoom = opts.zoom ?? 1;
   let url = null;
   let lineMap = []; // [줄, 쪽] 줄 순서
   let pending = null;
@@ -216,7 +217,7 @@ export function createPreview(container, opts = {}) {
     if (viewer) return viewer;
     const { CoreViewer, ReadyState } = await loadVivliostyle();
     viewer = new CoreViewer({ viewportElement: vp, window: win }, {
-      renderAllPages: true, autoResize: false, zoom: opts.zoom ?? 1, // 크기가 바뀌면 app이 미리보기를 다시 만든다
+      renderAllPages: true, autoResize: false, zoom, // 창 크기가 바뀌면 app이 setZoom으로 배율만 바꾼다
       pageViewMode: opts.spread ? "spread" : "singlePage",
     });
     viewer.addListener("readystatechange", () => {
@@ -245,7 +246,7 @@ export function createPreview(container, opts = {}) {
       const old = url;
       url = URL.createObjectURL(new Blob([docHtml], { type: "text/html" }));
       const done = new Promise((ok, fail) => { pending = { ok, fail }; });
-      viewer.loadDocument({ url });
+      viewer.loadDocument({ url }, undefined, { zoom }); // 지금 배율로 그린다(setZoom 직후에도 어긋나지 않게)
       await done;
       if (old) URL.revokeObjectURL(old);
       const pages = pageEls();
@@ -261,6 +262,33 @@ export function createPreview(container, opts = {}) {
       const warnings = collectWarnings(pages);
       fitHeight(pages);
       return { pages: pages.length, ms: Math.round(performance.now() - t0), warnings };
+    },
+    /** 지금 배율(1 = 실제 크기) */
+    get zoom() { return zoom; },
+    /**
+     * 배율만 바꾼다(다시 조판하지 않음). 기준점(at, 없으면 화면 가운데)에 보이던 곳을 그 자리에 둔다.
+     * 아직 문서를 그리기 전이면 다음 show()에 적용된다.
+     */
+    async setZoom(z, at) {
+      if (!(z > 0) || Math.abs(z - zoom) < 1e-4) return;
+      // 기준점(화면 좌표, 예: 마우스 위치). 없으면 미리보기 가운데
+      const r = vp.getBoundingClientRect();
+      const ax = at ? Math.max(0, Math.min(vp.clientWidth, at.x - r.left)) : vp.clientWidth / 2;
+      const ay = at ? Math.max(0, Math.min(vp.clientHeight, at.y - r.top)) : vp.clientHeight / 2;
+      const fx = (vp.scrollLeft + ax) / Math.max(1, vp.scrollWidth);
+      const fy = (vp.scrollTop + ay) / Math.max(1, vp.scrollHeight);
+      zoom = z;
+      if (!viewer) return;
+      const outer = vp.querySelector("[data-vivliostyle-outer-zoom-box]");
+      const w0 = outer?.style.width;
+      viewer.setOptions({ zoom: z });
+      if (!outer) return;
+      // Vivliostyle은 다음 차례에 배율을 적용한다: 바깥 상자 폭이 바뀔 때까지 기다린다(최대 약 1초)
+      for (let i = 0; i < 60 && outer.style.width === w0; i++) await new Promise((ok) => win.requestAnimationFrame(ok));
+      if (zoom !== z) return; // 기다리는 사이 또 바뀜
+      fitHeight(pageEls());
+      vp.scrollLeft = fx * vp.scrollWidth - ax;
+      vp.scrollTop = fy * vp.scrollHeight - ay;
     },
     goToPage(n) {
       // 모든 쪽이 이어져 보이므로 그 쪽으로 스크롤한다

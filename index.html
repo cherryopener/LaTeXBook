@@ -42,7 +42,14 @@
 <main id="main">
   <section id="editor" aria-label="원고"></section>
   <div id="split" role="separator" aria-orientation="vertical" title="끌어서 너비 조절"></div>
-  <section id="preview" aria-label="인쇄 미리보기"></section>
+  <section id="preview" aria-label="인쇄 미리보기">
+    <div id="zoom" role="group" aria-label="미리보기 배율">
+      <button id="zoom-out" title="축소">−</button>
+      <button id="zoom-val" title="실제 크기(100%)로">100%</button>
+      <button id="zoom-in" title="확대">＋</button>
+      <button id="zoom-fit" title="폭 맞춤: 쪽 폭을 미리보기 칸에 맞춤">폭 맞춤</button>
+    </div>
+  </section>
 </main>
 <footer id="status">
   <button id="btn-warn" class="ui-link">경고 0개</button>

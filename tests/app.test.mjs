@@ -71,6 +71,34 @@ const cur = await page.evaluate(() => window.__app.preview.currentPage());
 const probPage = await page.evaluate(() => { const ps = [...document.querySelectorAll("#preview [data-vivliostyle-page-container]")]; return ps.findIndex((p) => p.querySelector('[data-part="2"][data-chapter="1"] article.problem')) + 1; });
 check(cur === probPage, `커서 따라가기: 정전기 장 문제 쪽(${probPage})으로 이동 → ${cur}`);
 
+// 미리보기 배율: 다시 조판하지 않고 미리보기만 확대·축소, 폭 맞춤으로 돌아오기
+{
+  const z = () => page.evaluate(() => ({
+    zoom: window.__app.preview.zoom, at: window.__app.lastRender.at, label: document.querySelector("#zoom-val").textContent,
+    w: document.querySelector("#preview [data-vivliostyle-page-container]").getBoundingClientRect().width,
+    fit: document.querySelector("#zoom-fit").classList.contains("ui-on"), shell: getComputedStyle(document.querySelector("#top")).fontSize,
+  }));
+  const z0 = await z();
+  check(z0.fit && z0.label === `${Math.round(z0.zoom * 100)}%`, `처음은 폭 맞춤(${z0.label})`);
+  await page.click("#zoom-in"); await page.click("#zoom-in");
+  await page.waitForTimeout(500);
+  const z1 = await z();
+  check(z1.zoom > z0.zoom && !z1.fit && Math.abs(z1.w / z0.w - z1.zoom / z0.zoom) < 0.02, `확대 단추 → ${z1.label}, 쪽 폭 ${Math.round(z0.w)}→${Math.round(z1.w)}px`);
+  check(z1.at === z0.at && z1.shell === z0.shell, "다시 조판하지 않고 편집기 화면 글자는 그대로");
+  await page.mouse.move(1100, 500);
+  await page.keyboard.down("Control"); await page.mouse.wheel(0, -100); await page.keyboard.up("Control");
+  await page.waitForTimeout(500);
+  const z2 = await z();
+  check(z2.zoom > z1.zoom && z2.shell === z0.shell, `Ctrl+휠 → 미리보기만 ${z2.label}`);
+  const sc2 = await page.evaluate(() => { const v = document.querySelector(".layout-preview-vp"); v.scrollTop = v.scrollHeight; return v.scrollHeight > v.clientHeight; });
+  await page.waitForTimeout(200);
+  check(sc2 && await page.evaluate(() => window.__app.preview.currentPage()) >= rb.pages - 1, "확대해도 끝 쪽까지 스크롤");
+  await page.click("#zoom-fit");
+  await page.waitForTimeout(500);
+  const z3 = await z();
+  check(z3.fit && Math.abs(z3.zoom - z0.zoom) < 0.01, `폭 맞춤으로 돌아옴(${z3.label})`);
+}
+
 // 커서 위치 → 미리보기 쪽 맞춤(오류 없이 동작하는지)
 await page.evaluate(() => window.__app.editor.goToLine(20));
 

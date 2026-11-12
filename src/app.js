@@ -37,13 +37,40 @@ createToolbar($("#toolbar"), editor);
 app.editor = editor;
 
 let preview = null;
+// ---------- 미리보기 배율 ----------
+// "fit"(폭 맞춤: A4 폭이 미리보기 칸에 맞게, 창 크기를 바꾸면 따라감) 또는 고정 배율(1 = 실제 크기).
+// 배율만 바꾸고 다시 조판하지 않는다. 고른 값은 이 브라우저에 기억한다.
+const ZOOM_MIN = 0.25, ZOOM_MAX = 4;
+const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
+const ZOOM_KEY = "latexbook.preview-zoom";
+const fitZoom = () => Math.max(0.35, Math.min(1, ($("#preview").clientWidth - 32) / 830));
+let zoomMode = "fit";
+try { const v = Number(localStorage.getItem(ZOOM_KEY)); if (v >= ZOOM_MIN && v <= ZOOM_MAX) zoomMode = v; } catch {}
+const wantZoom = () => (zoomMode === "fit" ? fitZoom() : zoomMode);
+function showZoom() {
+  $("#zoom-val").textContent = `${Math.round((preview?.zoom ?? wantZoom()) * 100)}%`;
+  $("#zoom-fit").classList.toggle("ui-on", zoomMode === "fit");
+}
+function setZoom(mode, at) {
+  if (mode !== "fit") mode = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round(mode * 100) / 100));
+  zoomMode = mode;
+  try { if (mode === "fit") localStorage.removeItem(ZOOM_KEY); else localStorage.setItem(ZOOM_KEY, String(mode)); } catch {}
+  const p = preview?.setZoom(wantZoom(), at);
+  showZoom();
+  return p;
+}
+// 단추: 다음·앞 단계로(지금 배율이 단계 사이에 있으면 가까운 쪽으로)
+const stepZoom = (dir) => {
+  const z = preview?.zoom ?? wantZoom();
+  const next = dir > 0 ? ZOOM_STEPS.find((s) => s > z + 0.005) : [...ZOOM_STEPS].reverse().find((s) => s < z - 0.005);
+  return setZoom(next ?? (dir > 0 ? ZOOM_MAX : ZOOM_MIN));
+};
+app.setZoom = setZoom;
 function makePreview() {
   preview?.destroy();
-  const w = $("#preview").clientWidth;
-  const zoom = Math.max(0.35, Math.min(1, (w - 32) / 830)); // A4 폭이 화면에 맞게
-  preview = createPreview($("#preview"), { zoom });
+  preview = createPreview($("#preview"), { zoom: wantZoom() });
   app.preview = preview;
-  app.zoom = zoom;
+  showZoom();
 }
 
 // ---------- 책·장 ----------
@@ -516,16 +543,37 @@ function setBanner(text, actions = []) {
   });
   split.addEventListener("pointerup", () => { drag = false; split.classList.remove("drag"); refit(); });
 })();
+// 칸 폭이 바뀌면(폭 맞춤일 때만) 배율만 다시 맞춘다
 let fitTimer = 0;
 function refit() {
   clearTimeout(fitTimer);
   fitTimer = setTimeout(() => {
-    const w = $("#preview").clientWidth;
-    const z = Math.max(0.35, Math.min(1, (w - 32) / 830));
-    if (Math.abs(z - (app.zoom ?? 0)) > 0.04) { makePreview(); scheduleRender(0); }
-  }, 300);
+    if (zoomMode === "fit" && Math.abs(fitZoom() - (preview?.zoom ?? 0)) > 0.01) setZoom("fit");
+  }, 200);
 }
 window.addEventListener("resize", refit);
+
+// 배율 단추와 Ctrl(맥은 ⌘)+휠·트랙패드 두 손가락 벌리기: 미리보기만 확대·축소(브라우저 전체 확대는 막음)
+$("#zoom-in").onclick = () => stepZoom(1);
+$("#zoom-out").onclick = () => stepZoom(-1);
+$("#zoom-fit").onclick = () => setZoom("fit");
+$("#zoom-val").onclick = () => setZoom(1);
+(() => {
+  let acc = 0, raf = 0, at = null;
+  $("#preview").addEventListener("wheel", (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    acc += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    at = { x: e.clientX, y: e.clientY }; // 마우스가 있는 곳을 기준으로
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const z = preview?.zoom ?? wantZoom();
+      setZoom(z * Math.exp(-acc / 500), at); // 마우스 휠 한 칸(약 100)에 약 1.2배
+      acc = 0;
+    });
+  }, { passive: false });
+})();
 
 // ---------- 시작 ----------
 makePreview();

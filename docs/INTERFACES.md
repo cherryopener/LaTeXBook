@@ -231,7 +231,10 @@ type LayoutSettings = {
 type Preview = {
   show(docHtml: string): Promise<{ pages: number; ms: number; warnings: Warning[] }>;  // solution-overflow, page-multiple 등
   goToPage(n: number): void;
+  currentPage(): number;                     // 화면 위쪽에 보이는 쪽
   pageOfLine(line: number): number | null;   // data-line → 쪽 번호
+  readonly zoom: number;                     // 지금 배율(1 = 실제 크기)
+  setZoom(z: number, at?: { x: number; y: number }): Promise<void>;  // 배율만 바꿈(다시 조판 안 함). at(화면 좌표)에 보이던 곳을 그 자리에
   destroy(): void;
 };
 ```
