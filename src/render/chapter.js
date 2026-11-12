@@ -2,7 +2,7 @@
 import { unified, remarkRehype, rehypeStringify, katex } from "../../vendor/remark.js";
 import { withPrintDefaults } from "../types.js";
 import { renderPlot } from "../plot/index.js";
-import { esc, text, splitFrontMatter, mapAssetPath, cleanSvg, plotWidth, clampPct } from "./util.js";
+import { esc, text, splitFrontMatter, mapAssetPath, cleanSvg, plotWidth, clampPct, fixTables } from "./util.js";
 import { prepare, stripLabels, HIDDEN } from "./prepare.js";
 import { checkRawHtml, sanitizeSvg } from "./sanitize.js";
 
@@ -84,7 +84,7 @@ const el = (tag, props, children = []) => ({ type: "el", data: { hName: tag, hPr
 
 export function renderChapterImpl(source, ctx = {}) {
   const warnings = [];
-  const { meta: fm, body, lineOffset } = splitFrontMatter(source);
+  const { meta: fm, body: rawBody, lineOffset } = splitFrontMatter(source);
   const P = ctx.partNo ?? 1, C = ctx.chapterNo ?? 1;
   const print = ctx.print ?? withPrintDefaults({});
   const edition = ctx.edition === "teacher" ? "teacher" : "student";
@@ -100,6 +100,8 @@ export function renderChapterImpl(source, ctx = {}) {
     if (line !== undefined) w.line = line;
     warnings.push(w);
   };
+  // 칸 수가 맞지 않는 표를 고쳐 둔다(안 그러면 표 대신 글자로 찍힘)
+  const body = fixTables(rawBody, (line, msg) => warn("table-fixed", msg, { position: { start: { line } } }));
   const dl = (n) => { const l = lineOf(n); return l === undefined ? {} : { dataLine: l }; };
   const dlAttr = (n) => { const l = lineOf(n); return l === undefined ? "" : ` data-line="${l}"`; };
   const srcOf = (n) => (n.position ? body.slice(n.position.start.offset, n.position.end.offset) : "");
@@ -451,12 +453,19 @@ export function renderChapterImpl(source, ctx = {}) {
     const per = ok(problemsPer) ? problemsPer : ok(Number(print.problemsPerPage)) ? Number(print.problemsPerPage) : 2;
     const isProblem = (n) => n.type === "containerDirective" && n.name === "problem";
     const isPage = (n) => n.type === "leafDirective" && n.name === "page";
+    // 문제 구간의 ::pagebreak(쪽 나눔)도 ::page처럼 새 쪽에서 문항 세기를 다시 시작한다(안 그러면 다음 문항이 "새 단" 규칙에 밀려 왼쪽 단이 빔). 한 쪽 문항 수는 그대로
+    const isPageBreak = (n) => n.type === "leafDirective" && n.name === "pagebreak";
     const groups = [{ per: ok(problemsFirst) ? problemsFirst : per, limit: ok(problemsFirst) ? problemsFirst : Infinity, nodes: [], count: 0 }];
     for (const n of problems) {
       let g = groups[groups.length - 1];
       if (isPage(n)) {
         const p = Number(n.attributes?.per);
         groups.push({ per: ok(p) ? p : per, limit: Infinity, nodes: [], count: 0 });
+        continue;
+      }
+      if (isPageBreak(n)) {
+        if (!g.nodes.length) continue; // 이미 새 쪽 시작이면 무시
+        groups.push({ per: g.limit === Infinity ? g.per : per, limit: Infinity, nodes: [], count: 0 });
         continue;
       }
       if (isProblem(n) && g.count >= g.limit) { g = { per, limit: Infinity, nodes: [], count: 0 }; groups.push(g); }

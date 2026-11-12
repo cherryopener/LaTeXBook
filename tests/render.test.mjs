@@ -303,6 +303,27 @@ console.log("연습문제 장(Q)");
   ok(rc(":::bogi[조건]\n가\n:::").includes('<div class="bogi-title">조건</div>'), "보기 제목 바꾸기 [조건]");
 }
 
+// 칸 수가 맞지 않는 표(첫 줄 6칸, |---| 5칸)도 표로 그리고 경고(2026-11-12: 이 때문에 표가 글자로 찍혔음)
+{
+  const src = "---\ntitle: t\n---\n::problems\n\n::::problem\n물음\n\n| 시간(s) | 0 | 1 | 2 | 3 |4\n|:---:|:---:|:---:|:---:|:---:|\n| 거리(m)  |0   |0.5   | 1.0  |  1.5 |2.0\n::::\n";
+  const r = renderChapter(src, { ...base, edition: "teacher", partNo: 1, chapterNo: 1, palette: "teal", print });
+  ok(r.html.includes("<table") && (r.html.match(/<th align="center">/g) ?? []).length === 6 && r.html.includes('<td align="center">2.0</td>'), "칸 수 다른 표 → 6칸 표");
+  eq(r.warnings.map((w) => [w.code, w.line]), [["table-fixed", 9]], "칸 수 다른 표 경고(첫 줄 번호)");
+  const ok2 = renderChapter("| a | b |\n|---|---|\n| 1 | 2 |\n", { ...base, edition: "teacher", partNo: 1, chapterNo: 1, palette: "teal", print });
+  ok(ok2.html.includes("<table") && !ok2.warnings.length, "칸 수 맞는 표는 그대로, 경고 없음");
+  const fenced = renderChapter("```\n| a | b\n|---|\n```\n", { ...base, edition: "teacher", partNo: 1, chapterNo: 1, palette: "teal", print });
+  ok(!fenced.warnings.length && fenced.html.includes("| a | b"), "코드 울타리 안은 손대지 않음");
+}
+
+// 문제 구간의 ::pagebreak는 새 쪽에서 문항 세기를 다시 시작(왼쪽 단이 비지 않게, 2026-11-12)
+{
+  const P = (k) => `::::problem\n문항 ${k}\n::::\n`;
+  const src = `---\ntitle: t\n---\n::problems{per=4}\n\n${P(1)}\n${P(2)}\n::pagebreak\n\n${P(3)}\n::pagebreak\n`;
+  const h = renderChapter(src, { ...base, edition: "student", partNo: 1, chapterNo: 1, palette: "teal", print }).html;
+  eq(all(h, /<div class="problem-list([^"]*)" data-per/g), ["", " new-page"], "::pagebreak → 새 문항 묶음(새 쪽)");
+  ok((h.match(/data-per="4"/g) ?? []).length === 2 && !h.includes('class="pagebreak"'), "한 쪽 문항 수 유지, 끝의 쪽 나눔은 무시");
+}
+
 // 한 쪽 문항 수(2026-11-08 사용자 요청): ::problems{per=4} > print.problemsPerPage > 2
 {
   const src = "---\ntitle: t\n---\n개념\n\n::problems{per=4}\n\n::::problem\n가\n::::\n";

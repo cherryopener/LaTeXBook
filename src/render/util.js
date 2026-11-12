@@ -34,6 +34,46 @@ export function splitFrontMatter(source) {
   return { meta, head, body: src.slice(head.length), lineOffset: (head.match(/\n/g) ?? []).length };
 }
 
+/** 표 줄의 칸들(GFM 규칙: 앞뒤 |는 떼고, \\|가 아닌 |로 나눔) */
+function tableCells(line) {
+  let s = line.trim();
+  if (s.startsWith("|")) s = s.slice(1);
+  if (s.endsWith("|") && !s.endsWith("\\|")) s = s.slice(0, -1);
+  return s.split(/(?<!\\)\|/).map((c) => c.trim());
+}
+const TABLE_DELIM = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+
+/**
+ * 표의 칸 수가 줄마다 다르면(첫 줄 6칸, 둘째 줄 |---| 5칸 등) GFM은 표로 보지 않고 글자로 찍는다.
+ * 가장 많은 칸 수에 맞춰 첫 줄·둘째 줄을 고쳐 표가 되게 한다(내용은 버리지 않음). 줄 수는 그대로라 줄 번호가 맞는다.
+ * @param {(line:number, message:string)=>void} onFix 고친 표마다(본문 기준 줄 번호, 1부터)
+ */
+export function fixTables(body, onFix = () => {}) {
+  const lines = String(body).split("\n");
+  let fence = null;
+  for (let i = 1; i < lines.length; i++) {
+    const f = /^\s*(`{3,}|~{3,})/.exec(lines[i - 1]);
+    if (fence) { if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null; continue; }
+    if (f) { fence = f[1]; continue; }
+    const head = lines[i - 1], delim = lines[i];
+    if (!delim.includes("|") || !TABLE_DELIM.test(delim) || !head.includes("|") || TABLE_DELIM.test(head)) continue;
+    let end = i + 1;
+    while (end < lines.length && lines[end].trim() && lines[end].includes("|")) end++;
+    const h = tableCells(head), d = tableCells(delim), rows = lines.slice(i + 1, end).map(tableCells);
+    const n = Math.max(h.length, d.length, ...rows.map((r) => r.length));
+    if (h.length !== n || d.length !== n) {
+      const pad = (a, v) => [...a, ...Array(n - a.length).fill(v)];
+      const lastAlign = d[d.length - 1] || "---";
+      const indent = /^\s*/.exec(head)[0];
+      lines[i - 1] = `${indent}| ${pad(h, "").join(" | ")} |`;
+      lines[i] = `${indent}|${pad(d, lastAlign).join("|")}|`;
+      onFix(i, `표의 칸 수가 줄마다 달라(첫 줄 ${h.length}칸, 둘째 줄 ${d.length}칸${rows.length ? `, 내용 줄 최대 ${Math.max(...rows.map((r) => r.length))}칸` : ""}) ${n}칸으로 맞춰 그렸습니다. 원고의 첫 줄·둘째 줄(|---|)의 칸 수를 맞춰 주세요.`);
+    }
+    i = end - 1;
+  }
+  return lines.join("\n");
+}
+
 /** 문제 구간 시작 줄(::problems, ::problems{per=4} 등) */
 export const PROBLEMS_LINE = /^::problems(\{[^}]*\})?[ \t]*$/;
 /** 연습문제 장(Q 장)의 번호 자리 글자 */

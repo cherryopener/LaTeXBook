@@ -357,15 +357,19 @@ figcaption { display: block; margin-top: 1.2mm; padding: 0.7mm 2mm; background: 
 .table-wrap { margin: 3mm 0; text-align: center; break-inside: avoid; }
 table { border-collapse: collapse; margin: 3mm auto; font-size: 9pt; line-height: 1.5; break-inside: avoid; }
 .table-wrap > table { margin: 0 auto; }
-th, td { border: 0.5pt solid var(--grid); padding: 1mm 3.5mm; text-align: center; }
+th, td { border: 0.5pt solid var(--grid); padding: 1mm 3.5mm; text-align: center; overflow-wrap: normal; } /* 칸 안에서 0.5 같은 숫자가 쪼개지지 않게(줄바꿈은 띄어쓰기에서만) */
 thead th { background: var(--c-tint); border-top: 1pt solid var(--c-base); border-bottom: 0.8pt solid var(--c-base); }
 mark { background: var(--c-mark); color: inherit; padding: 0 0.3mm; }
 .c-red { color: var(--ink-red); } .c-blue { color: var(--ink-blue); } .c-green { color: var(--ink-green); }
 .center { text-align: center; } .right { text-align: right; } .left { text-align: left; }
 /* 표 칸 정렬(|:--|:-:|--:|)을 따른다(위의 가운데 기본값보다 앞서게) */
 th[align="left"], td[align="left"] { text-align: left; } th[align="right"], td[align="right"] { text-align: right; } th[align="center"], td[align="center"] { text-align: center; }
-/* 문제 속 표는 문제 글자 크기를 따라 조금 작게 */
+/* 문제 속 표: 문제 글자 크기를 따라 조금 작게, 선은 모두 책 색, 바탕색 없음(흰 종이). 2026-11-12 사용자 결정 */
 .problem-body table, .solution table { font-size: 0.94em; }
+.problem-body th, .problem-body td, .solution th, .solution td { border: 0.5pt solid var(--c-base); background: none; padding: 0.8mm 2mm; }
+.problem-body thead th, .solution thead th { background: none; border-top: 0.5pt solid var(--c-base); border-bottom: 0.5pt solid var(--c-base); }
+/* 탭 맞춤·짝짓기 선지 표는 문제 안에서도 테두리 없음 */
+.problem-body table.tab-table td, .solution table.tab-table td, .problem-body table.choice-table th, .problem-body table.choice-table td { border: 0; }
 /* 탭 맞춤(:::tab): 테두리 없는 표. 앞 칸은 글 폭만큼(줄바꿈 없음), 마지막 칸이 나머지 폭 */
 table.tab-table { width: 100%; margin: 1.5mm 0; font-size: inherit; line-height: inherit; break-inside: auto; }
 table.tab-table td { border: 0; background: none; padding: 0 1.2em 0 0; text-align: left; vertical-align: top; }
