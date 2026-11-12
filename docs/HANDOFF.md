@@ -125,3 +125,12 @@
 - 새 기능: 보라 색 묶음 `palette: "violet"`(빛과 물질), 예제 상자 `:::example[제목]`(장마다 "예제 n" 자동 번호, 교사용·학생용 모두 보임, Physiklar로는 `:::note[예제 · 제목]`), Part 가 셋 이상일 때 첫 쪽 목차의 Part 머리를 두 줄로(겹침 고침). FORMAT.md 3-4-0절. 웹 편집기 브랜치(`claude/textbook-webapp-plan-4xtu34`)에도 반영함.
 - 책: 비공개 textbooks `books/physics`(21장, 178쪽). 계획·저자 지침은 `textbooks/PLAN.md` 5절, 종이 교재를 처음부터 쓰는 가이드는 `textbooks/guides/new-book/print-style-guide.md`, 저자 확인 거리는 `textbooks/notes/physics-author-check.md`.
 - 참고 교과서 PDF 두 권은 저자의 OneDrive 공유 링크로 받음(저장소에 넣지 않음). 받으려면 OneDrive 주소를 허용한 환경 "교재 제작 (OneDrive 받기)"이 필요하고, 내려받기 주소는 `https://my.microsoftpersonalcontent.com/personal/<소유자 id>/_layouts/15/download.aspx?share=<공유 id>` 꼴.
+
+## 9. 2026-11-12 추가 (중등 연습문제)
+
+- textbooks `books/mid-1` 2~9부, `books/mid-2` 1~8부에 연습문제 장(부마다 16문항)을 넣었다. 저자 확인 거리는 `textbooks/notes/mid-exercises-check.md`.
+- 편집기에 바뀐 것(이 브랜치 `claude/sharp-galileo-gm27iu`, 웹 편집기 브랜치에는 아직 반영 안 함):
+  - 문항 번호를 책 전체로 이어 매김(`print.problemNumbering`: "book" 기본 / "chapter"). 문항 id(`pr-부-장-순번`)는 장 안 순번 그대로.
+  - 교사용 4·6문항 쪽은 해설이 칸을 넘치면 칸이 늘어남(`min-height`). 알림 `solution-grow`. 학생용은 칸 고정.
+  - plot: 문제 단에서는 좌표를 단 폭 비(84.5/132)로 줄여 글자를 본문 크기로. 긴 가로축 이름은 축 끝 아래, 세로축 이름 폭만큼 왼쪽 여백. `xstep`·`ystep` 눈금 간격.
+- 연습문제 그림 SVG 글자 기준: 인쇄 약 8pt = font-size 3.4 × viewBox 폭 ÷ w(문제 단 83 mm 기준).
