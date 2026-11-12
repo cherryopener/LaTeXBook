@@ -171,12 +171,14 @@ export function renderChapterImpl(source, ctx = {}) {
     return el("figure", props, kids);
   }
 
-  function plot(n) {
+  function plot(n, env = {}) {
     const spec = n.value ?? "";
     const w = plotWidth(spec);
     let svg = "";
     try {
-      const r = (ctx.plot ?? renderPlot)(spec, { palette });
+      // 문제 단(84.5 mm)은 개념 본문(132 mm)보다 좁으므로 그림 좌표를 줄여 글자가 종이에서 같은 크기가 되게 한다(2026-11-12)
+      const scale = env.section === "problems" ? 84.5 / 132 : 1;
+      const r = (ctx.plot ?? renderPlot)(spec, { palette, scale });
       svg = r?.svg ?? "";
       for (const e of r?.errors ?? []) warn("plot-error", `그래프: ${e}`, n);
     } catch (e) {
@@ -402,7 +404,7 @@ export function renderChapterImpl(source, ctx = {}) {
       case "math": return math(n);
       case "inlineMath": return html(tex(stripLabels(n.value), false, n));
       case "code":
-        if (n.lang === "plot") return plot(n);
+        if (n.lang === "plot") return plot(n, env);
         return { ...n, data: { hProperties: dl(n) } };
       case "image": {
         const src = mapAssetPath(n.url);

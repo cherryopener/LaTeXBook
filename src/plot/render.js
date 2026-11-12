@@ -45,7 +45,8 @@ export function renderPlot(spec, opts = {}) {
   const plot = parsed.plot;
 
   // ----- 크기·여백 -----
-  const W = Math.max(220, Math.round((BASE_W * plot.w) / 70));
+  const scale = opts.scale > 0 ? opts.scale : 1; // 단 폭 비(문제 단은 개념 본문보다 좁음)
+  const W = Math.max(Math.round(220 * scale), Math.round((BASE_W * plot.w * scale) / 70));
   const H = Math.round(W * 0.75);
   const [xa, xb] = plot.x;
 
@@ -75,10 +76,12 @@ export function renderPlot(spec, opts = {}) {
 
   const wOf = (s) => richWidth(parseRich(s), FS);
   const wAxis = (s) => richWidth(parseRich(s), FS_AXIS);
-  // 축 이름이 길면(예: "시간(h)") 오른쪽 여백을 넓혀 잘리지 않게 한다
-  const mt = ylabel ? 24 : 14, mr = xlabel ? Math.max(28, Math.ceil(wAxis(xlabel)) + ARROW + 8) : 16;
+  // 가로축 이름이 길면(예: "추의 무게(N)") 화살표 오른쪽 대신 축 끝 아래(눈금 숫자 밑)에 둔다.
+  // 가로축이 그림 맨 아래에 있을 때만. 그 밖에는 오른쪽 여백을 이름 폭만큼 넓힌다(2026-11-12)
+  const xlBelow = !!xlabel && cy === ya && wAxis(xlabel) > 30;
+  const mt = ylabel ? 24 : 14, mr = xlabel && !xlBelow ? Math.max(28, Math.ceil(wAxis(xlabel)) + ARROW + 8) : 16;
   const mbBase = cy === ya ? 22 : 12;
-  const mb = mbBase;
+  const mb = mbBase + (xlBelow ? FS_AXIS + 4 : 0);
   // 눈금은 여백 계산 전에 대략의 길이로 만든 뒤 확정한다
   const tickLenY = H - mt - mb;
   const yTicks = makeTicks(ya, yb, tickLenY, plot.yPi ? 40 : 30, plot.yPi, wOf);
@@ -198,9 +201,9 @@ export function renderPlot(spec, opts = {}) {
     }
     if (xlabel) {
       const segs = parseRich(xlabel);
-      const x = R + tip + 4, y = yAx + FS_AXIS * 0.35;
-      t += textEl(x, y, segs, FS_AXIS, "start");
-      placeBox(box(x, y, richWidth(segs, FS_AXIS), FS_AXIS, "start"));
+      const [x, y, anchor] = xlBelow ? [R + tip, yAx + 5 + FS * 0.8 + FS_AXIS + 3, "end"] : [R + tip + 4, yAx + FS_AXIS * 0.35, "start"];
+      t += textEl(x, y, segs, FS_AXIS, anchor);
+      placeBox(box(x, y, richWidth(segs, FS_AXIS), FS_AXIS, anchor));
     }
     if (ylabel) {
       const segs = parseRich(ylabel);
