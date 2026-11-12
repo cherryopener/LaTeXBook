@@ -116,7 +116,7 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, prob
     } else if (n.type === "containerDirective" && n.name === "problem") {
       pr++;
       n._no = print.problemNumber === "0" ? String(pr) : String(pr).padStart(3, "0");
-      n._id = `pr-${P}-${C}-${String(pr).padStart(3, "0")}`;
+      n._id = `pr-${P}-${C}-${String(pr - problemStart).padStart(3, "0")}`; // id는 장 안 순번(책 전체 번호와 무관하게 고정)
       const hasSolution = n.children.some((c) => c.type === "containerDirective" && c.name === "solution");
       meta.problems.push({ number: n._no, hasSolution, line: lineOf(n) });
     }
