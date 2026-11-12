@@ -391,6 +391,15 @@ export const COMMANDS = {
   problem,
   solution,
   // 5지선다·<보기>: 줄마다 ①②③…, ㄱ. ㄴ. ㄷ.이 인쇄에서 자동으로 붙는다. 첫 줄에 커서
+  // 정렬: 고른 줄을 :::center / :::right / :::left 로 감쌈
+  align: (state, arg) => wrapOrInsert(state, `:::${["center", "right", "left"].includes(arg) ? arg : "center"}`, ":::", "내용"),
+  // 탭 맞춤: 고른 줄을 감싸거나, (가)·(나) 틀을 넣고 첫 칸 뒤에 커서
+  tab: (state) => {
+    if (selectedLines(state)) return wrapOrInsert(state, ":::tab", ":::", "");
+    const block = ":::tab\n(가) | \n(나) | \n:::";
+    const i = block.indexOf("(가) | ") + "(가) | ".length;
+    return placeBlock(state, block, { sel: [i, i] });
+  },
   choices: (state, arg) => {
     if (arg !== "pair" || selectedLines(state)) return listBox(state, ":::choices");
     // 짝짓기 선지: 머리 줄 + 빈 줄 다섯. 첫 선지 줄 맨 앞에 커서

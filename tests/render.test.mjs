@@ -291,6 +291,12 @@ console.log("연습문제 장(Q)");
   eq(all(pair, /<td class="choice-no">(.)<\/td>/g), ["①", "②", "③"], "짝짓기 선지: 왼쪽 세로 번호");
   ok(pair.includes('<td class="choice-no">①</td><td>속력</td><td>가속도</td>') && pair.includes('<td class="choice-no">③</td><td>가속도</td><td>운동량</td>'), "짝짓기 선지: 앞뒤 |는 있어도 없어도 됨");
   ok(/<td class="choice-no">②<\/td><td><span class="katex">[\s\S]*?<\/td><td>운동량<\/td>/.test(pair), "짝짓기 선지: 수식 안의 |는 칸을 나누지 않음");
+  // 탭 맞춤(:::tab): 테두리 없는 표, 앞 칸 tab-fit, | 없는 줄은 한 칸으로 줄 전체
+  const tb = rc(":::tab\n(가) | A는 정지\n(나) | B는 운동 | 끝\n줄 전체\n:::");
+  ok(tb.includes('<table class="tab-table"') && tb.includes('<td class="tab-fit">(가)</td><td colspan="2">A는 정지</td>'), "탭 맞춤: 칸 맞춤, 모자란 칸은 마지막 칸이 이어받음");
+  ok(tb.includes('<td class="tab-fit">(나)</td><td class="tab-fit">B는 운동</td><td>끝</td>') && tb.includes('<td colspan="3">줄 전체</td>'), "탭 맞춤: | 없는 줄은 줄 전체");
+  ok(rc(":::tab{center}\n물체 | 질량\n:::").includes('<table class="tab-table centered"') && !rc(":::tab{center}\n물체 | 질량\n:::").includes("tab-fit"), "탭 맞춤 {center}");
+  ok(rc(":::left\n왼쪽\n:::").includes('<div class="left"'), ":::left");
   const bg = rc(":::bogi\nA의 속력은 $2v$이다.\nB는 정지해 있다.\nC의 에너지는 증가한다.\n:::");
   eq(all(bg, /<span class="bogi-no">([^<]+)<\/span>/g), ["ㄱ.", "ㄴ.", "ㄷ."], "보기 번호 ㄱ. ㄴ. ㄷ.");
   ok(bg.includes('<div class="bogi-title">보기</div>'), "보기 제목");

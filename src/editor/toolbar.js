@@ -39,6 +39,12 @@ const GROUPS = [
     { menu: "figure", glyph: "▣", name: "그림", desc: "그림 넣기" },
     { cmd: "plot", glyph: "∿", name: "그래프", desc: "함수 그래프 견본 틀" },
     { menu: "table", glyph: "▦", name: "표", desc: "표 넣기 (칸 수 고르기)" },
+    { cmd: "tab", glyph: "⇥", name: "탭 맞춤", desc: "줄마다 | 자리를 세로로 맞춤(:::tab). 테두리 없는 표라 긴 글도 칸 시작에 맞춰 넘어감" },
+    { menu: "align", glyph: "☰", name: "정렬", desc: "고른 줄을 가운데·오른쪽·왼쪽 정렬", options: [
+      { cmd: "align", arg: "center", name: "가운데", hint: ":::center" },
+      { cmd: "align", arg: "right", name: "오른쪽", hint: ":::right" },
+      { cmd: "align", arg: "left", name: "왼쪽", hint: ":::left (가운데 정렬 상자 안에서 한 부분만 왼쪽으로)" },
+    ] },
     { cmd: "pagebreak", glyph: "⏎", name: "쪽 나눔", desc: "다음 쪽에서 계속" },
   ] },
   { label: "문제", items: [
@@ -142,7 +148,7 @@ export function createToolbar(parent, editor) {
         }
       });
     }
-    if (item.menu === "choices") {
+    if (item.menu === "choices" || item.menu === "align") {
       return menuButton(item, (panel, close) => {
         panel.setAttribute("role", "menu");
         for (const o of item.options) panel.append(menuItem(o.name, o.hint, () => { close(); editor.command(o.cmd, o.arg); }, { cmd: o.cmd, arg: o.arg }));

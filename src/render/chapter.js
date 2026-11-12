@@ -269,6 +269,21 @@ export function renderChapterImpl(source, ctx = {}) {
     return el("div", { className: ["choices"], dataCols: String(cols), ...dl(n) }, kids);
   }
 
+  // 탭 맞춤(:::tab): 줄마다 | 자리를 탭처럼 세로로 맞춘다. 테두리 없는 표로 만들며, 앞 칸들은 가장 긴 글 폭,
+  // 마지막 칸은 남는 폭 전부(긴 글이 다음 줄로 넘어가도 그 칸의 시작에 맞춰짐). |가 없는 줄은 한 칸으로 줄 전체
+  function tabBox(n, env) {
+    const centered = n.attributes && "center" in n.attributes; // :::tab{center} → 표를 가운데에, 칸도 가운데
+    const rows = splitLines(unlabeled(n)).map((it) => (hasPipe(it) ? splitCells(it) : [it]));
+    const ncol = Math.max(1, ...rows.map((r) => r.length));
+    const trs = rows.map((r) => el("tr", {}, r.map((cell, i) => {
+      const props = {};
+      if (i === r.length - 1 && r.length < ncol) props.colSpan = ncol - r.length + 1;
+      if (!centered && i < ncol - 1 && !props.colSpan) props.className = ["tab-fit"];
+      return el("td", props, txAll(cell, env));
+    })));
+    return el("table", { className: ["tab-table", ...(centered ? ["centered"] : [])], ...dl(n) }, [el("tbody", {}, trs)]);
+  }
+
   // <보기> 상자: 줄마다 ㄱ. ㄴ. ㄷ. … [제목]이 있으면 "보기" 대신 그 제목
   function bogi(n, env) {
     const kids = n.children ?? [];
@@ -299,7 +314,8 @@ export function renderChapterImpl(source, ctx = {}) {
           return el("aside", { className: ["callout", "note"], ...dl(n) }, titled(n, env, "callout-title", CALLOUT_TITLE.note));
         }
         return el("aside", { className: ["side"], ...dl(n) }, titled(n, { ...env, inSide: true }, "side-title", null));
-      case "center": case "right": return box(name, txAll(unlabeled(n), env));
+      case "center": case "right": case "left": return box(name, txAll(unlabeled(n), env));
+      case "tab": return tabBox(n, env);
       // 한 문장 정의: 굵게·가운데, 앞뒤에 독일식 따옴표 „ “ (테마가 붙임). 2026-11-07 사용자 요청
       case "def": return box("def", txAll(unlabeled(n), env));
       case "columns": return box("columns-2", txAll(unlabeled(n), env));

@@ -361,7 +361,19 @@ th, td { border: 0.5pt solid var(--grid); padding: 1mm 3.5mm; text-align: center
 thead th { background: var(--c-tint); border-top: 1pt solid var(--c-base); border-bottom: 0.8pt solid var(--c-base); }
 mark { background: var(--c-mark); color: inherit; padding: 0 0.3mm; }
 .c-red { color: var(--ink-red); } .c-blue { color: var(--ink-blue); } .c-green { color: var(--ink-green); }
-.center { text-align: center; } .right { text-align: right; }
+.center { text-align: center; } .right { text-align: right; } .left { text-align: left; }
+/* 표 칸 정렬(|:--|:-:|--:|)을 따른다(위의 가운데 기본값보다 앞서게) */
+th[align="left"], td[align="left"] { text-align: left; } th[align="right"], td[align="right"] { text-align: right; } th[align="center"], td[align="center"] { text-align: center; }
+/* 문제 속 표는 문제 글자 크기를 따라 조금 작게 */
+.problem-body table, .solution table { font-size: 0.94em; }
+/* 탭 맞춤(:::tab): 테두리 없는 표. 앞 칸은 글 폭만큼(줄바꿈 없음), 마지막 칸이 나머지 폭 */
+table.tab-table { width: 100%; margin: 1.5mm 0; font-size: inherit; line-height: inherit; break-inside: auto; }
+table.tab-table td { border: 0; background: none; padding: 0 1.2em 0 0; text-align: left; vertical-align: top; }
+table.tab-table td:last-child { padding-right: 0; }
+table.tab-table td.tab-fit { width: 1%; white-space: nowrap; }
+/* :::tab{center}(또는 ::::center 안의 탭 맞춤): 표를 가운데에 두고 칸도 가운데 */
+table.tab-table.centered, .center table.tab-table { width: auto; margin: 1.5mm auto; }
+table.tab-table.centered td, .center table.tab-table td { text-align: center; padding: 0 0.8em; }
 a.ref { color: inherit; text-decoration: none; }
 
 /* ---- 수식 (KaTeX) ---- */
