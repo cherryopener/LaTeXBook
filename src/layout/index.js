@@ -167,7 +167,12 @@ function collectWarnings(pageEls) {
       const e = seen.get(id) ?? { count: 0, page: i + 1, line: Number(el.getAttribute("data-line")) || undefined, hasSolution: false };
       e.count += Math.max(1, el.getClientRects().length);
       // 한 쪽 4·6문항(칸 높이 고정): 내용이 칸을 넘치면 경고
-      if (/^[46]$/.test(el.parentElement?.getAttribute("data-per") ?? "") && el.scrollHeight > el.clientHeight + 2) e.overflowFixed = true;
+      if (/^[46]$/.test(el.parentElement?.getAttribute("data-per") ?? "")) {
+        if (el.scrollHeight > el.clientHeight + 2) e.overflowFixed = true;
+        // 교사용은 칸이 늘어난다(min-height). 늘어났으면 쪽 번호가 학생용과 어긋날 수 있음을 알림
+        const mh = parseFloat(getComputedStyle(el).minHeight) || 0;
+        if (mh && el.offsetHeight > mh + 2) e.cellGrown = true;
+      }
       if (el.querySelector(".solution")) e.hasSolution = true;
       seen.set(id, e);
     }
@@ -175,6 +180,7 @@ function collectWarnings(pageEls) {
   });
   for (const [id, e] of seen) {
     if (e.overflowFixed) warnings.push({ code: "problem-overflow", message: `${id.split("-").pop()}번 문항이 칸(한 쪽 4·6문항)을 넘칩니다(${e.page}쪽). 글·그림·::space를 줄이거나 한 쪽 문항 수를 줄이세요.`, line: e.line });
+    if (e.cellGrown && e.hasSolution) warnings.push({ code: "solution-grow", message: `${id.split("-").pop()}번 문항의 해설이 칸을 넘쳐 교사용에서 칸이 늘어났습니다(${e.page}쪽). 교사용 쪽 번호가 학생용과 어긋날 수 있습니다.`, line: e.line });
     if (e.count > 1 && e.hasSolution) {
       const no = id.split("-").pop();
       warnings.push({ code: "solution-overflow", message: `${no}번 문항의 해설이 단을 넘칩니다(${e.page}쪽). 교사용과 학생용의 쪽 번호가 어긋납니다.`, line: e.line });

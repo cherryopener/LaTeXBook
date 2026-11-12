@@ -455,6 +455,9 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 .problem-list[data-per="4"] article.problem, .problem-list[data-per="6"] article.problem { break-before: auto; break-inside: avoid; box-sizing: border-box; }
 .problem-list[data-per="4"] article.problem { height: 109mm; }
 .problem-list[data-per="6"] article.problem { height: 70mm; }
+/* 교사용: 해설이 칸을 넘치면 칸을 늘려 다음 문항을 밀어낸다(겹쳐 찍히지 않게, 2026-11-12). 학생용 칸 높이는 그대로 고정 */
+[data-edition="teacher"] .problem-list[data-per="4"] article.problem { height: auto; min-height: 109mm; }
+[data-edition="teacher"] .problem-list[data-per="6"] article.problem { height: auto; min-height: 70mm; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n+1), .problem-list[data-per="6"] article.problem:nth-of-type(3n+1) { break-before: column; }
 .problem-list[data-per="4"] article.problem:first-of-type, .problem-list[data-per="6"] article.problem:first-of-type { break-before: auto; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n), .problem-list[data-per="6"] article.problem:nth-of-type(3n+2), .problem-list[data-per="6"] article.problem:nth-of-type(3n) { border-top: 0.6pt dashed var(--grid); padding-top: 3mm; }
