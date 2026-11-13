@@ -129,15 +129,41 @@
 ## 9. 2026-11-12 추가 (중등 연습문제)
 
 - textbooks `books/mid-1` 2~9부, `books/mid-2` 1~8부에 연습문제 장(부마다 16문항)을 넣었다. 저자 확인 거리는 `textbooks/notes/mid-exercises-check.md`.
-- 편집기에 바뀐 것(이 브랜치 `claude/sharp-galileo-gm27iu`, 웹 편집기 브랜치에는 아직 반영 안 함):
+- 편집기에 바뀐 것(브랜치 `claude/sharp-galileo-gm27iu`. 2026-11-13 10절 작업과 함께 웹 편집기 브랜치에 반영):
   - 문항 번호를 책 전체로 이어 매김(`print.problemNumbering`: "book" 기본 / "chapter"). 문항 id(`pr-부-장-순번`)는 장 안 순번 그대로.
   - 교사용 4·6문항 쪽도 칸 높이 고정(쪽 번호를 학생용과 같게). 해설이 넘치면 다음 칸에 겹쳐 찍히는 것을 저자가 허용(2026-11-13). 알림 `solution-spill`. "해설" 표시는 float로 첫 줄 글과 같은 줄.
   - plot: 문제 단에서는 좌표를 단 폭 비(84.5/132)로 줄여 글자를 본문 크기로. 긴 가로축 이름은 축 끝 아래, 세로축 이름 폭만큼 왼쪽 여백. `xstep`·`ystep` 눈금 간격.
 - 연습문제 그림 SVG 글자 기준: 인쇄 약 8pt = font-size 3.4 × viewBox 폭 ÷ w(문제 단 83 mm 기준).
 
-## 10. 2026-11-13 정답·해설 나눔 (브랜치 `claude/quirky-pasteur-om4ffv`)
+## 10. 2026-11-13 정답·해설 나눔
 
-- `:::source`(문항 안): 교사용에서만 문항 아래 정답·풀이 요약. `:::solution`: 문제 쪽에서 빠지고 책 맨 뒤 "A 정답과 해설" 장(두 판 모두, 2단, 부 순서)으로 모임. FORMAT.md 3-7·3-8절, DECISIONS.md 8절.
-- 구현: `src/render/chapter.js`(problem → `meta.solutions`), `src/render/index.js`(`answersChapter`, toc 끝 `answers`), `themes/cyber/theme.css`(`.source`, `.answer-*`), `src/layout/index.js`(경고 `source-overflow`·`source-spill`, 글자 크기), 편집기 "정답(정)" 단추·문항 틀.
-- 비공개 textbooks의 기존 문항은 `:::solution`만 있으므로, 그대로 두면 교사용 문제 쪽에는 아무것도 안 나오고 해설은 맨 뒤로 간다. `:::source`는 저자가 채움.
-- 웹 편집기 브랜치(`claude/textbook-webapp-plan-4xtu34`)에는 아직 반영 안 함(9절 변경분과 함께 사용자 허락 후).
+### 10-1. 사용자 요청과 결정
+
+- 요청: 문항 안에 교사용 정답 상자 `:::source`(간단한 정답과 풀이 정보, 교사가 한눈에 보고 바로 풀 수 있게)를 두고, `:::solution`(해설)은 교사용에서도 문제 쪽에서 빼서 책 맨 뒤 "A 정답과 해설" 장에 부 순서대로 모은다. "해설" 상자는 없앤다. 입력은 지금처럼 문항 안에.
+- 사용자가 고른 것: 정답과 해설 장은 **두 판 모두**, **2단 작은 글씨**, 해설 글은 **원고 그대로**(정답 표기는 저자가 해설 첫머리에 씀. 기존 원고는 이미 `**정답 ①** …`), `:::source`는 **표시 글자 없이 색 글씨**.
+- 원고 파일은 바꾸지 않는다. 편집기가 조판할 때마다 `:::solution`을 모아 맨 뒤 장을 만든다(사용자가 "옮겨 적는 것"으로 오해해 확인함).
+
+### 10-2. 바꾼 곳
+
+| 곳 | 내용 |
+|---|---|
+| `src/render/chapter.js` | `problem()`: `:::source`는 교사용만 `<div class="source">`, `:::solution`은 찍지 않고 `meta.solutions`(`{number, id, html, line}`)로. 문항 밖 `:::solution`은 빼고 `solution-outside-problem` 경고 |
+| `src/render/index.js` | `renderBook`이 부마다 해설을 모아 맨 뒤 `answersChapter()`(장 번호 A, `.answer-list` 2단, `.answer-group`·`h2.answer-part`·`.answer`). toc 끝 `{answers:true}` → 책 첫 쪽 목차 "A 정답과 해설". 장 하나 미리보기에도 그 장 해설을 붙임 |
+| `themes/cyber/theme.css` | `.solution`·"해설" 표시 삭제, `.source`(점선 + 강조 색), `.answer-*`(8.4pt, 부 색 번호) |
+| `src/layout/index.js` | 넘침 경고를 `.source` 기준으로: `source-overflow`, `source-spill`. 글자 크기 칸: 정답 = 문제×9.2/9.6, 정답과 해설 = 문제×8.4/9.6 |
+| 편집기 | "정답(정)" 단추(`source` 명령, 해설 앞에 넣음), 문항 틀·연습문제 장 틀에 `:::source`·`:::solution`, 경고 설명 |
+| `src/render/export.js` | Physiklar 내보내기에서 `:::source`도 지움 |
+| 시험·견본 | 견본 책에 `:::source` 추가(넘침 시험 문항은 긴 정답 상자), render·editor·layout·integration·app·render-browser 시험 갱신. app 시험의 "커서 따라가기"는 `goToLine`이 미리보기를 움직이지 않는데 책 끝 쪽이 우연히 문제 쪽이라 통과하던 것을, ↓ 키로 실제 커서 이동을 만들게 고침 |
+| 문서 | FORMAT 3-7·3-8·4·6절, INTERFACES, README, samples/README, DECISIONS 8절 |
+
+### 10-3. 확인
+
+- `npm test` 13개 통과. 견본 책 PDF로 교사용 문제 쪽·정답과 해설 쪽 모양 확인.
+- 실제 책(비공개 textbooks, `node tools/build-book.mjs <책> <이름> both`): 중등 1권 123→129쪽, 2권 95→101쪽(늘어난 6쪽이 정답과 해설), 교사용·학생용 쪽 수 같음, 변환 경고 0(쪽수 배수 알림만). 기존 해설이 `**정답 ①** …`로 시작해 맨 뒤 장에 "001 정답 ① …"로 찍힘.
+- 아직 기존 문항에는 `:::source`가 없어 교사용 문항 아래는 비어 있다. 저자가 채운다.
+- 작은 흠: 해설 첫 줄이 분수 등으로 높으면 번호(float)가 그 줄보다 약간 위에 붙는다(1권 017·027·037번). 저자가 보고 원하면 고침.
+
+### 10-4. 배포
+
+- 작업 브랜치 `claude/quirky-pasteur-om4ffv`를 웹 편집기 브랜치 `claude/textbook-webapp-plan-4xtu34`에 그대로 앞으로 감기(fast-forward)로 반영(2026-11-13 사용자 허락). 9절 연습문제 기능도 함께 들어감.
+- textbooks: `PLAN.md` 2-1절 해설 문장, `notes/mid-exercises-check.md` 편집기 바뀐 점을 새 방식으로 고침.
