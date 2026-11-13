@@ -167,3 +167,8 @@
 
 - 작업 브랜치 `claude/quirky-pasteur-om4ffv`를 웹 편집기 브랜치 `claude/textbook-webapp-plan-4xtu34`에 그대로 앞으로 감기(fast-forward)로 반영(2026-11-13 사용자 허락). 9절 연습문제 기능도 함께 들어감.
 - textbooks: `PLAN.md` 2-1절 해설 문장, `notes/mid-exercises-check.md` 편집기 바뀐 점을 새 방식으로 고침.
+
+## 11. 2026-11-13 상자 글자 9pt 고정
+
+- 팁·참고·생각·주의 상자 안 글을 9pt로 고정(`themes/cyber/theme.css`의 `.callout.tip, .callout.note, .callout.think, .callout.warn`). 정의·예제는 본문 크기를 따름. DECISIONS 9절, FORMAT 1절 `fontSizes`. app 시험에 "본문 크기를 바꿔도 상자 글 9pt" 확인 추가.
+- 기본 본문 10.4pt 책에서는 이 상자들이 작아져 쪽 배치가 조금 바뀔 수 있다(두 판 쪽 번호는 같게 유지).

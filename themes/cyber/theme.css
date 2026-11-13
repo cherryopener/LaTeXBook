@@ -324,6 +324,8 @@ h4 { font-size: 10pt; font-weight: 700; margin: 4mm 0 1.5mm; }
 .callout { margin: 4mm 0; padding: 2.6mm 4mm 2.6mm 4mm; border: 0.6pt solid var(--c-base); border-left: 1.6mm solid var(--c-base);
   background: var(--c-tint); break-inside: avoid; text-align: left; }
 .callout-title { font-weight: 700; font-size: 9pt; color: var(--c-base); margin: 0 0 1mm; }
+/* 팁·참고·생각·주의 상자 안 글은 본문 크기(print.fontSizes.body)와 상관없이 9pt로 고정(2026-11-13 사용자 결정). 정의(:::def)·예제는 본문 크기를 따름 */
+.callout.tip, .callout.note, .callout.think, .callout.warn { font-size: 9pt; }
 .callout.warn { border-left-color: var(--c-side); }
 .callout.think { border-style: dashed; border-left-style: solid; }
 .callout > :last-child { margin-bottom: 0; }
