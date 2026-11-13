@@ -190,9 +190,12 @@
 - 조판(문제 8pt): 브릿지 176쪽, 중등 2권 100쪽, 중등 1권 131쪽. 교사용·학생용 쪽별 문항 같음, 변환 경고 0. 시험 13개 통과.
 - 남은 문제: "A 정답과 해설" 장 첫 쪽이 제목만 남고 비는 경우가 있다(브릿지에서 문제 9·9.6pt일 때 재현, 8·8.5·9.2pt는 정상, 해설이 한 쪽에 들어가면 정상). `.answer-part` break-after, `column-fill`, `.answer-no` float를 빼도 그대로. 원인 미해결.
 
-## 14. 2026-11-13 영재 3권 연습문제 (진행 중)
+## 14. 2026-11-14 영재 3권 연습문제 (끝)
 
-- 저자 지시: 영재 3권(`gifted-mech` 3부, `gifted-em` 3부, `gifted-wave` 2부)에 부마다 16문항. 5지선다 없이 ㄱㄴㄷ(<보기>만, 학생이 "ㄱ, ㄴ"으로 답)·단답형, 소문항 3~4개, 개념 장보다 더 많은 기술(벡터, 유효·환산 질량, 뉴턴의 렌즈 공식 등)과 여러 번 계산하는 문항, 한 쪽 2문항(`::problems{per=2}`). 소문항이 많으면 한 쪽 1문항(왼쪽 단: 문제와 (1), 오른쪽 단: (2)(3)).
-- 저자가 꼭 내고 싶은 문항: 에스컬레이터(두 줄 서기 대 한 줄 서기·한 줄 걷기, 같은 시간 수송량) → 영재역학 1부.
-- 작업 지시서·진행표: textbooks `notes/gifted-exercises-plan.md`. 배치 검사 도구 textbooks `guides/tools/p2check.py`(qcheck 다음에, 문항이 단·쪽을 넘치는지).
-- 편집기 고침(브랜치 `claude/ecstatic-galileo-s5c5jm`): 문항 안 `::columnbreak`(소문항을 오른쪽 단으로)는 `source-overflow`로 세지 않음(`src/layout/index.js` collectWarnings). FORMAT 3-8절. 시험 13개 통과. 웹 편집기 브랜치 반영은 저자 허락 뒤.
+- 저자 지시: 영재 3권(`gifted-mech` 3부, `gifted-em` 3부, `gifted-wave` 2부)에 부마다 16문항. 5지선다 없이 ㄱㄴㄷ(<보기>만, 학생이 "ㄱ, ㄴ"으로 답)·단답형, 소문항 3~4개, 개념 장보다 더 많은 기술(벡터, 유효·환산 질량, 뉴턴의 렌즈 공식 등)과 여러 번 계산하는 문항, 한 쪽 2문항(`::problems{per=2}`). 소문항이 많으면 한 쪽 1문항(문항 안 `::columnbreak`). 저자가 꼭 내고 싶은 에스컬레이터 문항은 영재역학 1부 16번.
+- 이어서 저자 지시로 2차 **고난도** 부마다 8문항(1차보다 어렵게, 미적분 금지·산술기하 평균 허용, 1차와 다른 새 문항). 답의 숫자 규칙: 문자식·정수·분모 10 이하 기약분수·자연스러운 근호와 π·정수 × 10의 거듭제곱.
+- 결과(textbooks main): 부마다 `03-exercises.md` 24문항(1차 16 + 고난도 8), 모두 192문항. 책 전체 조판 역학 105쪽, 전자기 107쪽, 파동광학 93쪽(두 판 같음, 쪽별 문항 같음, 경고 0, 문항 번호 책 전체 001~072/072/048).
+- 배정: 1차 집필 opus/high → 검산 opus/xhigh, 고난도 집필 opus/xhigh → 검산 Fable 5.2 high(저자 지시). 정답 오류 0, 근삿값·겹침 때문에 바뀐 답 3 + 답 표기 4.
+- 문서: 작업 지시·진행표 textbooks `notes/gifted-exercises-plan.md`, 저자 확인 거리 `notes/gifted-exercises-check.md`, 배운 것 `guides/EXERCISE-GUIDE.md` 12절. 배치 검사 도구 `guides/tools/p2check.py`, 그림 글자 검사 figtext가 % 글자 크기를 알리게 고침.
+- 편집기 고침(브랜치 `claude/ecstatic-galileo-s5c5jm`, 웹 편집기 브랜치에도 반영): 문항 안 `::columnbreak`(소문항을 오른쪽 단으로)는 `source-overflow`로 세지 않음(`src/layout/index.js` collectWarnings). FORMAT 3-8절. 시험 13개 통과.
+- 남은 일: 저자 검토(확인 거리 파일), 저자가 문항을 더 넣음. 5시간 한도에 한 번 걸렸고(05:10쯤), 한도가 풀린 뒤 SendMessage로 작업자들을 이어 하게 해서 잃은 것은 없음.
