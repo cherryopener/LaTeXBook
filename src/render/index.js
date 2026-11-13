@@ -46,6 +46,7 @@ export function renderBook(book, opts = {}) {
   // 문항 번호: print.problemNumbering "book"(기본)이면 책 전체로 이어 매긴다. 건너뛴 장의 문항도 센다
   const bookWide = (print.problemNumbering ?? "book") !== "chapter";
   let prSeq = 0;
+  const answers = []; // 부마다 해설 모음 → 책 맨 뒤 "A 정답과 해설" 장
   parts.forEach((part, pi) => {
     const P = pi + 1;
     // 장마다 번호(연습문제 장은 "Q", 번호를 쓰지 않음)
@@ -64,6 +65,8 @@ export function renderBook(book, opts = {}) {
       for (const w of r.warnings) warnings.push(ch.path ? { ...w, path: ch.path } : w);
       return { no: ci + 1, seq: seqs[ci], ...r };
     }).filter(Boolean);
+    const sols = chapters.flatMap((c) => c.meta.solutions ?? []);
+    if (sols.length) answers.push({ part: P, title: partTitle, palette, items: sols });
     if (!one) {
       const list = `<ol>` + chapters.map((c) => `<li><span class="toc-no">${c.seq}.</span> ${esc(c.meta.title)}</li>`).join("") + `</ol>`;
       if (coverMode) {
@@ -100,9 +103,34 @@ export function renderBook(book, opts = {}) {
       html.push(c.html);
     }
   });
+  // 책 맨 뒤: 정답과 해설(문항의 :::solution을 부 순서대로). 미리보기로 일부만 그릴 때도 그 범위의 해설을 붙인다
+  if (answers.length) {
+    const palette = print.palette ?? "teal";
+    toc.push({ answers: true, no: ANSWERS_NO, title: ANSWERS_TITLE, palette });
+    html.push(answersChapter(answers, palette, base.edition));
+  }
   // 책 전체를 만들 때는 맨 앞에 책 첫 쪽(제목 + 한 쪽짜리 목차). 쪽수는 조판기가 링크 대상의 쪽 번호로 채운다
   if (!range.part) html.unshift(bookFront(book, print, toc, base.resolveAsset, coverMode));
   return { html: html.join("\n"), toc, warnings };
+}
+
+const ANSWERS_NO = "A", ANSWERS_TITLE = "정답과 해설";
+
+/**
+ * "A 정답과 해설" 장(2026-11-13 사용자 결정). 두 판 모두에 들어가 쪽 번호가 같다.
+ * 2단, 작은 글씨. 부가 바뀔 때마다 작은 부 제목, 문항은 "001 해설 글"(해설 상자 없이 원고 글 그대로)
+ */
+function answersChapter(groups, palette, edition) {
+  const head = `<header class="chapter-head" data-mode="answers"><nav class="tabs"><span class="tab tab-answers on">ANSWERS</span></nav>` +
+    `<div class="band"><span class="chapter-no">${ANSWERS_NO}</span><h1 class="chapter-title">${esc(ANSWERS_TITLE)}</h1></div></header>`;
+  const body = groups.map((g) =>
+    `<div class="answer-group" data-palette="${esc(g.palette)}" data-part="${g.part}">\n` +
+    `<h2 class="answer-part"><span class="answer-part-no">${g.part}부</span> ${esc(g.title)}</h2>\n` +
+    g.items.map((a) => `<div class="answer"${a.id ? ` id="ans-${esc(a.id)}"` : ""}${a.line !== undefined ? ` data-line="${a.line}"` : ""}>` +
+      `<span class="answer-no">${esc(a.number)}</span><div class="answer-body">${a.html}</div></div>`).join("\n") +
+    `\n</div>`).join("\n");
+  return `<section class="chapter answers" id="answers" data-palette="${esc(palette)}" data-edition="${edition === "teacher" ? "teacher" : "student"}">\n` +
+    `<section class="answers-sec">${head}\n<div class="answer-list">\n${body}\n</div>\n</section>\n</section>`;
 }
 
 /** 책 첫 쪽: 시리즈 글씨, 책 제목·부제, 목차(큰 표지·부·장, 쪽수 자동) */
@@ -121,7 +149,9 @@ function bookFront(book, print, toc, resolveAsset = (s) => s, coverMode = false)
   // 목차 줄은 그 부의 색 묶음으로(역학 붉은, 전자기 청록)
   const item = (cls, href, no, title, palette) =>
     `<li class="${cls}"${palette ? ` data-palette="${esc(palette)}"` : ""}><a href="#${href}"><span class="toc-no">${esc(no)}</span><span class="toc-title">${esc(title)}</span><span class="toc-fill"></span></a></li>`;
-  const items = toc.map((t) => t.cover
+  const items = toc.map((t) => t.answers
+    ? item("toc-part toc-answers", "answers", t.no, t.title, t.palette)
+    : t.cover
     ? item("toc-cover", `cover-${t.cover}`, `${t.label} ${t.no}`, t.title, t.palette)
     : t.section
       ? item("toc-section", t.section, t.no ?? "", t.title, t.palette)

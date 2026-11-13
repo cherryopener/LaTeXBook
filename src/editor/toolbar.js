@@ -48,8 +48,9 @@ const GROUPS = [
     { cmd: "pagebreak", glyph: "⏎", name: "쪽 나눔", desc: "다음 쪽에서 계속" },
   ] },
   { label: "문제", items: [
-    { cmd: "problem", glyph: "Q", name: "문제 추가", desc: "문항 틀(풀이 포함)을 넣기. 문제 구간이 없으면 장 끝에 만듦" },
-    { cmd: "solution", glyph: "해", name: "해설", desc: "문항 안에 해설(:::solution) 넣기" },
+    { cmd: "problem", glyph: "Q", name: "문제 추가", desc: "문항 틀(정답·해설 포함)을 넣기. 문제 구간이 없으면 장 끝에 만듦" },
+    { cmd: "source", glyph: "정", name: "정답(교사용)", desc: "문항 안에 교사용 정답·풀이 요약(:::source) 넣기. 교사용에서만 문항 아래에 보임" },
+    { cmd: "solution", glyph: "해", name: "해설", desc: "문항 안에 해설(:::solution) 넣기. 책 맨 뒤 \"A 정답과 해설\" 장에 모임(두 판 모두)" },
     { menu: "choices", glyph: "①", name: "선지", desc: "5지선다(:::choices). 한 줄에 하나씩 쓰면 ①②③④⑤가 차례로 붙음", options: [
       { cmd: "choices", arg: "plain", name: "보통 선지", hint: "한 줄에 하나: ①②③④⑤" },
       { cmd: "choices", arg: "pair", name: "짝짓기 선지", hint: "(가)·(나)에 들어갈 말: 칸은 | 로 나눔, 인쇄에 테두리 없음" },

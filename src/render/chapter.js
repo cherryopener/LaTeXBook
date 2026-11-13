@@ -228,12 +228,20 @@ export function renderChapterImpl(source, ctx = {}) {
   }
   const unlabeled = (n) => (n.children ?? []).filter((c) => !c.data?.directiveLabel);
 
+  // 문항: 본문 + 교사용 정답(:::source, 문항 아래). 해설(:::solution)은 문제 쪽에 찍지 않고 meta.solutions로 모아
+  // 책 맨 뒤 "A 정답과 해설" 장에 넣는다(두 판 모두). 2026-11-13 사용자 결정
   function problem(n, env) {
     const kids = unlabeled(n);
-    const isSol = (c) => c.type === "containerDirective" && c.name === "solution";
+    const is = (name) => (c) => c.type === "containerDirective" && c.name === name;
+    const isSol = is("solution"), isSrc = is("source");
     const inner = { ...env, inProblem: true };
-    const out = [html(`<div class="problem-no">${esc(n._no ?? "")}</div>`), el("div", { className: ["problem-body"] }, txAll(kids.filter((c) => !isSol(c)), inner))];
-    if (teacher) for (const s of kids.filter(isSol)) out.push(el("div", { className: ["solution"], ...dl(s) }, txAll(unlabeled(s), inner)));
+    const out = [html(`<div class="problem-no">${esc(n._no ?? "")}</div>`), el("div", { className: ["problem-body"] }, txAll(kids.filter((c) => !isSol(c) && !isSrc(c)), inner))];
+    if (teacher) for (const s of kids.filter(isSrc)) out.push(el("div", { className: ["source"], ...dl(s) }, txAll(unlabeled(s), inner)));
+    const sols = kids.filter(isSol);
+    if (sols.length) {
+      const body = sols.map((s) => mdastToHtml(txAll(unlabeled(s), { ...inner, inAnswer: true }))).join("\n");
+      meta.solutions.push({ number: n._no ?? "", id: n._id, html: body, line: lineOf(sols[0]) });
+    }
     const props = { className: ["problem"], ...dl(n) };
     if (n._id) props.id = n._id;
     return el("article", props, out);
@@ -334,7 +342,10 @@ export function renderChapterImpl(source, ctx = {}) {
       case "figs": return box("figs", txAll(unlabeled(n), env));
       // 학생용도 같은 자리를 차지하게 내보내고(테마가 글자를 숨김) 두 판의 쪽 위치를 맞춘다
       case "teacher": return box(teacher ? "teacher-only" : "teacher-only placeholder", txAll(unlabeled(n), env));
-      case "solution": return teacher ? box("solution", txAll(unlabeled(n), env)) : null;
+      case "source": return teacher ? box("source", txAll(unlabeled(n), env)) : null;
+      case "solution":
+        warn("solution-outside-problem", ":::solution은 문항(::::problem) 안에 씁니다. 문항 밖의 해설은 정답과 해설 장에 넣을 수 없어 뺐습니다.", n);
+        return null;
       case "problem": return problem(n, env);
       case "choices": return choices(n, env);
       case "bogi": return bogi(n, env);

@@ -61,7 +61,9 @@ for (const c of chapters) {
     ok(count(html, /<div class="theory-body">/g) === 1 && count(html, /<div class="problem-list" data-per="2">/g) === 1, `${t}: 구간 2개`);
     const p = plain(html);
     ok(!/:{2,}\w|:blank|:ref|:hl|:red|:blue|\\label|\+\+\+/.test(p), `${t}: 남은 디렉티브 없음`, p.match(/:{2,}\w+|:blank|:ref|\\label|\+\+\+/g));
-    ok(edition === "teacher" || (count(html, /class="solution"/g) === 0 && count(html, /class="teacher-only"/g) === 0), `${t}: 학생용에 해설·교사용 내용 없음(교사용 메모는 placeholder로만)`);
+    ok(edition === "teacher" || (count(html, /class="source"/g) === 0 && count(html, /class="teacher-only"/g) === 0), `${t}: 학생용에 정답·교사용 내용 없음(교사용 메모는 placeholder로만)`);
+    ok(count(html, /class="solution"/g) === 0, `${t}: 문제 쪽에 해설 상자 없음(해설은 책 맨 뒤로)`);
+    eq(meta.solutions.length, meta.problems.filter((q) => q.hasSolution).length, `${t}: meta.solutions(해설 있는 문항 수)`);
     ok(blanksOf(html).every((b) => edition === "teacher" ? !/<span class="slot"><\/span>/.test(b) : !/<span class="slot">[^<]/.test(b)), `${t}: 빈칸 글자 판별`);
     ok(meta.blanks === count(html, /class="blank /g), `${t}: meta.blanks`, [meta.blanks]);
     // 원고 줄 번호: 제목 줄이 원본 파일의 그 줄인지
@@ -125,7 +127,10 @@ console.log("1-1 속도와 가속도");
   eq(all(h, /<article class="problem" data-line="\d+" id="([^"]+)"/g), ["pr-1-1-001", "pr-1-1-002", "pr-1-1-003"], "문항 id");
   eq(count(h, /<div class="space" style="height:25mm" data-line="\d+"><\/div>/g), 2, "학생용 공간 25mm ×2");
   eq(count(T.html, /<div class="space" style="height:25mm"/g), 2, "교사용 공간 25mm ×2");
-  eq(count(T.html, /<\/div><div class="solution" data-line="\d+">/g), 3, "교사용 해설 3개(문항 본문 바로 뒤)");
+  eq(count(T.html, /<\/div><div class="source" data-line="\d+">/g), 3, "교사용 정답 3개(문항 본문 바로 뒤)");
+  eq(S.meta.solutions.map((a) => [a.number, a.id]), [["001", "pr-1-1-001"], ["002", "pr-1-1-002"], ["003", "pr-1-1-003"]], "meta.solutions 번호·id");
+  ok(/^<p[^>]*>\(1\) 변위/.test(S.meta.solutions[0].html) && S.meta.solutions[0].html === T.meta.solutions[0].html, "해설 글은 원고 그대로, 두 판 같음");
+  ok(!/정답<\/|해설<\//.test(S.meta.solutions.map((a) => a.html).join("")), "해설에 '해설' 표시 없음");
   eq(S.meta.problems.map((p) => [p.number, p.hasSolution]), [["001", true], ["002", true], ["003", true]], "meta.problems");
   eq(S.warnings, [], "경고 없음");
 }
@@ -145,7 +150,8 @@ console.log("1-2 힘과 운동");
   eq(count(h, /<div class="columns-2" data-line="33">/g), 1, "대칭 2단 구간");
   ok(h.includes("<code>:::columns</code>"), "인라인 코드 속 글자는 그대로");
   ok(/<\/article>\s*<div class="columnbreak" data-line="47"><\/div>\s*<article/.test(h), "문제 구간 단 나눔");
-  eq(count(T.html, /class="solution"/g), 1, "교사용 해설 1개");
+  eq(count(T.html, /class="source"/g), 0, "정답 상자 없는 장(해설만 있음)");
+  eq(T.meta.solutions.length, 1, "해설 1개는 meta.solutions로");
   const second = (x) => /<article class="problem"[^>]*id="pr-1-2-002">[\s\S]*?<\/article>/.exec(x)[0];
   eq(second(T.html), second(h), "해설 없는 문항은 두 판이 같음");
   eq(S.warnings, [], "경고 없음");
@@ -165,10 +171,11 @@ console.log("2-1 정전기");
   ok(h.includes('<a class="ref" href="#fig-unlike">그림 1.1</a>처럼') && h.includes('<a class="ref" href="#eq-coulomb">(1.1)</a>'), "그림·식 참조");
   eq(S.warnings.map((w) => [w.code, w.line]), [["missing-image", 38], ["unknown-ref", 40]], "경고 missing-image, unknown-ref");
   ok(S.warnings.every((w) => typeof w.message === "string" && /[가-힣]/.test(w.message)), "경고 문장 한국어");
-  ok(/<span class="katex has-frac">/.test(T.html), "분수가 든 인라인 수식 has-frac(교사용 해설)");
+  ok(/<span class="katex has-frac">/.test(T.html), "분수가 든 인라인 수식 has-frac(교사용 정답)");
   ok(!/<span class="katex-display"><span class="katex has-frac">/.test(T.html + h), "가운데 수식에는 has-frac 없음");
-  eq(count(T.html, /class="solution"/g), 2, "교사용 해설 2개");
-  eq(count(T.html, /<div class="space" style="height:230mm"/g), 1, "해설 안 공간");
+  eq(count(T.html, /class="source"/g), 2, "교사용 정답 2개");
+  eq(count(T.html, /<div class="space" style="height:230mm"/g), 1, "정답 상자 안 공간");
+  eq(count(h, /<div class="space" style="height:230mm"/g), 0, "학생용에는 정답 상자 없음");
 }
 
 console.log("결정성");
@@ -200,7 +207,16 @@ for (const edition of ["teacher", "student"]) {
   ok(h.includes('<h1 class="part-title">운동과 힘</h1>') && h.includes('<h1 class="part-title">전기</h1>'), `${edition}: 부 제목`);
   ok(h.includes('<section class="part-toc" data-palette="red" data-part="1">\n<ol><li><span class="toc-no">1.</span> 속도와 가속도</li><li><span class="toc-no">2.</span> 힘과 운동</li></ol>'), `${edition}: 부 목차`);
   eq(all(h, /<section class="chapter" id="([^"]+)"/g), ["ch-1-1", "ch-1-2", "ch-2-1"], `${edition}: 장 3개`);
-  eq(r.toc, [{ part: 1, title: "운동과 힘", palette: "red" }, { part: 1, chapter: 1, seq: 1, title: "속도와 가속도", palette: "red" }, { part: 1, chapter: 2, seq: 2, title: "힘과 운동", palette: "red" }, { part: 2, title: "전기", palette: "teal" }, { part: 2, chapter: 1, seq: 3, title: "정전기", palette: "teal" }], `${edition}: toc`);
+  eq(r.toc, [{ part: 1, title: "운동과 힘", palette: "red" }, { part: 1, chapter: 1, seq: 1, title: "속도와 가속도", palette: "red" }, { part: 1, chapter: 2, seq: 2, title: "힘과 운동", palette: "red" }, { part: 2, title: "전기", palette: "teal" }, { part: 2, chapter: 1, seq: 3, title: "정전기", palette: "teal" }, { answers: true, no: "A", title: "정답과 해설", palette: "teal" }], `${edition}: toc`);
+  // 책 맨 뒤 "A 정답과 해설"(2026-11-13 사용자 결정): 두 판 모두, 부 순서대로, 해설 상자 없이 번호 + 해설 글
+  ok(/<section class="chapter answers" id="answers"[^>]*>\n<section class="answers-sec"><header class="chapter-head" data-mode="answers">[\s\S]*?<span class="chapter-no">A<\/span><h1 class="chapter-title">정답과 해설<\/h1>/.test(h), `${edition}: 정답과 해설 장 머리 A`);
+  ok(h.lastIndexOf('<section class="chapter answers"') > h.lastIndexOf('id="ch-2-1"'), `${edition}: 정답과 해설은 책 맨 뒤`);
+  const ans = h.slice(h.indexOf('<section class="chapter answers"'));
+  eq(all(ans, /<span class="answer-no">([^<]*)<\/span>/g), ["001", "002", "003", "004", "006", "007"], `${edition}: 해설 번호(부 순서대로, 해설 없는 005번은 빠짐)`);
+  eq(all(ans, /<h2 class="answer-part"><span class="answer-part-no">(\d+)부<\/span>/g), ["1", "2"], `${edition}: 부 제목`);
+  ok(/<div class="answer" id="ans-pr-1-1-002" data-line="\d+"><span class="answer-no">002<\/span><div class="answer-body"><p[^>]*><span class="katex">/.test(ans), `${edition}: 해설 줄(id, 번호 + 해설 글)`);
+  ok(!/class="solution"|class="source"/.test(ans), `${edition}: 해설·정답 상자 없음`);
+  ok(h.includes('<li class="toc-part toc-answers" data-palette="teal"><a href="#answers"><span class="toc-no">A</span><span class="toc-title">정답과 해설</span>'), `${edition}: 책 목차에 A 정답과 해설`);
   // 장 번호는 책 전체로 이어진다(사용자 결정 2026-11-07): 전기 부의 첫 장이 3
   ok(/id="ch-2-1"[\s\S]*?<span class="chapter-no">3<\/span>/.test(h), `${edition}: 2부 첫 장 번호 3`);
   ok(h.includes('<li><span class="toc-no">3.</span> 정전기</li>'), `${edition}: 부 목차의 장 번호 이어짐`);
@@ -215,7 +231,12 @@ for (const edition of ["teacher", "student"]) {
   const p2 = renderBook(book, { ...base, edition: "student", range: { part: 2 } });
   ok(!p2.html.includes('data-part="1"') && p2.html.includes('<div class="part-no">02</div>') && p2.html.includes('id="ch-2-1"'), "range 부 하나");
   const c12 = renderBook(book, { ...base, edition: "student", range: { part: 1, chapter: 2 } });
-  ok(!c12.html.includes("part-cover") && /^<section class="chapter" id="ch-1-2"/.test(c12.html) && c12.toc.length === 1, "range 장 하나");
+  ok(!c12.html.includes("part-cover") && /^<section class="chapter" id="ch-1-2"/.test(c12.html) && c12.toc.length === 2 && c12.toc[1].answers, "range 장 하나(+ 그 장의 정답과 해설)");
+  eq(all(c12.html, /<span class="answer-no">([^<]*)<\/span>/g), ["004"], "range 장 하나: 그 장 해설만, 책 전체 번호");
+  { const none = renderBook({ ...book, parts: [{ dir: "x", config: { title: "x" }, palette: "red", chapters: [{ path: "x/1.md", source: "---\ntitle: t\n---\n글\n\n::problems\n\n::::problem\n문제\n::::\n" }] }] }, { ...base, edition: "teacher" });
+    ok(!none.html.includes("answers") && !none.toc.some((t) => t.answers), "해설이 하나도 없으면 정답과 해설 장 없음"); }
+  { const out = renderChapter("---\ntitle: t\n---\n:::solution\n밖\n:::\n", { ...base, edition: "teacher", partNo: 1, chapterNo: 1, palette: "teal", print });
+    ok(!out.html.includes("밖") && out.warnings.some((w) => w.code === "solution-outside-problem"), "문항 밖 해설: 빼고 경고"); }
   eq(renderBook(book, { ...base, edition: "student" }).html, renderBook(book, { ...base, edition: "student" }).html, "renderBook 결정성");
 }
 

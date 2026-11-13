@@ -65,7 +65,7 @@ export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, prob
   prune(theory, omit);
   if (problems) prune(problems, omit);
 
-  const meta = { headings: [], figures: [], equations: [], problems: [], blanks: 0 };
+  const meta = { headings: [], figures: [], equations: [], problems: [], solutions: [], blanks: 0 };
   const labels = new Map(); // 이름 → { kind, id, no }
   const addLabel = (name, entry, node) => {
     if (labels.has(name)) {

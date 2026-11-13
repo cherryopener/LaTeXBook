@@ -65,7 +65,10 @@ const lastNo = await page.evaluate(() => window.__app.preview.currentPage());
 check(sc.shown === rb.pages && sc.scrollable && lastNo >= rb.pages - 1, `책 전체: ${sc.shown}쪽 모두 보이고 끝까지 스크롤(마지막 화면 ${lastNo}쪽)`);
 check(/\d+ \/ \d+쪽/.test(await page.locator("#pages").textContent()), "아래 막대에 지금 쪽 번호");
 // 커서를 장의 문제 구간으로 옮기면 그 쪽으로 따라감
-await page.evaluate(() => { const ed = window.__app.editor; const n = ed.getText().split("\n").findIndex((l) => l.startsWith("::problems")) + 1; ed.goToLine(n + 3); });
+// goToLine은 미리보기를 움직이지 않으므로(되돌아 울림 방지) 한 줄 위로 옮긴 뒤 ↓ 키로 사용자 커서 이동을 만든다. 먼저 미리보기를 맨 위로
+await page.evaluate(() => { document.querySelector(".layout-preview-vp").scrollTop = 0; const ed = window.__app.editor; const n = ed.getText().split("\n").findIndex((l) => l.startsWith("::problems")) + 1; ed.goToLine(n + 2); });
+await page.locator(".cm-content").focus();
+await page.keyboard.press("ArrowDown"); // 줄이 바뀌어야 따라감
 await page.waitForTimeout(800);
 const cur = await page.evaluate(() => window.__app.preview.currentPage());
 const probPage = await page.evaluate(() => { const ps = [...document.querySelectorAll("#preview [data-vivliostyle-page-container]")]; return ps.findIndex((p) => p.querySelector('[data-part="2"][data-chapter="1"] article.problem')) + 1; });
@@ -105,20 +108,20 @@ await page.evaluate(() => window.__app.editor.goToLine(20));
 // 글자 크기 칸(본문·옆 단·문제): 바꾸면 미리보기의 해당 글자만 바뀜
 const sizes = () => page.evaluate(() => {
   const pt = (sel) => { const el = document.querySelector(`#preview ${sel}`); return el ? Math.round(parseFloat(getComputedStyle(el).fontSize) * 0.75 * 10) / 10 : null; };
-  return { body: pt(".theory-body > p"), side: pt(".side"), problem: pt(".problem-body"), solution: pt(".solution") };
+  return { body: pt(".theory-body > p"), side: pt(".side"), problem: pt(".problem-body"), solution: pt(".source"), answers: pt(".answer-list") };
 });
 r = await page.evaluate(() => window.__app.lastRender);
 await page.selectOption("#sel-edition", "teacher"); // 해설은 교사용에만
 await waitRender(r.at);
 const s0 = await sizes();
-check(s0.body === 10.4 && s0.side === 7.6 && s0.problem === 9.6 && s0.solution === 9.2, `글자 크기 기본값 ${JSON.stringify(s0)}`);
+check(s0.body === 10.4 && s0.side === 7.6 && s0.problem === 9.6 && s0.solution === 9.2 && s0.answers === 8.4, `글자 크기 기본값 ${JSON.stringify(s0)}`);
 for (const [kind, v] of [["body", "11.5"], ["side", "8.2"], ["problem", "10.4"]]) {
   r = await page.evaluate(() => window.__app.lastRender);
   await page.fill(`#fs-${kind}`, v);
   await waitRender(r.at);
 }
 const s1 = await sizes();
-check(s1.body === 11.5 && s1.side === 8.2 && s1.problem === 10.4 && Math.abs(s1.solution - 10.4 * 9.2 / 9.6) < 0.15, `글자 크기 바꿈 → 미리보기 ${JSON.stringify(s1)}`);
+check(s1.body === 11.5 && s1.side === 8.2 && s1.problem === 10.4 && Math.abs(s1.solution - 10.4 * 9.2 / 9.6) < 0.15 && Math.abs(s1.answers - 10.4 * 8.4 / 9.6) < 0.15, `글자 크기 바꿈 → 미리보기 ${JSON.stringify(s1)}`);
 check((await page.locator("#save-state").textContent()).includes("견본"), "견본 책은 글자 크기를 바꿔도 저장 안 됨 표시");
 r = await page.evaluate(() => window.__app.lastRender);
 await page.fill("#fs-body", "99");

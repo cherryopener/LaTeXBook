@@ -37,7 +37,7 @@ function fontSizeCss(print) {
   const out = [];
   if (body !== null) out.push(`html { font-size: ${body}pt; }`);
   if (side !== null) out.push(`.side { font-size: ${side}pt; } .side .side-title { font-size: ${r(side * 8 / 7.6)}pt; }`);
-  if (problem !== null) out.push(`.problem-body { font-size: ${problem}pt; } .solution { font-size: ${r(problem * 9.2 / 9.6)}pt; }`);
+  if (problem !== null) out.push(`.problem-body { font-size: ${problem}pt; } .source { font-size: ${r(problem * 9.2 / 9.6)}pt; } .answer-list { font-size: ${r(problem * 8.4 / 9.6)}pt; }`);
   return out.join("\n");
 }
 
@@ -144,7 +144,7 @@ ${body}
 `;
 }
 
-/** 렌더된 쪽들에서 경고를 찾는다(해설 넘침, 쪽수 배수) */
+/** 렌더된 쪽들에서 경고를 찾는다(교사용 정답 넘침, 쪽수 배수) */
 function collectWarnings(pageEls) {
   const warnings = [];
   const n = pageEls.length;
@@ -152,7 +152,7 @@ function collectWarnings(pageEls) {
     const need = PAGE_MULTIPLE - (n % PAGE_MULTIPLE);
     warnings.push({ code: "page-multiple", message: `전체 ${n}쪽이 ${PAGE_MULTIPLE}의 배수가 아닙니다. 빈 쪽 ${need}쪽이 더 필요합니다.` });
   }
-  // 문항 하나가 둘 이상의 단(또는 쪽)에 걸치면 넘침. 해설이 있는 문항만 경고.
+  // 문항 하나가 둘 이상의 단(또는 쪽)에 걸치면 넘침. 교사용 정답(:::source)이 있는 문항만 경고.
   // 쪽을 넘으면 Vivliostyle이 쪽마다 조각을 만들고(id 유지), 같은 쪽 안에서 단을 넘으면 브라우저 다단 조각이 생긴다.
   // 조각 수 = 쪽별 getClientRects() 수의 합. 보이지 않는 쪽(display:none)은 잠시 보이게 해서 잰다.
   const seen = new Map(); // id → {count, page, line, hasSolution}
@@ -164,30 +164,30 @@ function collectWarnings(pageEls) {
     for (const el of list) {
       const id = el.id || el.getAttribute("data-line");
       if (!id) continue;
-      const e = seen.get(id) ?? { count: 0, page: i + 1, line: Number(el.getAttribute("data-line")) || undefined, hasSolution: false };
+      const e = seen.get(id) ?? { count: 0, page: i + 1, line: Number(el.getAttribute("data-line")) || undefined, hasSource: false };
       e.count += Math.max(1, el.getClientRects().length);
       // 한 쪽 4·6문항(칸 높이 고정): 내용이 칸을 넘치면 경고
       if (/^[46]$/.test(el.parentElement?.getAttribute("data-per") ?? "")) {
-        // 칸(높이 고정)을 넘침 → 경고. 교사용 해설은 흐름 밖(position:absolute)이라 아래 끝 위치로 따로 잰다:
-        // 해설이 다음 칸에 겹쳐 찍혀도 괜찮다(2026-11-13 사용자 결정) → 알림만
-        const sol = el.querySelector(".solution");
+        // 칸(높이 고정)을 넘침 → 경고. 교사용 정답은 흐름 밖(position:absolute)이라 아래 끝 위치로 따로 잰다:
+        // 정답이 다음 칸에 겹쳐 찍혀도 괜찮다(2026-11-13 사용자 결정) → 알림만
+        const sol = el.querySelector(".source");
         if (sol && getComputedStyle(sol).position === "absolute") {
-          if (sol.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.solutionSpill = true;
+          if (sol.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.sourceSpill = true;
           const body = el.querySelector(".problem-body");
           if (body && body.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.overflowFixed = true;
         } else if (el.scrollHeight > el.clientHeight + 2) e.overflowFixed = true;
       }
-      if (el.querySelector(".solution")) e.hasSolution = true;
+      if (el.querySelector(".source")) e.hasSource = true;
       seen.set(id, e);
     }
     pg.style.display = old;
   });
   for (const [id, e] of seen) {
     if (e.overflowFixed) warnings.push({ code: "problem-overflow", message: `${id.split("-").pop()}번 문항이 칸(한 쪽 4·6문항)을 넘칩니다(${e.page}쪽). 글·그림·::space를 줄이거나 한 쪽 문항 수를 줄이세요.`, line: e.line });
-    if (e.solutionSpill) warnings.push({ code: "solution-spill", message: `${id.split("-").pop()}번 문항의 해설이 칸을 넘쳐 다음 칸에 겹칩니다(${e.page}쪽, 교사용).`, line: e.line });
-    if (e.count > 1 && e.hasSolution) {
+    if (e.sourceSpill) warnings.push({ code: "source-spill", message: `${id.split("-").pop()}번 문항의 정답(:::source)이 칸을 넘쳐 다음 칸에 겹칩니다(${e.page}쪽, 교사용).`, line: e.line });
+    if (e.count > 1 && e.hasSource) {
       const no = id.split("-").pop();
-      warnings.push({ code: "solution-overflow", message: `${no}번 문항의 해설이 단을 넘칩니다(${e.page}쪽). 교사용과 학생용의 쪽 번호가 어긋납니다.`, line: e.line });
+      warnings.push({ code: "source-overflow", message: `${no}번 문항의 정답(:::source)이 단을 넘칩니다(${e.page}쪽). 교사용과 학생용의 쪽 번호가 어긋납니다.`, line: e.line });
     }
   }
   return warnings;

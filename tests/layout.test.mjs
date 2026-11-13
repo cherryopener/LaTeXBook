@@ -1,5 +1,5 @@
 // 조판(layout) 시험: 견본 본문으로 세 판형 × 교사용·학생용 PDF를 만들어 확인한다.
-// - 쪽 크기(pdfinfo), 대체 글꼴 없음(pdffonts), 교사용·학생용 쪽수·문항 쪽 같음, 경고(solution-overflow, page-multiple)
+// - 쪽 크기(pdfinfo), 대체 글꼴 없음(pdffonts), 교사용·학생용 쪽수·문항 쪽 같음, 경고(source-overflow, page-multiple)
 // - 결과물: out/layout/*.pdf, 주요 쪽 그림(*.png), report.json
 // 견본 본문을 고쳤으면 먼저: node tests/fixtures/layout-make.mjs
 import { openBrowser, ROOT } from "./lib/browser.mjs";
@@ -69,8 +69,8 @@ for (const paper of ["a4", "a4-bleed"]) {
   check(T.pages === S.pages, `교사용·학생용 쪽수 같음 (${T.pages}, ${S.pages})`);
   check(JSON.stringify(problemPages(T.pageInfo)) === JSON.stringify(problemPages(S.pageInfo)), "교사용·학생용 문항별 쪽 같음");
   const codes = (r) => r.warnings.map((w) => w.code);
-  check(codes(T).includes("solution-overflow"), "교사용: 긴 해설에 solution-overflow 경고");
-  check(!codes(S).includes("solution-overflow"), "학생용: solution-overflow 경고 없음");
+  check(codes(T).includes("source-overflow"), "교사용: 긴 정답에 source-overflow 경고");
+  check(!codes(S).includes("source-overflow"), "학생용: source-overflow 경고 없음");
   const pm = T.warnings.find((w) => w.code === "page-multiple");
   check(T.pages % 16 ? !!pm && pm.message.includes(`${16 - (T.pages % 16)}쪽`) : !pm, `page-multiple 경고(${pm?.message ?? "없음"})`);
   check(T.lines.every(([, p]) => Number.isInteger(p) && p >= 1), `pageOfLine ${JSON.stringify(T.lines)}`);
@@ -104,7 +104,7 @@ for (const paper of ["a4", "a4-bleed"]) {
 {
   const { page, r } = await render("edition=teacher&paper=a4&fixture=layout-overflow");
   await page.close();
-  check(r.warnings.some((w) => w.code === "solution-overflow" && w.line === 10), "같은 쪽 단 넘침도 solution-overflow");
+  check(r.warnings.some((w) => w.code === "source-overflow" && w.line === 10), "같은 쪽 단 넘침도 source-overflow");
 }
 
 // 장이 오른쪽 쪽에서 끝나면 다음 부 표지 앞에 빈 쪽: 머리말·쪽 번호·바탕색 없음

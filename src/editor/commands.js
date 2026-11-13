@@ -240,9 +240,10 @@ export function scanStructure(doc) {
     if (fence) { if (f && f[1][0] === fence[0] && f[1].length >= fence.length && /^\s*[`~]+\s*$/.test(t)) fence = null; continue; }
     if (f) { fence = f[1]; continue; }
     if (problemsLine == null && /^::problems(\{[^}]*\})?\s*$/.test(t)) problemsLine = n; // ::problems{per=4} 도
-    if (/^::::problem(?![\w-])/.test(t)) { if (cur) blocks.push(cur); cur = { open: n, close: null, solution: null }; continue; }
+    if (/^::::problem(?![\w-])/.test(t)) { if (cur) blocks.push(cur); cur = { open: n, close: null, source: null, solution: null }; continue; }
     if (cur) {
       if (/^::::\s*$/.test(t)) { cur.close = n; blocks.push(cur); cur = null; }
+      else if (cur.source == null && /^:::source(?![\w-])/.test(t)) cur.source = n;
       else if (cur.solution == null && /^:::solution(?![\w-])/.test(t)) cur.solution = n;
     }
   }
@@ -252,7 +253,8 @@ export function scanStructure(doc) {
 
 const blockEnd = (doc, b) => b.close ?? doc.lines;
 
-const PROBLEM_BLOCK = "::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::";
+// 문항 틀: 교사용 정답(:::source, 문항 아래)과 해설(:::solution, 책 맨 뒤 "정답과 해설" 장으로 감). 2026-11-13
+const PROBLEM_BLOCK = "::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::";
 
 function problem(state) {
   const doc = state.doc;
@@ -271,21 +273,29 @@ function problem(state) {
   return placeBlock(state, PROBLEM_BLOCK, { at, sel: selOf(PROBLEM_BLOCK, "문제 내용") });
 }
 
-function solution(state) {
+/**
+ * 문항 안에 :::source(정답) 또는 :::solution(해설) 넣기. 이미 있으면 그리로 옮겨 감.
+ * 정답은 해설 앞에, 해설은 문항 끝(닫는 줄 앞)에 넣는다. 문항 밖이면 커서 자리에(고른 글이 있으면 감쌈)
+ */
+function problemPart(state, name, hint) {
   const doc = state.doc;
   const headLine = doc.lineAt(state.selection.main.head).number;
   const { blocks } = scanStructure(doc);
   const inside = blocks.find((b) => b.open <= headLine && headLine <= blockEnd(doc, b));
+  const block = `:::${name}\n${hint}\n:::`;
   if (inside) {
-    if (inside.solution) { // 이미 있음 → 거기로 이동
-      const body = doc.line(Math.min(inside.solution + 1, doc.lines));
+    if (inside[name]) { // 이미 있음 → 거기로 이동
+      const body = doc.line(Math.min(inside[name] + 1, doc.lines));
       return { selection: EditorSelection.cursor(body.to), scrollIntoView: true };
     }
-    const at = inside.close ? doc.line(inside.close - 1).from : doc.length;
-    return placeBlock(state, ":::solution\n풀이\n:::", { at, sel: selOf(":::solution\n풀이\n:::", "풀이") });
+    const before = name === "source" && inside.solution ? inside.solution : inside.close;
+    const at = before ? doc.line(before - 1).from : doc.length;
+    return placeBlock(state, block, { at, sel: selOf(block, hint) });
   }
-  return wrapOrInsert(state, ":::solution", ":::", "풀이");
+  return wrapOrInsert(state, `:::${name}`, ":::", hint);
 }
+const solution = (state) => problemPart(state, "solution", "해설");
+const source = (state) => problemPart(state, "source", "정답");
 
 // ───────────────────────── 표 ─────────────────────────
 
@@ -389,6 +399,7 @@ export const COMMANDS = {
     return placeBlock(state, block, { sel: selOf(block, "2x + 1") });
   },
   problem,
+  source,
   solution,
   // 5지선다·<보기>: 줄마다 ①②③…, ㄱ. ㄴ. ㄷ.이 인쇄에서 자동으로 붙는다. 첫 줄에 커서
   // 정렬: 고른 줄을 :::center / :::right / :::left 로 감쌈

@@ -34,7 +34,8 @@
 | `::problems` | 새 쪽, 장 머리 띠, PROBLEMS 탭 켜짐, 대칭 2단 |
 | 문항 3개 | 번호 001~003, 문항마다 새 단 → 1쪽에 2문항 + 다음 쪽 1문항 |
 | `::space{h=25}` | 25mm 빈 공간(두 판 모두) |
-| `:::solution` | 교사용에만, 문항 아래 |
+| `:::source` | 교사용에만, 문항 아래(점선 아래 색 글씨) |
+| `:::solution` | 문제 쪽에는 없음. 두 판 모두 책 맨 뒤 "A 정답과 해설"에 |
 
 ### 1-2. 힘과 운동 (`02-force.md`)
 
@@ -58,7 +59,7 @@
 | `:::figs` | 그림 2개 가로로 나란히, 각각 번호(그림 1.1, 1.2)와 설명 띠 |
 | `::fig[…]{src=images/missing.png}` | 경고 `missing-image` |
 | `:ref[nothing]` | 경고 `unknown-ref` |
-| 두 번째 문항의 해설 | 교사용에서 경고 `solution-overflow` |
+| 두 번째 문항의 긴 `:::source` | 교사용에서 경고 `source-overflow` |
 
 ### 책 전체
 

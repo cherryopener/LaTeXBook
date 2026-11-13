@@ -63,7 +63,7 @@ for (const paper of ["a4", "a4-bleed"]) {
   }
 }
 
-// 견본의 정전기 장 002번은 일부러 해설이 단을 넘치게 만든 문항(solution-overflow 시험용)이다.
+// 견본의 정전기 장 002번은 일부러 교사용 정답(:::source)이 단을 넘치게 만든 문항(source-overflow 시험용)이다.
 // 그 문항부터는 교사용 쪽이 밀리는 것이 정상이므로, 그 앞까지만 두 판이 같은지 본다.
 const INTENDED_OVERFLOW = "pr-2-1-002";
 for (const paper of ["a4", "a4-bleed"]) {
@@ -100,12 +100,16 @@ for (const name of Object.keys(results)) {
   check(expect.length >= 5 && expect.every((n) => nums.includes(n)), `목차 쪽수 자동(기대 ${expect.join(",")} / 1쪽 숫자 ${nums.join(",")})`);
 }
 
-// 학생용 PDF에 정답·해설·교사 메모가 글자로 남지 않아야 함
-const stu = fs.readFileSync(path.join(OUT, "book-student-a4.txt"), "utf8");
-const tea = fs.readFileSync(path.join(OUT, "book-teacher-a4.txt"), "utf8");
-for (const s of ["수업 메모", "한 방향으로만 곧게", "이동 거리 = 10", "6/2 = 3"]) {
-  check(tea.includes(s.replace("이동 거리 = 10", "10 + 4")) || tea.includes(s), `교사용에 "${s}" 있음(시험 문장 확인용)`);
-  check(!stu.includes(s), `학생용에 "${s}" 없음`);
+// 학생용 PDF에 정답·교사 메모가 글자로 남지 않아야 함. 해설은 책 맨 뒤 "A 정답과 해설" 장에만(두 판 모두, 2026-11-13 사용자 결정)
+const stuAll = fs.readFileSync(path.join(OUT, "book-student-a4.txt"), "utf8");
+const teaAll = fs.readFileSync(path.join(OUT, "book-teacher-a4.txt"), "utf8");
+const cutAnswers = (t) => { const i = t.lastIndexOf("정답과 해설"); return i > 0 ? [t.slice(0, i), t.slice(i)] : [t, ""]; };
+const [stu, stuAns] = cutAnswers(stuAll), [tea, teaAns] = cutAnswers(teaAll);
+check(stuAns.includes("한 방향으로만 곧게") && teaAns.includes("한 방향으로만 곧게") && stuAns.includes("6/2 = 3"), "두 판 모두 맨 뒤 정답과 해설에 해설 글");
+check(!tea.includes("한 방향으로만 곧게") && !tea.includes("6/2 = 3"), "교사용 문제 쪽에도 해설 없음(맨 뒤로 감)");
+for (const s of ["수업 메모", "한 방향 직선 운동"]) {
+  check(tea.includes(s), `교사용에 "${s}" 있음(시험 문장 확인용)`);
+  check(!stuAll.includes(s), `학생용에 "${s}" 없음`);
 }
 check(!/v\s*=\s*v\s*0/.test(stu), "학생용에 수식 빈칸 정답(v = v0 + at) 없음");
 check(/v\s*=\s*v\s*0/.test(tea), "교사용에 수식 빈칸 정답 있음");
@@ -113,8 +117,8 @@ check(/v\s*=\s*v\s*0/.test(tea), "교사용에 수식 빈칸 정답 있음");
 // 기대 경고
 const wcodes = (n) => [...results[n].renderWarnings.map((w) => w.code), ...results[n].warnings.map((w) => w.code)];
 const tw = wcodes("book-teacher-a4");
-for (const c of ["missing-image", "unknown-ref", "solution-overflow", "page-multiple"]) check(tw.includes(c), `교사용 경고에 ${c}`);
-check(!wcodes("book-student-a4").includes("solution-overflow"), "학생용에는 solution-overflow 없음");
+for (const c of ["missing-image", "unknown-ref", "source-overflow", "page-multiple"]) check(tw.includes(c), `교사용 경고에 ${c}`);
+check(!wcodes("book-student-a4").includes("source-overflow"), "학생용에는 source-overflow 없음");
 
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, null, 1));
 await t.close();

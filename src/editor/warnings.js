@@ -11,7 +11,9 @@ export const WARNING_TEXT = {
   "unknown-ref": "참조한 수식·그림 이름이 없습니다.",
   "duplicate-label": "같은 이름이 두 번 쓰였습니다.",
   "side-outside-theory": "옆 단은 개념 구간에서만 쓸 수 있습니다.",
-  "solution-overflow": "해설이 단을 넘칩니다. 교사용과 학생용의 쪽 번호가 어긋날 수 있습니다.",
+  "source-overflow": "교사용 정답(:::source)이 단을 넘칩니다. 교사용과 학생용의 쪽 번호가 어긋날 수 있습니다.",
+  "source-spill": "교사용 정답(:::source)이 칸을 넘쳐 다음 칸에 겹칩니다.",
+  "solution-outside-problem": "해설(:::solution)은 문항(::::problem) 안에 씁니다.",
   "plot-error": "그래프의 식이나 범위에 오류가 있습니다.",
   "page-multiple": "전체 쪽수가 인쇄소 배수에 맞지 않습니다.",
 };

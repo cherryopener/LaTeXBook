@@ -78,7 +78,8 @@ T("상자: 빈 줄 하나뿐인 곳은 그 줄을 대신함", "앞\n|\n뒤", "ca
 T("상자: 선택 줄 감싸기", "앞\n⟦설명 한 줄\n둘째 줄⟧\n뒤", "callout", "앞\n\n:::tip\n설명 한 줄\n둘째 줄|\n:::\n\n뒤", "tip");
 T("옆 단: 틀", "|", "side", ":::side[⟦용어⟧]\n풀이\n:::");
 T("옆 단: 선택 줄 감싸기", "⟦짧은 풀이⟧", "side", ":::side[⟦용어⟧]\n짧은 풀이\n:::");
-T("해설(문항 밖): 틀", "|", "solution", ":::solution\n⟦풀이⟧\n:::");
+T("해설(문항 밖): 틀", "|", "solution", ":::solution\n⟦해설⟧\n:::");
+T("정답(문항 밖): 틀", "|", "source", ":::source\n⟦정답⟧\n:::");
 T("풀이 공간", "|", "space", "::space{h=⟦30⟧}");
 T("쪽 나눔: 다음 빈 줄에 커서", "문장.|", "pagebreak", "문장.\n\n::pagebreak\n|");
 T("쪽 나눔: 뒤에 글이 있어도 빈 줄을 두고 그 줄에 커서", "문장.|\n뒤", "pagebreak", "문장.\n\n::pagebreak\n|\n뒤");
@@ -89,27 +90,27 @@ T("그래프: 견본 틀", "|", "plot", '```plot\nx: 0 .. 5\ny: 0 .. 10\nf: y = 
 T("표: 3줄 × 2칸", "|", "table", "| ⟦제목 1⟧ | 제목 2 |\n|---|---|\n|   |   |\n|   |   |", { rows: 3, cols: 2 });
 T("표: 문자열 인자", "|", "table", "| ⟦제목 1⟧ | 제목 2 |\n|---|---|\n|   |   |", "2x2");
 eq("표 글자: 열 세 개", tableText(2, 3), "| 제목 1 | 제목 2 | 제목 3 |\n|---|---|---|\n|   |   |   |");
-T("상자 닫는 줄 바로 앞에 넣을 때 빈 줄을 만들지 않음", "::::problem\n본문|\n::::", "solution", "::::problem\n본문\n\n:::solution\n⟦풀이⟧\n:::\n::::");
+T("상자 닫는 줄 바로 앞에 넣을 때 빈 줄을 만들지 않음", "::::problem\n본문|\n::::", "solution", "::::problem\n본문\n\n:::solution\n⟦해설⟧\n:::\n::::");
 
 // 문제
 const THEORY = "---\ntitle: 장\n---\n\n## 절\n\n본문 문장.";
 {
   const r = run(THEORY, "problem");
-  eq("문제: ::problems가 없으면 장 끝에 먼저 넣고 그 뒤에 문항", r.text, THEORY + "\n\n::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::");
+  eq("문제: ::problems가 없으면 장 끝에 먼저 넣고 그 뒤에 문항", r.text, THEORY + "\n\n::problems\n\n::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::");
   eq("문제: 문항 글자를 골라 둠", r.shown.slice(r.shown.indexOf("⟦") + 1, r.shown.indexOf("⟧")), "문제 내용");
   const again = run(r.text.replace("문제 내용", "|문제 내용"), "problem");
   eq("문제: 문항 안에서 또 누르면 그 문항 뒤에 새 문항(::problems는 하나)", (again.text.match(/^::problems$/gm) || []).length + "/" + (again.text.match(/^::::problem$/gm) || []).length, "1/2");
   check("문제: 첫 문항이 닫힌 뒤에 둘째가 시작", /::::\n\n::::problem\n문제 내용/.test(again.text), again.text);
   const empty = run("", "problem");
-  eq("문제: 빈 원고에서도 동작", empty.text, "::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::");
+  eq("문제: 빈 원고에서도 동작", empty.text, "::problems\n\n::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::");
 }
 {
   const withProblems = "본문\n\n::problems\n\n::::problem\n가\n:::solution\n나\n:::\n::::\n\n끝";
   const a = run("|" + withProblems, "problem"); // 개념 구간에 커서 → 문제 구간 끝
   check("문제: 개념 구간에서 누르면 문제 구간 끝에 넣음", a.text.indexOf("::::problem", a.text.indexOf("끝")) > 0 && (a.text.match(/^::problems$/gm) || []).length === 1, a.text);
   const b = run("본문\n\n::problems\n\n|", "problem"); // ::problems 뒤 빈 줄
-  eq("문제: ::problems 뒤 커서 자리에 넣음", b.text, "본문\n\n::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::");
-  eq("scanStructure", JSON.stringify(scanStructure(EditorState.create({ doc: withProblems }).doc)), '{"problemsLine":3,"blocks":[{"open":5,"close":10,"solution":7}]}');
+  eq("문제: ::problems 뒤 커서 자리에 넣음", b.text, "본문\n\n::problems\n\n::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::");
+  eq("scanStructure", JSON.stringify(scanStructure(EditorState.create({ doc: withProblems }).doc)), '{"problemsLine":3,"blocks":[{"open":5,"close":10,"source":null,"solution":7}]}');
   eq("scanStructure: 코드 울타리 안은 무시", scanStructure(EditorState.create({ doc: "```\n::problems\n```\n\n본문" }).doc).problemsLine, null);
   eq("선지 단추: 빈 상자 + 안쪽 첫 줄에 커서", run("::::problem\n물음?\n|\n::::", "choices").shown, "::::problem\n물음?\n\n:::choices\n|\n:::\n::::");
   eq("짝짓기 선지 틀", run("|", "choices", "pair").shown, ":::choices\n| (가) | (나)\n| | \n | \n | \n | \n | \n:::");
@@ -119,7 +120,12 @@ const THEORY = "---\ntitle: 장\n---\n\n## 절\n\n본문 문장.";
   eq("제시문 단추: 고른 줄을 감쌈", run("⟦가\n나⟧", "jesi").text, ":::jesi\n가\n나\n:::");
   eq("scanStructure: ::problems{per=4} 도 문제 구간", scanStructure(EditorState.create({ doc: "# 장\n\n::problems{first=4 per=6}\n\n::::problem\n문\n::::" }).doc).problemsLine, 3);
   const s = run("::problems\n\n::::problem\n본문|\n::::", "solution");
-  eq("해설: 문항 안에서 닫는 줄 앞에 넣음", s.text, "::problems\n\n::::problem\n본문\n\n:::solution\n풀이\n:::\n::::");
+  eq("해설: 문항 안에서 닫는 줄 앞에 넣음", s.text, "::problems\n\n::::problem\n본문\n\n:::solution\n해설\n:::\n::::");
+  const q = run("::::problem\n본문|\n\n:::solution\n내용\n:::\n::::", "source");
+  eq("정답: 해설이 있으면 그 앞에 넣음", q.text, "::::problem\n본문\n\n:::source\n정답\n:::\n\n:::solution\n내용\n:::\n::::");
+  const q2 = run("::::problem\n본문|\n\n:::source\n가\n:::\n::::", "source");
+  check("정답: 이미 있으면 그리로 이동", q2.text === "::::problem\n본문\n\n:::source\n가\n:::\n::::" && q2.shown.includes("가|"), q2.shown);
+  eq("scanStructure: 정답 줄", JSON.stringify(scanStructure(EditorState.create({ doc: "::::problem\n가\n:::source\n나\n:::\n::::" }).doc).blocks), '[{"open":1,"close":6,"source":3,"solution":null}]');
   const s2 = run("::::problem\n본문|\n\n:::solution\n내용\n:::\n::::", "solution");
   check("해설: 이미 있으면 새로 넣지 않고 그리로 이동", s2.text === "::::problem\n본문\n\n:::solution\n내용\n:::\n::::" && s2.shown.includes("내용|"), s2.shown);
 }
@@ -349,7 +355,7 @@ try {
   // 문제
   await load(page, "## 절\n\n본문|");
   await click('[data-cmd="problem"]');
-  eq("문제 추가 단추: ::problems를 장 끝에 먼저 넣음", await text(page), "## 절\n\n본문\n\n::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::");
+  eq("문제 추가 단추: ::problems를 장 끝에 먼저 넣음", await text(page), "## 절\n\n본문\n\n::problems\n\n::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::");
   await page.keyboard.insertText("물체의 가속도를 구하시오.");
   await click('[data-cmd="problem"]');
   const t2 = await text(page);

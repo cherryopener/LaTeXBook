@@ -29,7 +29,7 @@ const one = renderChapter(parts[0].chapters[0].source, { ...ctx, partNo: 1, chap
 const ex = exportPhysiklar(parts[0].chapters[0].source, { chapterNo: 1 });
 document.getElementById("out").innerHTML = book.html;
 window.__done = {
-  chapters: document.querySelectorAll("section.chapter").length,
+  chapters: document.querySelectorAll("section.chapter:not(.answers)").length, answers: document.querySelectorAll("section.chapter.answers .answer").length,
   slots: document.querySelectorAll("#ch-1-1 .slot").length,
   oneSlots: (one.html.match(/class="slot"/g) ?? []).length,
   svgs: document.querySelectorAll("figure.fig svg").length,

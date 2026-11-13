@@ -134,3 +134,10 @@
   - 교사용 4·6문항 쪽도 칸 높이 고정(쪽 번호를 학생용과 같게). 해설이 넘치면 다음 칸에 겹쳐 찍히는 것을 저자가 허용(2026-11-13). 알림 `solution-spill`. "해설" 표시는 float로 첫 줄 글과 같은 줄.
   - plot: 문제 단에서는 좌표를 단 폭 비(84.5/132)로 줄여 글자를 본문 크기로. 긴 가로축 이름은 축 끝 아래, 세로축 이름 폭만큼 왼쪽 여백. `xstep`·`ystep` 눈금 간격.
 - 연습문제 그림 SVG 글자 기준: 인쇄 약 8pt = font-size 3.4 × viewBox 폭 ÷ w(문제 단 83 mm 기준).
+
+## 10. 2026-11-13 정답·해설 나눔 (브랜치 `claude/quirky-pasteur-om4ffv`)
+
+- `:::source`(문항 안): 교사용에서만 문항 아래 정답·풀이 요약. `:::solution`: 문제 쪽에서 빠지고 책 맨 뒤 "A 정답과 해설" 장(두 판 모두, 2단, 부 순서)으로 모임. FORMAT.md 3-7·3-8절, DECISIONS.md 8절.
+- 구현: `src/render/chapter.js`(problem → `meta.solutions`), `src/render/index.js`(`answersChapter`, toc 끝 `answers`), `themes/cyber/theme.css`(`.source`, `.answer-*`), `src/layout/index.js`(경고 `source-overflow`·`source-spill`, 글자 크기), 편집기 "정답(정)" 단추·문항 틀.
+- 비공개 textbooks의 기존 문항은 `:::solution`만 있으므로, 그대로 두면 교사용 문제 쪽에는 아무것도 안 나오고 해설은 맨 뒤로 간다. `:::source`는 저자가 채움.
+- 웹 편집기 브랜치(`claude/textbook-webapp-plan-4xtu34`)에는 아직 반영 안 함(9절 변경분과 함께 사용자 허락 후).

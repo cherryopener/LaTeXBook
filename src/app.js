@@ -398,7 +398,7 @@ const pad2 = (n) => String(n).padStart(2, "0");
 const yaml = (t) => JSON.stringify(String(t)); // 머리 부분 제목(따옴표·콜론 안전)
 const chapterText = (title) => `---\ntitle: ${yaml(title)}\n---\n\n## 첫 절 제목\n\n여기에 본문을 씁니다.\n`;
 // 연습문제 장: 문제만 있는 장(장 번호 자리 Q). ::problems 앞에 아무것도 쓰지 않아야 연습문제 장으로 인식된다
-const exerciseText = (title) => `---\ntitle: ${yaml(title)}\n---\n\n::problems\n\n::::problem\n문제 내용\n\n:::solution\n풀이\n:::\n::::\n`;
+const exerciseText = (title) => `---\ntitle: ${yaml(title)}\n---\n\n::problems\n\n::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::\n`;
 
 /** kind: "book" | "chapter" | "part" (chapter·part는 대화창에서 고를 수 있음) */
 async function newThing(kind) {

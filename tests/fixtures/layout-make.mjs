@@ -26,7 +26,7 @@ export function makeBody(edition) {
     return `<span class="blank ${T ? "answer" : "empty"}">${inner}</span>`;
   };
   const mblank = (tex) => `<span class="blank ${T ? "answer" : "empty"} math">${m(tex)}</span>`;
-  const sol = (html) => (T && html ? `<div class="solution">${html}</div>` : "");
+  const sol = (html) => (T && html ? `<div class="source">${html}</div>` : "");
   const teacher = (html) => (T ? `<div class="teacher-only">${html}</div>` : "");
   const side = (title, html) => `<aside class="side" ${L()}><p class="side-title">${title}</p>${html}</aside>`;
   const callout = (kind, title, html) => `<aside class="callout ${kind}" ${L()}><p class="callout-title">${title}</p>${html}</aside>`;
@@ -177,14 +177,14 @@ ${problem("2-1", "003", `<p>대전된 막대를 검전기에 가까이 하면 �
   return [part1, ch11, part2, ch21].join("\n");
 }
 
-/** 같은 쪽 안에서 왼쪽 단 → 오른쪽 단으로 해설이 넘치는 경우(교사용) */
+/** 같은 쪽 안에서 왼쪽 단 → 오른쪽 단으로 교사용 정답(:::source)이 넘치는 경우 */
 export function makeOverflowBody() {
   const head = (mode) => `<header class="chapter-head" data-mode="${mode}"><nav class="tabs"><span class="tab tab-theory${mode === "theory" ? " on" : ""}">THEORY</span><span class="tab tab-problems${mode === "problems" ? " on" : ""}">PROBLEMS</span></nav><div class="band"><span class="chapter-no">3</span><h1 class="chapter-title">넘침 시험</h1></div></header>`;
   return `<section class="chapter" id="ch-1-3" data-palette="teal" data-part="1" data-chapter="3" data-edition="teacher">
 <section class="theory">${head("theory")}<div class="theory-body"><p data-line="5">개념 한 줄.</p></div></section>
 <section class="problems">${head("problems")}<div class="problem-list">
-<article class="problem" id="pr-1-3-001" data-line="10"><div class="problem-no">001</div><div class="problem-body"><p>왼쪽 단에서 시작한 해설이 오른쪽 단으로 넘친다.</p></div><div class="solution"><p>길게.</p><div class="space" style="height:215mm"></div><p>끝.</p></div></article>
-<article class="problem" id="pr-1-3-002" data-line="20"><div class="problem-no">002</div><div class="problem-body"><p>짧은 문항.</p></div><div class="solution"><p>짧은 해설.</p></div></article>
+<article class="problem" id="pr-1-3-001" data-line="10"><div class="problem-no">001</div><div class="problem-body"><p>왼쪽 단에서 시작한 정답이 오른쪽 단으로 넘친다.</p></div><div class="source"><p>길게.</p><div class="space" style="height:215mm"></div><p>끝.</p></div></article>
+<article class="problem" id="pr-1-3-002" data-line="20"><div class="problem-no">002</div><div class="problem-body"><p>짧은 문항.</p></div><div class="source"><p>짧은 정답.</p></div></article>
 </div></section>
 </section>`;
 }

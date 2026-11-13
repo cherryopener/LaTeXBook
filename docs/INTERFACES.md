@@ -175,7 +175,7 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
       <article class="problem" id="pr-1-1-001" data-line="88">
         <div class="problem-no">001</div>
         <div class="problem-body"> … </div>
-        <div class="solution"> … </div>          <!-- 교사용만 -->
+        <div class="source"> … </div>            <!-- :::source, 교사용만. :::solution은 여기 없음(meta.solutions → 책 맨 뒤) -->
       </article>
     </div>
   </section>
@@ -201,7 +201,8 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
 | `:blank[등가속도 운동]` | 띄어쓰기 자리에 `<span class="gap"></span>` |
 | `:blank[$F=ma$]` | `<span class="blank answer math">(KaTeX)</span>` / 학생용은 같은 KaTeX에 `empty` 클래스(글자는 CSS로 숨기고 폭은 유지) |
 | `:::teacher` | 교사용 `<div class="teacher-only"> … </div>`, 학생용 `<div class="teacher-only placeholder"> … </div>`(테마가 글자를 숨기고 자리만 유지) |
-| `:::solution` | 교사용 `<div class="solution"> … </div>`, 학생용은 없음 |
+| `:::source` | 교사용 `<div class="source"> … </div>`, 학생용은 없음 |
+| `:::solution` | 문제 쪽에는 없음. `renderChapter`의 `meta.solutions`(`{number, id, html, line}`)로 넘기고, `renderBook`이 책 맨 뒤 `<section class="chapter answers" id="answers">`(장 머리 번호 `A`, `.answer-list` 2단, 부마다 `.answer-group` + `h2.answer-part`, 문항마다 `<div class="answer" id="ans-pr-…"><span class="answer-no">001</span><div class="answer-body">…</div></div>`)로 모음. 두 판 모두. toc 끝에 `{ answers: true, no: "A", title: "정답과 해설" }` |
 | `::space{h=30}` | `<div class="space" style="height:30mm"></div>` |
 | `::pagebreak` | `<div class="pagebreak"></div>` |
 | `::columnbreak` | `<div class="columnbreak"></div>` |
@@ -229,7 +230,7 @@ type LayoutSettings = {
   baseUrl?: string;                    // 편집기 주소(끝에 /). Node에서 문서를 만들 때 필수(테마 CSS 주소 기준)
 };
 type Preview = {
-  show(docHtml: string): Promise<{ pages: number; ms: number; warnings: Warning[] }>;  // solution-overflow, page-multiple 등
+  show(docHtml: string): Promise<{ pages: number; ms: number; warnings: Warning[] }>;  // source-overflow, source-spill, page-multiple 등
   goToPage(n: number): void;
   currentPage(): number;                     // 화면 위쪽에 보이는 쪽
   pageOfLine(line: number): number | null;   // data-line → 쪽 번호
@@ -265,12 +266,12 @@ type Editor = {
   destroy(): void;
 };
 type EditorCommand = "bold" | "blank" | "inlineMath" | "displayMath" | "callout" | "side" | "figure"
-  | "plot" | "problem" | "solution" | "space" | "table" | "pagebreak" | "heading2" | "heading3";
+  | "plot" | "problem" | "source" | "solution" | "space" | "table" | "pagebreak" | "heading2" | "heading3";
 createToolbar(parent: HTMLElement, editor: Editor): void   // 위 명령의 단추 묶음(한국어 이름)
 ```
 
 - `blank`: 고른 글자를 `:blank[…]`로 감쌉니다. 이미 감싸져 있으면 풉니다.
-- `problem`: 커서 자리에 `::::problem` 틀(본문 자리, `:::solution` 포함)을 넣습니다. 장에 `::problems`가 없으면 장 끝에 먼저 넣습니다.
+- `problem`: 커서 자리에 `::::problem` 틀(본문 자리, `:::source`·`:::solution` 포함)을 넣습니다. `source`·`solution`: 문항 안이면 정답은 해설 앞, 해설은 문항 끝에 넣고, 이미 있으면 그리로 옮겨 감. 장에 `::problems`가 없으면 장 끝에 먼저 넣습니다.
 
 ## 9. storage (E) — `src/storage/index.js`
 
