@@ -468,6 +468,8 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 .problem-list.new-page { break-before: page; }
 
 /* ================= A 정답과 해설(책 맨 뒤, 두 판 모두): 2단, 작은 글씨, 해설 상자 없이 "001 해설 글" (2026-11-13 사용자 결정) ================= */
+/* A부: 큰 표지 모드에서는 흰 바탕 A부 쪽(홀수) 바로 다음 쪽(짝수)에서 해설 시작. 기본 모드는 다른 장처럼 짝수 쪽(색 표지 뒤 빈 쪽 하나) */
+.chapter.answers.after-part-page, [data-chapter-start] .chapter.answers.after-part-page { break-before: page; }
 .answers-sec > .chapter-head { margin-bottom: 7mm; }
 .answer-list { column-count: 2; column-gap: 8mm; column-fill: auto; font-size: 8.4pt; line-height: 1.7; text-align: left; }
 .answer-part { margin: 0 0 2.5mm; padding: 0 0 1mm; border-bottom: 0.6pt solid var(--c-base); color: var(--c-base);

@@ -172,3 +172,11 @@
 
 - 팁·참고·생각·주의 상자 안 글을 9pt로 고정(`themes/cyber/theme.css`의 `.callout.tip, .callout.note, .callout.think, .callout.warn`). 정의·예제는 본문 크기를 따름. DECISIONS 9절, FORMAT 1절 `fontSizes`. app 시험에 "본문 크기를 바꿔도 상자 글 9pt" 확인 추가.
 - 기본 본문 10.4pt 책에서는 이 상자들이 작아져 쪽 배치가 조금 바뀔 수 있다(두 판 쪽 번호는 같게 유지).
+
+## 12. 2026-11-13 A부 정답과 해설
+
+- 사용자: 정답과 해설은 마지막 부 다음 자리에 "번호를 세지 않는 A부"로. 맨 뒤에 모이는 것은 이미 맞았고, "A부" 표시가 없어 물은 것.
+- 바꾼 것(`src/render/index.js`): 책 전체에서 해설 앞에 A부 쪽(`#part-A`, 큰 표지 구성은 `part-toc titled`, 기본 구성은 `part-cover`). 책 목차 A 줄은 `#part-A`로. 장·부 미리보기는 그 범위 해설만 장 뒤에(A부 쪽 없이). `renderBook(…, { answersOnly: true })` = A부만.
+- 편집기: 미리보기 범위에 "A부 정답과 해설"(`index.html` `#sel-scope`, `src/app.js`). `.answer`에 `data-part`·`data-chapter`를 달아 해설 줄 커서 따라가기.
+- 테마: 큰 표지 구성은 A부 쪽(홀수) 바로 다음 쪽에서 해설(`.after-part-page`), 기본 구성은 다른 장처럼 짝수 쪽.
+- 중등 1권: 131쪽(A부 쪽 125쪽, 해설 126쪽부터). 시험 13개 통과.

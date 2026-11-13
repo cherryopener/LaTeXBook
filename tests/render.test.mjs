@@ -202,7 +202,7 @@ for (const edition of ["teacher", "student"]) {
   const r = renderBook(book, { ...base, edition });
   fs.writeFileSync(path.join(OUT, `book-${edition}.html`), r.html);
   const h = r.html;
-  eq(all(h, /<div class="part-no">(\d+)<\/div>/g), ["01", "02"], `${edition}: 부 번호 01, 02`);
+  eq(all(h, /<div class="part-no">(\d+)<\/div>/g), ["01", "02"], `${edition}: 부 번호 01, 02(A부는 세지 않음)`);
   ok(h.includes('<section class="part-cover" id="part-1" data-palette="red" data-part="1">') && h.includes('<section class="part-cover" id="part-2" data-palette="teal" data-part="2">'), `${edition}: 부 색 묶음`);
   ok(h.includes('<h1 class="part-title">운동과 힘</h1>') && h.includes('<h1 class="part-title">전기</h1>'), `${edition}: 부 제목`);
   ok(h.includes('<section class="part-toc" data-palette="red" data-part="1">\n<ol><li><span class="toc-no">1.</span> 속도와 가속도</li><li><span class="toc-no">2.</span> 힘과 운동</li></ol>'), `${edition}: 부 목차`);
@@ -211,12 +211,14 @@ for (const edition of ["teacher", "student"]) {
   // 책 맨 뒤 "A 정답과 해설"(2026-11-13 사용자 결정): 두 판 모두, 부 순서대로, 해설 상자 없이 번호 + 해설 글
   ok(/<section class="chapter answers" id="answers"[^>]*>\n<section class="answers-sec"><header class="chapter-head" data-mode="answers">[\s\S]*?<span class="chapter-no">A<\/span><h1 class="chapter-title">정답과 해설<\/h1>/.test(h), `${edition}: 정답과 해설 장 머리 A`);
   ok(h.lastIndexOf('<section class="chapter answers"') > h.lastIndexOf('id="ch-2-1"'), `${edition}: 정답과 해설은 책 맨 뒤`);
+  ok(/<section class="part-cover answers-part" id="part-A" data-palette="teal" data-part="A">\n<div class="part-no">A<\/div>\n<h1 class="part-title">정답과 해설<\/h1>\n<\/section>\n<section class="chapter answers"/.test(h), `${edition}: A부 표지(번호를 세지 않는 부) 바로 뒤에 해설`);
+  eq(all(h, /<div class="part-no">(\w+)<\/div>/g), ["01", "02", "A"], `${edition}: 부 번호 01, 02, A`);
   const ans = h.slice(h.indexOf('<section class="chapter answers"'));
   eq(all(ans, /<span class="answer-no">([^<]*)<\/span>/g), ["001", "002", "003", "004", "006", "007"], `${edition}: 해설 번호(부 순서대로, 해설 없는 005번은 빠짐)`);
   eq(all(ans, /<h2 class="answer-part"><span class="answer-part-no">(\d+)부<\/span>/g), ["1", "2"], `${edition}: 부 제목`);
-  ok(/<div class="answer" id="ans-pr-1-1-002" data-line="\d+"><span class="answer-no">002<\/span><div class="answer-body"><p[^>]*><span class="katex">/.test(ans), `${edition}: 해설 줄(id, 번호 + 해설 글)`);
+  ok(/<div class="answer" id="ans-pr-1-1-002" data-part="1" data-chapter="1" data-line="\d+"><span class="answer-no">002<\/span><div class="answer-body"><p[^>]*><span class="katex">/.test(ans), `${edition}: 해설 줄(id, 번호 + 해설 글)`);
   ok(!/class="solution"|class="source"/.test(ans), `${edition}: 해설·정답 상자 없음`);
-  ok(h.includes('<li class="toc-part toc-answers" data-palette="teal"><a href="#answers"><span class="toc-no">A</span><span class="toc-title">정답과 해설</span>'), `${edition}: 책 목차에 A 정답과 해설`);
+  ok(h.includes('<li class="toc-part toc-answers" data-palette="teal"><a href="#part-A"><span class="toc-no">A</span><span class="toc-title">정답과 해설</span>'), `${edition}: 책 목차에 A 정답과 해설`);
   // 장 번호는 책 전체로 이어진다(사용자 결정 2026-11-07): 전기 부의 첫 장이 3
   ok(/id="ch-2-1"[\s\S]*?<span class="chapter-no">3<\/span>/.test(h), `${edition}: 2부 첫 장 번호 3`);
   ok(h.includes('<li><span class="toc-no">3.</span> 정전기</li>'), `${edition}: 부 목차의 장 번호 이어짐`);
@@ -231,8 +233,15 @@ for (const edition of ["teacher", "student"]) {
   const p2 = renderBook(book, { ...base, edition: "student", range: { part: 2 } });
   ok(!p2.html.includes('data-part="1"') && p2.html.includes('<div class="part-no">02</div>') && p2.html.includes('id="ch-2-1"'), "range 부 하나");
   const c12 = renderBook(book, { ...base, edition: "student", range: { part: 1, chapter: 2 } });
-  ok(!c12.html.includes("part-cover") && /^<section class="chapter" id="ch-1-2"/.test(c12.html) && c12.toc.length === 2 && c12.toc[1].answers, "range 장 하나(+ 그 장의 정답과 해설)");
-  eq(all(c12.html, /<span class="answer-no">([^<]*)<\/span>/g), ["004"], "range 장 하나: 그 장 해설만, 책 전체 번호");
+  ok(!c12.html.includes("part-cover") && /^<section class="chapter" id="ch-1-2"/.test(c12.html) && c12.toc.length === 1, "range 장 하나");
+  eq(all(c12.html, /<span class="answer-no">([^<]*)<\/span>/g), ["004"], "장 미리보기: 그 장 해설을 장 뒤에 붙임(책 전체 번호)");
+  ok(!c12.html.includes('id="part-A"'), "장 미리보기: A부 쪽은 없음");
+  ok(c12.html.includes('<div class="answer" id="ans-pr-1-2-001" data-part="1" data-chapter="2" data-line="'), "해설 줄에 data-part·data-chapter(커서 따라가기)");
+  const ao = renderBook(book, { ...base, edition: "student", answersOnly: true });
+  ok(/^<section class="part-cover answers-part" id="part-A"/.test(ao.html) && !ao.html.includes('id="ch-') && !ao.html.includes("book-front"), "A부만 보기: A부 쪽 + 해설만");
+  eq(all(ao.html, /<span class="answer-no">([^<]*)<\/span>/g), ["001", "002", "003", "004", "006", "007"], "A부만 보기: 책 전체 해설");
+  const aoNone = renderBook({ ...book, parts: [{ dir: "x", config: { title: "x" }, palette: "red", chapters: [{ path: "x/1.md", source: "---\ntitle: t\n---\n글\n" }] }] }, { ...base, edition: "student", answersOnly: true });
+  ok(aoNone.html.includes("아직 해설(:::solution)이 없습니다"), "A부만 보기: 해설이 없으면 안내");
   { const none = renderBook({ ...book, parts: [{ dir: "x", config: { title: "x" }, palette: "red", chapters: [{ path: "x/1.md", source: "---\ntitle: t\n---\n글\n\n::problems\n\n::::problem\n문제\n::::\n" }] }] }, { ...base, edition: "teacher" });
     ok(!none.html.includes("answers") && !none.toc.some((t) => t.answers), "해설이 하나도 없으면 정답과 해설 장 없음"); }
   { const out = renderChapter("---\ntitle: t\n---\n:::solution\n밖\n:::\n", { ...base, edition: "teacher", partNo: 1, chapterNo: 1, palette: "teal", print });
@@ -259,6 +268,12 @@ console.log("큰 표지(Part) 모드");
   ok(p3.html.includes('<div class="part-no">II</div>') && p3.html.includes('id="part-3"') && !p3.html.includes("cover-1"), "range 부 하나: 그 부의 큰 표지 번호 유지");
   const p2 = renderBook(cb, { ...base, edition: "student", range: { part: 2 } });
   ok(!p2.html.includes("part-cover") && p2.html.includes('id="part-2"'), "range 부 하나: 표지 없는 부");
+  // A부(정답과 해설): 큰 표지 모드에서는 다른 부와 같은 흰 바탕 부 쪽, 마지막 부 다음 자리. 큰 표지·부 번호는 세지 않음
+  const withSol = { ...cb, parts: cb.parts.map((p, i) => i === 2 ? { ...p, chapters: [{ path: "x.md", source: "---\ntitle: 전기장 장\n---\n글\n\n::problems\n\n::::problem\n문제\n\n:::solution\n**정답 ③** 풀이\n:::\n::::\n" }] } : p) };
+  const ra = renderBook(withSol, { ...base, edition: "student" });
+  eq(all(ra.html, /<section class="(?:part-cover big|part-toc titled[^"]*|chapter[^"]*)" id="([^"]+)"/g), ["cover-1", "part-1", "ch-1-1", "part-2", "ch-2-1", "cover-2", "part-3", "ch-3-1", "part-A", "answers"], "큰 표지 모드: A부 쪽 → 해설, 맨 뒤");
+  ok(ra.html.includes('<section class="part-toc titled answers-part" id="part-A" data-palette="teal" data-part="A">\n<h1 class="part-toc-title">정답과 해설</h1>\n</section>'), "큰 표지 모드: A부 쪽은 흰 바탕 부 쪽 모양");
+  ok(/<span class="answer-no">001<\/span><div class="answer-body"><p[^>]*><strong>정답 ③<\/strong> 풀이/.test(ra.html), "해설 글 그대로(정답 ③)");
 }
 
 // 연습문제 장(2026-11-10 사용자 요청): ::problems 앞에 아무것도 없는 장은 번호 대신 Q, 뒤 장 번호가 밀리지 않음, 빈 개념 쪽 없음

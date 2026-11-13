@@ -102,6 +102,24 @@ check(cur === probPage, `커서 따라가기: 정전기 장 문제 쪽(${probPag
   check(z3.fit && Math.abs(z3.zoom - z0.zoom) < 0.01, `폭 맞춤으로 돌아옴(${z3.label})`);
 }
 
+// 미리보기 범위 "A부 정답과 해설": 책 전체 해설만 모아 보임
+r = await page.evaluate(() => window.__app.lastRender);
+await page.selectOption("#sel-scope", "answers");
+await waitRender(r.at);
+const ansView = await page.evaluate(() => {
+  const ps = [...document.querySelectorAll("#preview [data-vivliostyle-page-container]")];
+  return { pages: ps.length, answers: document.querySelectorAll("#preview .answer-no").length, chapters: document.querySelectorAll("#preview section.chapter:not(.answers)").length, partA: !!document.querySelector("#preview #part-A") };
+});
+check(ansView.partA && ansView.answers >= 6 && ansView.chapters === 0, `A부 정답과 해설 보기: ${JSON.stringify(ansView)}`);
+r = await page.evaluate(() => window.__app.lastRender);
+await page.selectOption("#sel-scope", "chapter");
+await waitRender(r.at);
+const chAns = await page.evaluate(() => document.querySelectorAll("#preview .answer-no").length);
+check(chAns >= 1, `장 미리보기에도 그 장 해설이 뒤에 붙음(${chAns}개)`);
+r = await page.evaluate(() => window.__app.lastRender);
+await page.selectOption("#sel-scope", "book");
+await waitRender(r.at);
+
 // 커서 위치 → 미리보기 쪽 맞춤(오류 없이 동작하는지)
 await page.evaluate(() => window.__app.editor.goToLine(20));
 

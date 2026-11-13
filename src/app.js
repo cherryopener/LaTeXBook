@@ -183,8 +183,9 @@ async function renderNow() {
     // 새로 쓴 그림 경로가 있으면 먼저 받아 둔다
     await src.prepareAssets(collectAssetSrcs(state.book));
     const range = state.scope === "chapter" ? state.cur : undefined;
+    // "A부 정답과 해설": 책 전체 해설을 모은 A부만 보여 줌(장 미리보기에는 그 장 해설이 장 뒤에 붙음)
     const r = renderBook(state.book, {
-      edition: state.edition, range,
+      edition: state.edition, range, answersOnly: state.scope === "answers",
       resolveAsset: (s) => src.assetUrl(s), readSvg: (s) => src.svgText(s),
     });
     const doc = buildDocument(r.html, {
