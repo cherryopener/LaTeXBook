@@ -166,8 +166,10 @@ function collectWarnings(pageEls) {
     for (const el of list) {
       const id = el.id || el.getAttribute("data-line");
       if (!id) continue;
-      const e = seen.get(id) ?? { count: 0, page: i + 1, line: Number(el.getAttribute("data-line")) || undefined, hasSource: false };
+      const e = seen.get(id) ?? { count: 0, page: i + 1, line: Number(el.getAttribute("data-line")) || undefined, hasSource: false, breaks: new Set() };
       e.count += Math.max(1, el.getClientRects().length);
+      // 문항 안 ::columnbreak(소문항을 오른쪽 단으로 넘김)는 일부러 만든 조각이므로 넘침으로 세지 않는다(2026-11-13)
+      for (const b of el.querySelectorAll(".columnbreak")) e.breaks.add(b.getAttribute("data-line") ?? b);
       // 한 쪽 4·6문항(칸 높이 고정): 내용이 칸을 넘치면 경고
       if (/^[46]$/.test(el.parentElement?.getAttribute("data-per") ?? "")) {
         // 칸(높이 고정)을 넘침. 교사용(정답이 머리 줄에 있음)이면 알림만(넘친 부분은 다음 칸에 겹침, 2026-11-13 사용자 결정),
@@ -182,7 +184,7 @@ function collectWarnings(pageEls) {
   for (const [id, e] of seen) {
     if (e.overflowFixed) warnings.push({ code: "problem-overflow", message: `${id.split("-").pop()}번 문항이 칸(한 쪽 4·6문항)을 넘칩니다(${e.page}쪽). 글·그림·::space를 줄이거나 한 쪽 문항 수를 줄이세요.`, line: e.line });
     if (e.sourceSpill) warnings.push({ code: "source-spill", message: `${id.split("-").pop()}번 문항의 정답(:::source)이 칸을 넘쳐 다음 칸에 겹칩니다(${e.page}쪽, 교사용).`, line: e.line });
-    if (e.count > 1 && e.hasSource) {
+    if (e.count > 1 + e.breaks.size && e.hasSource) {
       const no = id.split("-").pop();
       warnings.push({ code: "source-overflow", message: `${no}번 문항의 정답(:::source)이 단을 넘칩니다(${e.page}쪽). 교사용과 학생용의 쪽 번호가 어긋납니다.`, line: e.line });
     }
