@@ -168,14 +168,9 @@ function collectWarnings(pageEls) {
       e.count += Math.max(1, el.getClientRects().length);
       // 한 쪽 4·6문항(칸 높이 고정): 내용이 칸을 넘치면 경고
       if (/^[46]$/.test(el.parentElement?.getAttribute("data-per") ?? "")) {
-        // 칸(높이 고정)을 넘침 → 경고. 교사용 정답은 흐름 밖(position:absolute)이라 아래 끝 위치로 따로 잰다:
-        // 정답이 다음 칸에 겹쳐 찍혀도 괜찮다(2026-11-13 사용자 결정) → 알림만
-        const sol = el.querySelector(".source");
-        if (sol && getComputedStyle(sol).position === "absolute") {
-          if (sol.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.sourceSpill = true;
-          const body = el.querySelector(".problem-body");
-          if (body && body.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.overflowFixed = true;
-        } else if (el.scrollHeight > el.clientHeight + 2) e.overflowFixed = true;
+        // 칸(높이 고정)을 넘침. 교사용(정답이 머리 줄에 있음)이면 알림만(넘친 부분은 다음 칸에 겹침, 2026-11-13 사용자 결정),
+        // 문제 본문 자체의 넘침은 학생용에서 problem-overflow로 잡힌다
+        if (el.scrollHeight > el.clientHeight + 2) { if (el.querySelector(".source")) e.sourceSpill = true; else e.overflowFixed = true; }
       }
       if (el.querySelector(".source")) e.hasSource = true;
       seen.set(id, e);

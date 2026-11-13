@@ -235,8 +235,10 @@ export function renderChapterImpl(source, ctx = {}) {
     const is = (name) => (c) => c.type === "containerDirective" && c.name === name;
     const isSol = is("solution"), isSrc = is("source");
     const inner = { ...env, inProblem: true };
-    const out = [html(`<div class="problem-no">${esc(n._no ?? "")}</div>`), el("div", { className: ["problem-body"] }, txAll(kids.filter((c) => !isSol(c) && !isSrc(c)), inner))];
-    if (teacher) for (const s of kids.filter(isSrc)) out.push(el("div", { className: ["source"], ...dl(s) }, txAll(unlabeled(s), inner)));
+    // 머리 줄: 왼쪽 문항 번호, 오른쪽 교사용 정답(:::source). 정답이 길면 머리 줄이 늘어나 본문을 아래로 민다(2026-11-13 사용자 결정)
+    const head = [html(`<div class="problem-no">${esc(n._no ?? "")}</div>`)];
+    if (teacher) for (const s of kids.filter(isSrc)) head.push(el("div", { className: ["source"], ...dl(s) }, txAll(unlabeled(s), inner)));
+    const out = [el("div", { className: ["problem-head"] }, head), el("div", { className: ["problem-body"] }, txAll(kids.filter((c) => !isSol(c) && !isSrc(c)), inner))];
     const sols = kids.filter(isSol);
     if (sols.length) {
       const body = sols.map((s) => mdastToHtml(txAll(unlabeled(s), { ...inner, inAnswer: true }))).join("\n");

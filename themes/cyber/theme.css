@@ -415,9 +415,13 @@ a.ref { color: inherit; text-decoration: none; }
   text-shadow: 0.35mm 0.45mm 0.5mm rgba(0, 0, 0, 0.35); margin: 0 0 4mm; letter-spacing: 0.02em; }
 .problem-body { font-size: 9.6pt; line-height: 1.95; text-align: left; }
 .problem-body figure.fig { margin: 4mm 0; }
-/* 교사용 정답(:::source): 문항 아래, 점선 위에 강조 색 글씨. 표시 글자 없음(2026-11-13 사용자 결정). 학생용에는 없음(그 자리는 풀이 공간) */
-.source { margin-top: 5mm; padding-top: 2mm; border-top: 0.6pt dashed var(--c-side); color: var(--c-em); font-size: 9.2pt; line-height: 1.8; text-align: left; }
-.source > :last-child { margin-bottom: 0; }
+/* 교사용 정답(:::source): 강조 색 글씨, 표시 글자 없음(2026-11-13 사용자 결정). 학생용에는 없음.
+   문항 머리 줄의 오른쪽, 번호와 같은 줄(2026-11-13 사용자 결정, 한 쪽 2·4·6문항 모두). 길면 머리 줄이 늘어남 */
+.problem-head { margin: 0 0 4mm; }
+.problem-head::after { content: ""; display: block; clear: both; }
+.problem-head > .problem-no { margin: 0 4mm 0 0; float: left; }
+.source { padding-top: 0.5mm; color: var(--c-em); font-size: 9.2pt; line-height: 1.8; text-align: right; }
+.source > * { margin: 0; }
 .space { display: block; }
 
 /* 5지선다(:::choices): 줄마다 ①②③④⑤, 한 줄에 data-cols개(render가 글 폭으로 정함). 2026-11-10 사용자 요청 */
@@ -457,13 +461,11 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 .problem-list[data-per="4"] article.problem, .problem-list[data-per="6"] article.problem { break-before: auto; break-inside: avoid; box-sizing: border-box; }
 .problem-list[data-per="4"] article.problem { height: 109mm; }
 .problem-list[data-per="6"] article.problem { height: 70mm; }
-/* 교사용: 정답(:::source)을 흐름에서 떼어(제자리에 그림) 칸을 넘쳐도 다음 문항·쪽을 밀지 않게 한다. 넘친 정답은 다음 칸에 겹쳐 찍힘(2026-11-13 사용자 결정: 쪽 번호를 학생용과 같게) */
-[data-edition="teacher"] .problem-list[data-per="4"] article.problem, [data-edition="teacher"] .problem-list[data-per="6"] article.problem { position: relative; }
-[data-edition="teacher"] .problem-list[data-per="4"] .source, [data-edition="teacher"] .problem-list[data-per="6"] .source { position: absolute; left: 0; right: 0; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n+1), .problem-list[data-per="6"] article.problem:nth-of-type(3n+1) { break-before: column; }
 .problem-list[data-per="4"] article.problem:first-of-type, .problem-list[data-per="6"] article.problem:first-of-type { break-before: auto; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n), .problem-list[data-per="6"] article.problem:nth-of-type(3n+2), .problem-list[data-per="6"] article.problem:nth-of-type(3n) { border-top: 0.6pt dashed var(--grid); padding-top: 3mm; }
-.problem-list[data-per="6"] .problem-no { font-size: 14pt; margin-bottom: 2.5mm; }
+.problem-list[data-per="6"] .problem-no { font-size: 14pt; }
+.problem-list[data-per="6"] .problem-head { margin-bottom: 2.5mm; }
 /* 쪽마다 문항 수가 바뀌는 곳(::problems{first=…}, ::page{per=…})은 새 쪽에서 */
 .problem-list.new-page { break-before: page; }
 
