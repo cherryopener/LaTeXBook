@@ -133,7 +133,7 @@ r = await page.evaluate(() => window.__app.lastRender);
 await page.selectOption("#sel-edition", "teacher"); // 해설은 교사용에만
 await waitRender(r.at);
 const s0 = await sizes();
-check(s0.body === 10.4 && s0.side === 7.6 && s0.problem === 9.6 && s0.solution === 9.2 && s0.answers === 8.4 && s0.box === 9, `글자 크기 기본값 ${JSON.stringify(s0)}`);
+check(s0.body === 10.4 && s0.side === 7.6 && s0.problem === 8 && Math.abs(s0.solution - 8 * 9.2 / 9.6) < 0.15 && Math.abs(s0.answers - 8 * 8.4 / 9.6) < 0.15 && s0.box === 9, `글자 크기 기본값 ${JSON.stringify(s0)}`);
 for (const [kind, v] of [["body", "11.5"], ["side", "8.2"], ["problem", "10.4"]]) {
   r = await page.evaluate(() => window.__app.lastRender);
   await page.fill(`#fs-${kind}`, v);

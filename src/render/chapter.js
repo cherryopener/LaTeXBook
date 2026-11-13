@@ -269,7 +269,7 @@ export function renderChapterImpl(source, ctx = {}) {
     }
     if (items.length > CHOICE_NO.length) warn("too-many-choices", `선지가 ${items.length}개입니다. ${CHOICE_NO.length}개까지만 번호를 붙입니다.`, n);
     const fsz = print.fontSizes ?? {};
-    const pt = Number(env.section === "problems" ? fsz.problem ?? 9.6 : fsz.body ?? 10.4) || 10;
+    const pt = Number(env.section === "problems" ? fsz.problem ?? 8 : fsz.body ?? 10.4) || 10;
     const widthMm = env.section === "problems" ? 84.5 : env.inSide ? 38 : 132; // 문제 한 단 / 옆 단 / 개념 본문 폭
     const lineEm = widthMm / (pt * 0.3528);
     const widths = items.map((it) => textWidthEm(it) + 1.45); // 글 + 번호

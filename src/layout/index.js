@@ -12,7 +12,7 @@ const loadVivliostyle = async () => (V ??= await import("../../vendor/vivliostyl
 export const FONT_SIZES = Object.freeze({
   body: Object.freeze({ label: "본문", min: 8, max: 14, default: 10.4 }),
   side: Object.freeze({ label: "옆 단", min: 6, max: 11, default: 7.6 }),
-  problem: Object.freeze({ label: "문제", min: 7, max: 13, default: 9.6 }),
+  problem: Object.freeze({ label: "문제", min: 7, max: 13, default: 8 }),
 });
 
 /** 값 하나 → 쓸 수 있는 수(0.1 단위). 범위 밖·숫자 아님이면 null(테마 기본값 사용) */

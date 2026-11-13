@@ -180,3 +180,12 @@
 - 편집기: 미리보기 범위에 "A부 정답과 해설"(`index.html` `#sel-scope`, `src/app.js`). `.answer`에 `data-part`·`data-chapter`를 달아 해설 줄 커서 따라가기.
 - 테마: 큰 표지 구성은 A부 쪽(홀수) 바로 다음 쪽에서 해설(`.after-part-page`), 기본 구성은 다른 장처럼 짝수 쪽.
 - 중등 1권: 131쪽(A부 쪽 125쪽, 해설 126쪽부터). 시험 13개 통과.
+
+## 13. 2026-11-13 문제 글자 기본 8pt, 브릿지 연습문제
+
+- 사용자 지시: 문제 글자 기본값 9.6 → **8pt**, 모든 책의 문제 글자 8pt.
+  - 편집기: `themes/cyber/theme.css`(`.problem-body` 8pt, `.source` 7.67pt, `.answer-list` 7pt — 비율 9.2/9.6·8.4/9.6 유지), `src/layout/index.js` `FONT_SIZES.problem.default` 8, `src/render/chapter.js` 선지 폭 계산 기본 8, `index.html` 글자 칸 기본 8, `tests/app.test.mjs` 기본값 확인, FORMAT.md 1절·A부 설명.
+  - textbooks: 모든 `book.json`에 `print.fontSizes.problem: 8`(중등 1권은 이미 8).
+- textbooks `books/bridge` 1~8부에 연습문제 128문항(부마다 16)과 그림 SVG 51개. 저자 확인 거리 `textbooks/notes/bridge-exercises-check.md`, 가이드 `textbooks/guides/EXERCISE-GUIDE.md` 10절.
+- 조판(문제 8pt): 브릿지 176쪽, 중등 2권 100쪽, 중등 1권 131쪽. 교사용·학생용 쪽별 문항 같음, 변환 경고 0. 시험 13개 통과.
+- 남은 문제: "A 정답과 해설" 장 첫 쪽이 제목만 남고 비는 경우가 있다(브릿지에서 문제 9·9.6pt일 때 재현, 8·8.5·9.2pt는 정상, 해설이 한 쪽에 들어가면 정상). `.answer-part` break-after, `column-fill`, `.answer-no` float를 빼도 그대로. 원인 미해결.

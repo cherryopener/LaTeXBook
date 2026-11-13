@@ -413,14 +413,14 @@ a.ref { color: inherit; text-decoration: none; }
 .problem:first-child { break-before: auto; }
 .problem-no { font-family: var(--font-num); font-weight: 600; font-size: 17pt; line-height: 1; color: var(--c-side);
   text-shadow: 0.35mm 0.45mm 0.5mm rgba(0, 0, 0, 0.35); margin: 0 0 4mm; letter-spacing: 0.02em; }
-.problem-body { font-size: 9.6pt; line-height: 1.95; text-align: left; }
+.problem-body { font-size: 8pt; line-height: 1.95; text-align: left; }
 .problem-body figure.fig { margin: 4mm 0; }
 /* 교사용 정답(:::source): 강조 색 글씨, 표시 글자 없음(2026-11-13 사용자 결정). 학생용에는 없음.
    문항 머리 줄의 오른쪽, 번호와 같은 줄(2026-11-13 사용자 결정, 한 쪽 2·4·6문항 모두). 길면 머리 줄이 늘어남 */
 .problem-head { margin: 0 0 4mm; }
 .problem-head::after { content: ""; display: block; clear: both; }
 .problem-head > .problem-no { margin: 0 4mm 0 0; float: left; }
-.source { padding-top: 0.5mm; color: var(--c-em); font-size: 9.2pt; line-height: 1.8; text-align: right; }
+.source { padding-top: 0.5mm; color: var(--c-em); font-size: 7.67pt; line-height: 1.8; text-align: right; }
 .source > * { margin: 0; }
 .space { display: block; }
 
@@ -473,7 +473,7 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 /* A부: 큰 표지 모드에서는 흰 바탕 A부 쪽(홀수) 바로 다음 쪽(짝수)에서 해설 시작. 기본 모드는 다른 장처럼 짝수 쪽(색 표지 뒤 빈 쪽 하나) */
 .chapter.answers.after-part-page, [data-chapter-start] .chapter.answers.after-part-page { break-before: page; }
 .answers-sec > .chapter-head { margin-bottom: 7mm; }
-.answer-list { column-count: 2; column-gap: 8mm; column-fill: auto; font-size: 8.4pt; line-height: 1.7; text-align: left; }
+.answer-list { column-count: 2; column-gap: 8mm; column-fill: auto; font-size: 7pt; line-height: 1.7; text-align: left; }
 .answer-part { margin: 0 0 2.5mm; padding: 0 0 1mm; border-bottom: 0.6pt solid var(--c-base); color: var(--c-base);
   font-size: 10pt; font-weight: 800; line-height: 1.3; break-after: avoid; }
 .answer-group + .answer-group .answer-part { margin-top: 5mm; }
