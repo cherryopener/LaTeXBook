@@ -61,8 +61,10 @@ const abs = (rel) => new URL(rel, import.meta.url).href;
  * baseUrl(편집기가 올라가 있는 주소, 끝에 /)을 주면 그 기준으로 만든다. Node에서 문서를 만들 때는 반드시 줘야 한다
  * (주지 않으면 이 파일 위치 기준이라 Node에서는 file:// 주소가 되어 브라우저가 읽지 못함).
  */
+// 브라우저(편집기)에서는 편집기를 열 때마다 테마를 새로 받는다(GitHub Pages가 10분 캐시해서, 고친 뒤에도 옛 테마가 보이던 일, 2026-11-13)
+const THEME_STAMP = typeof window !== "undefined" ? `?v=${Date.now().toString(36)}` : "";
 export function themeUrl(theme = "cyber", baseUrl) {
-  const rel = `themes/${encodeURIComponent(theme)}/theme.css`;
+  const rel = `themes/${encodeURIComponent(theme)}/theme.css${THEME_STAMP}`;
   return baseUrl ? new URL(rel, baseUrl).href : abs(`../../${rel}`);
 }
 

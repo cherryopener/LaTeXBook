@@ -17,7 +17,8 @@ await waitRender();
 let r = await page.evaluate(() => window.__app.lastRender);
 check(r.pages >= 3, `처음 미리보기 ${r.pages}쪽, ${r.ms}ms`);
 check(await page.locator("#book-title").textContent() === "견본 물리", "책 제목 표시");
-check(await page.locator("#sel-chapter option").count() === 3, "장 목록 3개");
+check(await page.locator("#sel-chapter option").count() === 4, "장 목록 3개 + A. 정답과 해설");
+check(await page.locator("#sel-chapter option").last().getAttribute("value") === "answers", "장 목록 맨 끝이 A. 정답과 해설");
 check((await page.locator("#save-state").textContent()).includes("견본"), "견본 책은 저장 안 됨 표시");
 await page.screenshot({ path: path.join(OUT, "app-teacher.png") });
 

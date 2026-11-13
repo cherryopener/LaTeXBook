@@ -100,6 +100,8 @@ async function useSource(source, bookId) {
   return true;
 }
 
+const ANSWERS = "answers"; // 장 목록에서 "A. 정답과 해설"의 값
+
 async function openBook(id, { asked = false, at = null } = {}) {
   if (!asked && !confirmLeave()) return;
   setBanner(null);
@@ -125,6 +127,16 @@ async function openBook(id, { asked = false, at = null } = {}) {
     });
     sel.appendChild(g);
   });
+  // 맨 끝: A 정답과 해설(책 전체 :::solution을 모은 A부). 해설이 하나라도 있을 때만(2026-11-13 사용자 요청)
+  if (book.parts.some((p) => p.chapters.some((ch) => /^\s*:::solution\b/m.test(ch.source ?? "")))) {
+    const g = document.createElement("optgroup");
+    g.label = "A 정답과 해설";
+    const o = document.createElement("option");
+    o.value = ANSWERS;
+    o.textContent = "A. 정답과 해설";
+    g.appendChild(o);
+    sel.appendChild(g);
+  }
   await state.source.prepareAssets(collectAssetSrcs(book));
   await openChapter(at?.part ?? 1, at?.chapter ?? 1);
 }
@@ -132,6 +144,7 @@ async function openBook(id, { asked = false, at = null } = {}) {
 async function openChapter(part, chapter) {
   state.cur = { part, chapter };
   $("#sel-chapter").value = `${part}:${chapter}`;
+  if (state.scope === "answers") { state.scope = "chapter"; $("#sel-scope").value = "chapter"; } // A부를 보다가 장을 고르면 그 장으로
   const ch = chapterAt(state.cur);
   editor.setText(ch.source);
   state.lastPage = null;
@@ -489,10 +502,27 @@ $("#btn-book").onclick = async () => {
   }
   $("#dlg-books").showModal();
 };
-$("#sel-chapter").onchange = (e) => { const [p, c] = e.target.value.split(":").map(Number); openChapter(p, c); };
+$("#sel-chapter").onchange = (e) => {
+  if (e.target.value === ANSWERS) return showAnswers();
+  const [p, c] = e.target.value.split(":").map(Number); openChapter(p, c);
+};
+/** 장 목록의 "A. 정답과 해설": 미리보기를 A부(책 전체 해설)로. 편집 칸은 직전 장 그대로(해설은 각 문항의 :::solution에서 모임) */
+function showAnswers() {
+  state.scope = "answers";
+  $("#sel-scope").value = "answers";
+  $("#sel-chapter").value = ANSWERS;
+  setBanner("정답과 해설은 각 문항의 :::solution에서 모입니다. 고치려면 그 문항이 있는 장을 고르세요. 편집 칸은 직전 장입니다.");
+  scheduleRender(0);
+}
 $("#sel-edition").onchange = (e) => { state.edition = e.target.value; scheduleRender(0); };
 $("#sel-paper").onchange = (e) => { state.paper = e.target.value; scheduleRender(0); };
-$("#sel-scope").onchange = (e) => { state.scope = e.target.value; scheduleRender(0); };
+$("#sel-scope").onchange = (e) => {
+  if (e.target.value === "answers" && $("#sel-chapter").querySelector(`option[value="${ANSWERS}"]`)) return showAnswers();
+  state.scope = e.target.value;
+  if (state.cur) $("#sel-chapter").value = `${state.cur.part}:${state.cur.chapter}`;
+  setBanner(null);
+  scheduleRender(0);
+};
 // 글자 크기(본문·옆 단·문제): 입력하는 동안 미리보기를 다시 그리고, 저장하면 book.json에 남는다
 function setFontSize(kind, v) {
   const cur = fontSizesOf(state.book.print);
