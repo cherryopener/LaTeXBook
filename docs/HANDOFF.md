@@ -189,3 +189,9 @@
 - textbooks `books/bridge` 1~8부에 연습문제 128문항(부마다 16)과 그림 SVG 51개. 저자 확인 거리 `textbooks/notes/bridge-exercises-check.md`, 가이드 `textbooks/guides/EXERCISE-GUIDE.md` 10절.
 - 조판(문제 8pt): 브릿지 176쪽, 중등 2권 100쪽, 중등 1권 131쪽. 교사용·학생용 쪽별 문항 같음, 변환 경고 0. 시험 13개 통과.
 - 남은 문제: "A 정답과 해설" 장 첫 쪽이 제목만 남고 비는 경우가 있다(브릿지에서 문제 9·9.6pt일 때 재현, 8·8.5·9.2pt는 정상, 해설이 한 쪽에 들어가면 정상). `.answer-part` break-after, `column-fill`, `.answer-no` float를 빼도 그대로. 원인 미해결.
+
+## 14. 2026-11-13 물리학 연습문제
+
+- textbooks `books/physics` 1~7부에 연습문제 168문항(부마다 24, 상급 4)과 그림 SVG 54개. 편집기는 바꾸지 않음.
+- 계획·진행 기록 `textbooks/notes/physics-exercises-plan.md`, 저자 확인 거리 `textbooks/notes/physics-exercises-check.md`, 가이드 `textbooks/guides/EXERCISE-GUIDE.md` 11절.
+- 조판(문제 8pt): 물리학 234쪽(교사용·학생용 같음), 변환·조판 경고 0.
