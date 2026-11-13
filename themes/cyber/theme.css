@@ -414,7 +414,8 @@ a.ref { color: inherit; text-decoration: none; }
 .problem-body { font-size: 9.6pt; line-height: 1.95; text-align: left; }
 .problem-body figure.fig { margin: 4mm 0; }
 .solution { margin-top: 5mm; padding-top: 2.5mm; border-top: 0.6pt dashed var(--c-side); font-size: 9.2pt; line-height: 1.8; text-align: left; }
-.solution::before { content: "해설"; display: inline-block; margin: 0 0 1.5mm; padding: 0.3mm 2mm; background: var(--c-base); color: var(--c-title);
+/* "해설" 표시는 왼쪽에 띄워 첫 줄 글이 그 오른쪽에서 이어지게 한다(한 줄 아낌, 2026-11-13 사용자 요청) */
+.solution::before { content: "해설"; float: left; margin: 0.9mm 2mm 0 0; padding: 0.3mm 2mm; background: var(--c-base); color: var(--c-title);
   font-size: 7.5pt; font-weight: 700; line-height: 1.5; }
 .space { display: block; }
 
@@ -455,9 +456,9 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 .problem-list[data-per="4"] article.problem, .problem-list[data-per="6"] article.problem { break-before: auto; break-inside: avoid; box-sizing: border-box; }
 .problem-list[data-per="4"] article.problem { height: 109mm; }
 .problem-list[data-per="6"] article.problem { height: 70mm; }
-/* 교사용: 해설이 칸을 넘치면 칸을 늘려 다음 문항을 밀어낸다(겹쳐 찍히지 않게, 2026-11-12). 학생용 칸 높이는 그대로 고정 */
-[data-edition="teacher"] .problem-list[data-per="4"] article.problem { height: auto; min-height: 109mm; }
-[data-edition="teacher"] .problem-list[data-per="6"] article.problem { height: auto; min-height: 70mm; }
+/* 교사용: 해설을 흐름에서 떼어(제자리에 그림) 칸을 넘쳐도 다음 문항·쪽을 밀지 않게 한다. 넘친 해설은 다음 칸에 겹쳐 찍힘(2026-11-13 사용자 결정: 쪽 번호를 학생용과 같게) */
+[data-edition="teacher"] .problem-list[data-per="4"] article.problem, [data-edition="teacher"] .problem-list[data-per="6"] article.problem { position: relative; }
+[data-edition="teacher"] .problem-list[data-per="4"] .solution, [data-edition="teacher"] .problem-list[data-per="6"] .solution { position: absolute; left: 0; right: 0; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n+1), .problem-list[data-per="6"] article.problem:nth-of-type(3n+1) { break-before: column; }
 .problem-list[data-per="4"] article.problem:first-of-type, .problem-list[data-per="6"] article.problem:first-of-type { break-before: auto; }
 .problem-list[data-per="4"] article.problem:nth-of-type(2n), .problem-list[data-per="6"] article.problem:nth-of-type(3n+2), .problem-list[data-per="6"] article.problem:nth-of-type(3n) { border-top: 0.6pt dashed var(--grid); padding-top: 3mm; }

@@ -168,10 +168,14 @@ function collectWarnings(pageEls) {
       e.count += Math.max(1, el.getClientRects().length);
       // 한 쪽 4·6문항(칸 높이 고정): 내용이 칸을 넘치면 경고
       if (/^[46]$/.test(el.parentElement?.getAttribute("data-per") ?? "")) {
-        if (el.scrollHeight > el.clientHeight + 2) e.overflowFixed = true;
-        // 교사용은 칸이 늘어난다(min-height). 늘어났으면 쪽 번호가 학생용과 어긋날 수 있음을 알림
-        const mh = parseFloat(getComputedStyle(el).minHeight) || 0;
-        if (mh && el.offsetHeight > mh + 2) e.cellGrown = true;
+        // 칸(높이 고정)을 넘침 → 경고. 교사용 해설은 흐름 밖(position:absolute)이라 아래 끝 위치로 따로 잰다:
+        // 해설이 다음 칸에 겹쳐 찍혀도 괜찮다(2026-11-13 사용자 결정) → 알림만
+        const sol = el.querySelector(".solution");
+        if (sol && getComputedStyle(sol).position === "absolute") {
+          if (sol.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.solutionSpill = true;
+          const body = el.querySelector(".problem-body");
+          if (body && body.getBoundingClientRect().bottom > el.getBoundingClientRect().bottom + 2) e.overflowFixed = true;
+        } else if (el.scrollHeight > el.clientHeight + 2) e.overflowFixed = true;
       }
       if (el.querySelector(".solution")) e.hasSolution = true;
       seen.set(id, e);
@@ -180,7 +184,7 @@ function collectWarnings(pageEls) {
   });
   for (const [id, e] of seen) {
     if (e.overflowFixed) warnings.push({ code: "problem-overflow", message: `${id.split("-").pop()}번 문항이 칸(한 쪽 4·6문항)을 넘칩니다(${e.page}쪽). 글·그림·::space를 줄이거나 한 쪽 문항 수를 줄이세요.`, line: e.line });
-    if (e.cellGrown && e.hasSolution) warnings.push({ code: "solution-grow", message: `${id.split("-").pop()}번 문항의 해설이 칸을 넘쳐 교사용에서 칸이 늘어났습니다(${e.page}쪽). 교사용 쪽 번호가 학생용과 어긋날 수 있습니다.`, line: e.line });
+    if (e.solutionSpill) warnings.push({ code: "solution-spill", message: `${id.split("-").pop()}번 문항의 해설이 칸을 넘쳐 다음 칸에 겹칩니다(${e.page}쪽, 교사용).`, line: e.line });
     if (e.count > 1 && e.hasSolution) {
       const no = id.split("-").pop();
       warnings.push({ code: "solution-overflow", message: `${no}번 문항의 해설이 단을 넘칩니다(${e.page}쪽). 교사용과 학생용의 쪽 번호가 어긋납니다.`, line: e.line });
