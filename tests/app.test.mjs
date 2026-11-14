@@ -22,6 +22,11 @@ check(await page.locator("#sel-chapter option").last().getAttribute("value") ===
 check((await page.locator("#save-state").textContent()).includes("견본"), "견본 책은 저장 안 됨 표시");
 await page.screenshot({ path: path.join(OUT, "app-teacher.png") });
 
+// 상자 제목 앞 §: 참고·팁·주의·생각 상자에만(예제는 "예제 n" 번호가 있어 제외). 미리보기(Vivliostyle)는 ::before 글자를 제목 안에 넣는다
+const sect = await page.evaluate(() => [...document.querySelectorAll("#preview .callout-title")].map((e) => ({ kind: [...e.closest(".callout").classList].find((c) => c !== "callout"), s: e.textContent.trim().startsWith("§") })));
+const sectKinds = new Set(sect.map((x) => x.kind));
+check(["note", "tip", "warn"].every((k) => sectKinds.has(k)) && sect.every((x) => x.s === (x.kind !== "example")), `상자 제목 앞 § ${JSON.stringify(sect)}`);
+
 // 입력하면 미리보기가 다시 그려짐
 const before = r.at;
 await page.locator(".cm-content").click();

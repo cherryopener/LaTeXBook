@@ -188,7 +188,7 @@ week: 1
 | `warn` | Physiklar | 주의 |
 | `think` | Physiklar | 더 생각해 보기 |
 
-- `note`와 `think` 상자의 제목 앞에는 §(Section sign)가 붙습니다(예: "§ 더 생각해 보기"). 2026-11-07 사용자 요청.
+- `note`·`tip`·`warn`·`think` 상자의 제목 앞에는 §(Section sign)가 붙습니다(예: "§ 더 생각해 보기", "§ 주의"). note·think는 2026-11-07, tip·warn은 2026-11-14 사용자 요청. 예제(`example`)는 "예제 n" 번호가 있어 붙이지 않습니다.
 
 ### 3-4-0. 예제 (편집기)
 

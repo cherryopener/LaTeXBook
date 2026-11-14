@@ -29,7 +29,7 @@
 - 사용자에게는 한국어 합니다체. 결론 먼저, 쉬운 말. 큰 작업 전엔 계획을 보여 주고 동의받음.
 - 커밋·push는 작업 브랜치에. PR은 요청할 때만. 커밋 메시지는 한국어 + 끝에 세션이 주는 꼬리말.
 - **비공개 내용(Physiklar 원고·그림, 학원 로고·이름, 토큰)을 LaTeXBook(공개)에 넣지 않는다.** 이식한 책은 `textbooks`에만.
-- 시험: `npm install` 후 `npm test`(12개). 브라우저 시험은 전역 Playwright, `tests/lib/browser.mjs`의 `openBrowser({port})`(시험마다 포트 다르게). 이 작업 환경은 CDN(jsdelivr) 접속이 막혀 있어 시험 도구가 CDN 주소를 `node_modules`로 연결한다.
+- 시험: **새 세션은 `node_modules`가 비어 있으므로 먼저 `npm ci`**, 그다음 `npm test`(13개). 설치 없이 돌리면 editor·integration·layout·vim 등 8개가 코드와 무관하게 실패하던 것을, 이제는 `tests/run-all.mjs`가 빠진 패키지를 알리고 시험을 돌리지 않는다(2026-11-14). 브라우저 시험은 전역 Playwright, `tests/lib/browser.mjs`의 `openBrowser({port})`(시험마다 포트 다르게). 이 작업 환경은 CDN(jsdelivr) 접속이 막혀 있어 시험 도구가 CDN 주소를 `node_modules`로 연결한다.
 - 서브에이전트 모델 배정은 사용자의 다른 저장소(`cherryopener.github.io`) `CLAUDE.md` 4절 사다리를 따른다(엔진·레이아웃 2=sonnet/high, 구조 변경 4=opus/high, 기계적 0=haiku/low, 검토는 작성보다 한 단계 위). 서브에이전트는 `isolation: "worktree"`로, 각자 맡은 폴더만.
 - 비공개 책을 로컬에서 조판해 보는 방법: 이전 세션의 스크립트 요지 — `textbooks/books/<id>`의 json·md를 읽어 `assembleBook` → `renderBook` → `buildDocument(…, { baseUrl })` → `tests/pages/integration.html?doc=…`로 열어 `page.pdf`. 그림·글꼴은 `out/` 아래로 복사해 로컬 서버로 제공(커밋 안 됨).
 
