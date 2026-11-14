@@ -500,7 +500,8 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 .def > p { margin: 0 0 1mm; text-align: center; }
 .def > p:first-child::before { content: "\201E"; margin-right: 0.4mm; }
 .def > p:last-child::after { content: "\201C"; margin-left: 0.4mm; }
-/* 보충·생각 상자 제목 앞에 §(Section sign) */
-.callout.note .callout-title::before, .callout.think .callout-title::before { content: "\00A7\00A0"; }
+/* 참고·팁·주의·생각 상자 제목 앞에 §(Section sign). 예제(.example)는 자체 번호 표지가 있어 제외 */
+.callout.note .callout-title::before, .callout.tip .callout-title::before,
+.callout.warn .callout-title::before, .callout.think .callout-title::before { content: "\00A7\00A0"; }
 /* 굵은 빈칸(**:blank[…]**): 교사용 답 글자를 굵게 */
 .blank.strong { font-weight: 700; }
