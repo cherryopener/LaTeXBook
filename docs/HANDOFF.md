@@ -202,5 +202,5 @@
 - 영재 3권 8부에 **3차 문항**(입시·올림피아드 정석 유형) 부마다 8문항(17~24번). 2차 고난도는 25~32번으로 밀림(저자: 고난도는 시험용으로 아낌). 지시·진행표 textbooks `notes/gifted-exercises-plan.md` 3-2절, 저자 확인 거리 `notes/gifted-exercises-check.md`. 조판 역학 123쪽·전자기 132쪽·파동광학 103쪽.
 - 새 책 **textbooks `books/exam`**(시험 문항, 8부 × 4문항, 기발한 착상형). 지시 `notes/exam-plan.md`, 아이디어 목록 `notes/exam-ideas.md`, 확인 거리 `notes/exam-check.md`. 59쪽.
 - **docx 내보내기 도구** textbooks `guides/tools/md2docx.py`(pandoc: 수식은 Word 수식, 그림은 Chromium으로 PNG, 문제 → 맨 뒤 정답과 해설). 결과 `exports/exam.docx`. 이 컨테이너의 LibreOffice는 Word 수식을 화면에 그리지 못하므로 확인은 `pandoc x.docx -t markdown`으로 되읽어 한다.
-- **편집기 한계(미해결)**: 부 큰 표지(`part.json` `print.cover`)가 5개 이상이면 첫 쪽 목차가 4단까지만 정의돼(`themes/cyber/theme.css` `.has-covers[data-covers="3"|"4"]`, 표지마다 `break-before: column`) 5부부터 잘린다. exam 책은 큰 표지를 빼서 피함.
+- **편집기 한계 → 고침(같은 날)**: 부 큰 표지(`part.json` `print.cover`)가 5개 이상이면 첫 쪽 목차가 5부부터 잘리던 것을 고침. 5개 이상이면 두 단에 차례로 담고 줄 수가 비슷해지는 큰 표지 한 곳에서만 단을 나눔(`src/render/index.js` `columnBreakCover`, `.toc-many`·`.toc-colbreak`). 한 쪽에 담을 수 없는 목차는 새 경고 `toc-overflow`(`src/layout/index.js` collectWarnings). 시험: render(단 나눔 위치), integration(8 Part 목차가 1쪽 안, 긴 목차 경고). exam 책은 그 전에 큰 표지를 빼 두었음(되돌릴지는 저자 판단).
 - 작업자 운용: 작업자에게 "작업 중 무엇을 생각했는지"를 묻는 요청은 안전 필터(reasoning_extraction)에 막혔다. 결과물(표·목록)만 요청한다. 시험용 문항은 검산 지시에 "그림을 재어 답이 나오면 안 된다"를 넣는다(3곳 고침).

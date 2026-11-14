@@ -264,6 +264,16 @@ console.log("큰 표지(Part) 모드");
   ok(!/class="part-cover" /.test(h), "부마다 붙던 표지 없음");
   eq(all(h, /<li class="toc-(?:cover|part|chapter)"[^>]*><a href="#([^"]+)"/g), ["cover-1", "part-1", "ch-1-1", "part-2", "ch-2-1", "cover-2", "part-3", "ch-3-1"], "책 목차: 큰 표지·부·장");
   ok(h.includes('<section class="book-front has-covers"') && h.includes('<span class="toc-no">PART II</span><span class="toc-title">Electromagnetics</span>'), "책 목차 큰 표지 줄");
+  ok(!h.includes("toc-many") && !h.includes("toc-colbreak"), "큰 표지 넷 이하: Part마다 한 단(toc-many 없음)");
+  // 큰 표지 다섯 이상(2026-11-14): 두 단에 차례로, 줄 수가 비슷해지는 큰 표지 한 곳에서만 단 나눔
+  const many = (n, chOf = () => 1) => ({ id: "m", config: { title: "책" }, print, parts: Array.from({ length: n }, (_, i) => ({ ...mk(`부${i + 1}`, "red", { title: `P${i + 1}` }),
+    chapters: Array.from({ length: chOf(i) }, (_, j) => ({ path: `p${i}/${j}.md`, source: `---\ntitle: 장${i + 1}-${j + 1}\n---\n글\n` })) })) });
+  const brk = (b) => all(renderBook(b, { ...base, edition: "student" }).html, /<li class="toc-cover toc-colbreak"[^>]*><a href="#([^"]+)"/g);
+  const h8 = renderBook(many(8), { ...base, edition: "student" }).html;
+  ok(h8.includes('<section class="book-front has-covers toc-many" data-covers="8"'), "큰 표지 여덟: toc-many");
+  eq(brk(many(8)), ["cover-5"], "큰 표지 여덟(장 같음): 다섯째 Part에서 둘째 단");
+  eq(brk(many(5)), ["cover-4"], "큰 표지 다섯: 왼쪽 단에 셋(두 단 높이가 같으면 왼쪽을 길게)");
+  eq(brk(many(6, (i) => (i === 0 ? 8 : 1))), ["cover-3"], "첫 Part의 장이 많으면 단 나눔이 앞으로(셋째 Part)");
   const p3 = renderBook(cb, { ...base, edition: "student", range: { part: 3 } });
   ok(p3.html.includes('<div class="part-no">II</div>') && p3.html.includes('id="part-3"') && !p3.html.includes("cover-1"), "range 부 하나: 그 부의 큰 표지 번호 유지");
   const p2 = renderBook(cb, { ...base, edition: "student", range: { part: 2 } });

@@ -120,6 +120,39 @@ const tw = wcodes("book-teacher-a4");
 for (const c of ["missing-image", "unknown-ref", "source-overflow", "page-multiple"]) check(tw.includes(c), `교사용 경고에 ${c}`);
 check(!wcodes("book-student-a4").includes("source-overflow"), "학생용에는 source-overflow 없음");
 
+// 큰 표지가 다섯 이상인 책의 첫 쪽 목차(2026-11-14): 예전에는 Part마다 한 단이라 5부부터 쪽 밖으로 잘렸다.
+// 여덟 Part 책은 목차 줄이 모두 1쪽 안에 있고 경고가 없어야 하며, 한 쪽에 담을 수 없는 긴 목차는 toc-overflow 경고.
+{
+  const tocBook = (n, chapters, tocDepth) => ({ id: "toc", config: { title: "목차 시험" },
+    print: { ...book.print, tocDepth, front: { title: "Many Parts" } },
+    parts: Array.from({ length: n }, (_, i) => ({ dir: `p${i + 1}`, palette: ["red", "teal", "violet"][i % 3],
+      config: { title: `부 ${i + 1}`, print: { palette: ["red", "teal", "violet"][i % 3], cover: { title: `Part Title ${i + 1}` } } },
+      chapters: Array.from({ length: chapters }, (_, j) => ({ path: `p${i + 1}/${j + 1}.md`, source: `---\ntitle: 장 ${i + 1}-${j + 1}\n---\n\n## 첫 절\n\n글\n\n## 둘째 절\n\n글\n` })) })) });
+  const measure = async (name, b) => {
+    const r = renderBook(b, { edition: "student" });
+    const doc = buildDocument(r.html, { paper: "a4", edition: "student", theme: b.print.theme, print: { ...b.print, paper: "a4" }, title: name, baseUrl: `http://localhost:${PORT}/` });
+    fs.writeFileSync(path.join(OUT, `${name}.html`), doc);
+    const page = await t.page(`/tests/pages/integration.html?doc=/out/integration/${name}.html`);
+    await page.waitForFunction(() => window.__result, null, { timeout: 180000 });
+    const res = await page.evaluate(() => {
+      const pages = [...document.querySelectorAll("[data-vivliostyle-page-container]")];
+      const pr = pages[0].getBoundingClientRect();
+      const lis = [...document.querySelectorAll(".book-toc li")];
+      const out = lis.filter((li) => { const q = li.getBoundingClientRect(); return li.closest("[data-vivliostyle-page-container]") !== pages[0] || !q.width || q.left < pr.left - 1 || q.right > pr.right + 1 || q.top < pr.top - 1 || q.bottom > pr.bottom + 1; }).length;
+      return { error: window.__result.error, lis: lis.length, out, warn: (window.__result.warnings ?? []).map((w) => w.code) };
+    });
+    if (name === "toc-8parts") await page.pdf({ path: path.join(OUT, `${name}.pdf`), preferCSSPageSize: true, printBackground: true, pageRanges: "1" });
+    await page.close();
+    return res;
+  };
+  const m8 = await measure("toc-8parts", tocBook(8, 2, 1));
+  check(!m8.error && m8.lis === 32 && m8.out === 0, `큰 표지 8개 × 장 2개: 목차 ${m8.lis}줄이 모두 1쪽 안(쪽 밖 ${m8.out}) ${m8.error ?? ""}`);
+  check(!m8.warn.includes("toc-overflow"), "큰 표지 8개: toc-overflow 경고 없음");
+  const long = await measure("toc-too-long", tocBook(5, 4, 2));
+  check(long.warn.includes("toc-overflow"), `한 쪽에 담을 수 없는 목차(${long.lis}줄): toc-overflow 경고`);
+}
+check(!wcodes("book-teacher-a4").includes("toc-overflow"), "견본 책: toc-overflow 경고 없음");
+
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, null, 1));
 await t.close();
 console.log(`\n통합 시험: ${fails.length ? `${fails.length}개 실패` : "모두 통과"} (결과: out/integration/)`);

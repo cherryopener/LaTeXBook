@@ -219,6 +219,13 @@ img, svg { max-width: 100%; }
 .has-covers[data-covers="3"] .book-toc, .has-covers[data-covers="4"] .book-toc { font-size: 0.92em; }
 .has-covers[data-covers="3"] .book-toc .toc-chapter a, .has-covers[data-covers="4"] .book-toc .toc-chapter a { padding-left: 6mm; }
 .has-covers .book-toc .toc-cover ~ .toc-cover { break-before: column; }
+/* Part가 다섯 이상(toc-many)이면 Part마다 한 단을 줄 수 없다: 두 단에 차례로 담고, 편집기가 고른 큰 표지 한 곳(toc-colbreak)에서만 단을 나눈다 (2026-11-14) */
+.has-covers.toc-many .book-toc { font-size: 0.92em; }
+.has-covers.toc-many .book-toc .toc-cover ~ .toc-cover { break-before: auto; margin-top: 2.6mm; }
+.has-covers.toc-many .book-toc .toc-cover.toc-colbreak { break-before: column; margin-top: 0; }
+/* 줄이 많으므로 부·장 줄 간격을 조금 좁힘(표지 8개 × 장 2개가 위 그림 띠를 누르지 않게) */
+.has-covers.toc-many .book-toc .toc-part { margin-top: 1.8mm; }
+.has-covers.toc-many .book-toc .toc-chapter a { line-height: 1.55; }
 /* Part 가 셋 이상이면 단이 좁아 "PART Ⅱ + 영어 제목 + 쪽수"가 한 줄에 안 들어간다: 표지 표시는 윗줄, 제목은 아랫줄 (2026-11-10) */
 .has-covers[data-covers="3"] .book-toc .toc-cover a, .has-covers[data-covers="4"] .book-toc .toc-cover a { flex-wrap: wrap; font-size: 11pt; }
 .has-covers[data-covers="3"] .book-toc .toc-cover .toc-no, .has-covers[data-covers="4"] .book-toc .toc-cover .toc-no { flex-basis: 100%; margin-bottom: 0.6mm; }

@@ -154,7 +154,8 @@ render가 이 모양으로 내놓고, layout의 테마 CSS가 이 클래스에 �
   <div class="part-no">I</div>
   <h1 class="part-title">Mechanics</h1>
 </section>
-<!-- 모든 부마다(홀수 쪽). 큰 표지 모드에서는 책 첫 쪽에 class="book-front has-covers", 목차 줄 li.toc-cover(href="#cover-1")가 더해짐 -->
+<!-- 모든 부마다(홀수 쪽). 큰 표지 모드에서는 책 첫 쪽에 class="book-front has-covers"(data-covers=큰 표지 수), 목차 줄 li.toc-cover(href="#cover-1")가 더해짐.
+     큰 표지가 5개 이상이면 book-front에 toc-many, 둘째 단을 시작하는 큰 표지 줄 하나에 li.toc-cover.toc-colbreak (2026-11-14) -->
 <section class="part-toc titled" id="part-1" data-palette="red" data-part="1">
   <h1 class="part-toc-title">운동의 기술</h1>
   <ol><li><span class="toc-no">1.</span> 위치·변위·속도</li>…</ol>
@@ -230,7 +231,7 @@ type LayoutSettings = {
   baseUrl?: string;                    // 편집기 주소(끝에 /). Node에서 문서를 만들 때 필수(테마 CSS 주소 기준)
 };
 type Preview = {
-  show(docHtml: string): Promise<{ pages: number; ms: number; warnings: Warning[] }>;  // source-overflow, source-spill, page-multiple 등
+  show(docHtml: string): Promise<{ pages: number; ms: number; warnings: Warning[] }>;  // source-overflow, source-spill, page-multiple, toc-overflow 등
   goToPage(n: number): void;
   currentPage(): number;                     // 화면 위쪽에 보이는 쪽
   pageOfLine(line: number): number | null;   // data-line → 쪽 번호

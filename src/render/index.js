@@ -161,20 +161,39 @@ function bookFront(book, print, toc, resolveAsset = (s) => s, coverMode = false)
   // 목차 줄은 그 부의 색 묶음으로(역학 붉은, 전자기 청록)
   const item = (cls, href, no, title, palette) =>
     `<li class="${cls}"${palette ? ` data-palette="${esc(palette)}"` : ""}><a href="#${href}"><span class="toc-no">${esc(no)}</span><span class="toc-title">${esc(title)}</span><span class="toc-fill"></span></a></li>`;
-  const items = toc.map((t) => t.answers
+  // 큰 표지가 다섯 이상이면 Part마다 한 단을 줄 수 없다(4단이 한계). 두 단에 차례로 담고,
+  // 두 단의 줄 수가 가장 비슷해지는 큰 표지 한 곳에서만 단을 나눈다(2026-11-14)
+  const covers = toc.filter((t) => t.cover).length;
+  const many = coverMode && covers >= 5;
+  const breakAt = many ? columnBreakCover(toc) : -1;
+  const items = toc.map((t, i) => t.answers
     ? item("toc-part toc-answers", `part-${ANSWERS_NO}`, t.no, t.title, t.palette)
     : t.cover
-    ? item("toc-cover", `cover-${t.cover}`, `${t.label} ${t.no}`, t.title, t.palette)
+    ? item(i === breakAt ? "toc-cover toc-colbreak" : "toc-cover", `cover-${t.cover}`, `${t.label} ${t.no}`, t.title, t.palette)
     : t.section
       ? item("toc-section", t.section, t.no ?? "", t.title, t.palette)
     : t.chapter
       ? item("toc-chapter", `ch-${t.part}-${t.chapter}`, `${t.seq ?? t.chapter}`, t.title, t.palette)
       : item("toc-part", `part-${t.part}`, String(t.part).padStart(2, "0"), t.title, t.palette)).join("");
-  const covers = toc.filter((t) => t.cover).length;
   const deep = toc.some((t) => t.section);
-  return `<section class="book-front${coverMode ? " has-covers" : ""}${deep ? " toc-deep" : ""}"${coverMode ? ` data-covers="${covers}"` : ""} data-palette="${esc(print.palette ?? "teal")}">\n` +
+  return `<section class="book-front${coverMode ? " has-covers" : ""}${many ? " toc-many" : ""}${deep ? " toc-deep" : ""}"${coverMode ? ` data-covers="${covers}"` : ""} data-palette="${esc(print.palette ?? "teal")}">\n` +
     `${art}\n` +
     `<nav class="book-toc"><h2>CONTENTS</h2><ol>${items}</ol></nav>\n</section>`;
+}
+
+/** 큰 표지가 많은 책 첫 쪽 목차: 둘째 단을 시작할 큰 표지 줄의 toc 위치. 줄 높이를 대략 셈(큰 표지 줄이 가장 높음) */
+function columnBreakCover(toc) {
+  const weight = (t) => (t.cover ? 1.8 : t.section ? 0.8 : t.chapter ? 1 : 1.3);
+  const total = toc.reduce((s, t) => s + weight(t), 0);
+  let best = -1, bestMax = Infinity, before = 0;
+  toc.forEach((t, i) => {
+    if (t.cover && i > 0) {
+      const worst = Math.max(before, total - before);
+      if (worst <= bestMax) { bestMax = worst; best = i; }
+    }
+    before += weight(t);
+  });
+  return best;
 }
 
 /** @returns {{source:string, files:Array<{path:string,text:string}>}} */

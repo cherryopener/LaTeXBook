@@ -16,6 +16,7 @@ export const WARNING_TEXT = {
   "solution-outside-problem": "해설(:::solution)은 문항(::::problem) 안에 씁니다.",
   "plot-error": "그래프의 식이나 범위에 오류가 있습니다.",
   "page-multiple": "전체 쪽수가 인쇄소 배수에 맞지 않습니다.",
+  "toc-overflow": "책 첫 쪽 목차가 한 쪽에 다 들어가지 않습니다. print.tocDepth를 1로 줄여 보세요.",
 };
 
 export const setWarningsEffect = StateEffect.define();

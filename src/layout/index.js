@@ -154,6 +154,21 @@ function collectWarnings(pageEls) {
     const need = PAGE_MULTIPLE - (n % PAGE_MULTIPLE);
     warnings.push({ code: "page-multiple", message: `전체 ${n}쪽이 ${PAGE_MULTIPLE}의 배수가 아닙니다. 빈 쪽 ${need}쪽이 더 필요합니다.` });
   }
+  // 책 첫 쪽 목차가 쪽 안에 다 들어가는지(2026-11-14): 쪽 밖으로 밀린 목차 줄, 또는 목차가 길어 위 그림 띠(.front-art)가
+  // 줄어들다 못해 제목 글(.front-caption, 띠 아래쪽에 붙음)의 윗부분이 띠 밖으로 잘림. 띠가 조금 낮아지는 것은 괜찮다(영재역학 등)
+  const front = pageEls.find((pg) => pg.querySelector(".book-front"));
+  if (front) {
+    const old = front.style.display;
+    front.style.display = "block";
+    const pr = front.getBoundingClientRect();
+    const lis = [...front.querySelectorAll(".book-toc li")];
+    const out = lis.filter((li) => { const b = li.getBoundingClientRect(); return !b.width || b.left < pr.left - 1 || b.right > pr.right + 1 || b.top < pr.top - 1 || b.bottom > pr.bottom + 1; }).length;
+    const art = front.querySelector(".front-art")?.getBoundingClientRect();
+    const cap = front.querySelector(".front-caption")?.getBoundingClientRect();
+    const clipped = art && cap ? cap.top < art.top - 0.5 : false;
+    front.style.display = old;
+    if (out || clipped) warnings.push({ code: "toc-overflow", message: `책 첫 쪽 목차가 한 쪽에 다 들어가지 않습니다(${out ? `목차 ${out}줄이 쪽 밖` : "목차에 밀려 위 책 제목이 가려짐"}). book.json의 print.tocDepth를 1로 줄이거나 장 수·제목 길이를 줄이세요.` });
+  }
   // 문항 하나가 둘 이상의 단(또는 쪽)에 걸치면 넘침. 교사용 정답(:::source)이 있는 문항만 경고.
   // 쪽을 넘으면 Vivliostyle이 쪽마다 조각을 만들고(id 유지), 같은 쪽 안에서 단을 넘으면 브라우저 다단 조각이 생긴다.
   // 조각 수 = 쪽별 getClientRects() 수의 합. 보이지 않는 쪽(display:none)은 잠시 보이게 해서 잰다.
