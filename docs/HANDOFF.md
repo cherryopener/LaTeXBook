@@ -196,3 +196,11 @@
 - 저자가 꼭 내고 싶은 문항: 에스컬레이터(두 줄 서기 대 한 줄 서기·한 줄 걷기, 같은 시간 수송량) → 영재역학 1부.
 - 작업 지시서·진행표: textbooks `notes/gifted-exercises-plan.md`. 배치 검사 도구 textbooks `guides/tools/p2check.py`(qcheck 다음에, 문항이 단·쪽을 넘치는지).
 - 편집기 고침(브랜치 `claude/ecstatic-galileo-s5c5jm`): 문항 안 `::columnbreak`(소문항을 오른쪽 단으로)는 `source-overflow`로 세지 않음(`src/layout/index.js` collectWarnings). FORMAT 3-8절. 시험 13개 통과. 웹 편집기 브랜치 반영은 저자 허락 뒤.
+
+## 15. 2026-11-14 영재 3권 3차 문항, 시험 문항 책
+
+- 영재 3권 8부에 **3차 문항**(입시·올림피아드 정석 유형) 부마다 8문항(17~24번). 2차 고난도는 25~32번으로 밀림(저자: 고난도는 시험용으로 아낌). 지시·진행표 textbooks `notes/gifted-exercises-plan.md` 3-2절, 저자 확인 거리 `notes/gifted-exercises-check.md`. 조판 역학 123쪽·전자기 132쪽·파동광학 103쪽.
+- 새 책 **textbooks `books/exam`**(시험 문항, 8부 × 4문항, 기발한 착상형). 지시 `notes/exam-plan.md`, 아이디어 목록 `notes/exam-ideas.md`, 확인 거리 `notes/exam-check.md`. 59쪽.
+- **docx 내보내기 도구** textbooks `guides/tools/md2docx.py`(pandoc: 수식은 Word 수식, 그림은 Chromium으로 PNG, 문제 → 맨 뒤 정답과 해설). 결과 `exports/exam.docx`. 이 컨테이너의 LibreOffice는 Word 수식을 화면에 그리지 못하므로 확인은 `pandoc x.docx -t markdown`으로 되읽어 한다.
+- **편집기 한계(미해결)**: 부 큰 표지(`part.json` `print.cover`)가 5개 이상이면 첫 쪽 목차가 4단까지만 정의돼(`themes/cyber/theme.css` `.has-covers[data-covers="3"|"4"]`, 표지마다 `break-before: column`) 5부부터 잘린다. exam 책은 큰 표지를 빼서 피함.
+- 작업자 운용: 작업자에게 "작업 중 무엇을 생각했는지"를 묻는 요청은 안전 필터(reasoning_extraction)에 막혔다. 결과물(표·목록)만 요청한다. 시험용 문항은 검산 지시에 "그림을 재어 답이 나오면 안 된다"를 넣는다(3곳 고침).
