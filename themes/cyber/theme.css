@@ -460,6 +460,8 @@ table.choice-table .choice-no { padding: 0; text-align: left; }
 
 /* ================= 쪽·단 나눔 ================= */
 .pagebreak { break-before: page; }
+/* 쪽 나눔 뒤 첫 요소의 위 여백을 없앰. 저절로 넘어간 쪽은 조판기가 이 여백을 버리지만 강제로 나눈 쪽은 남겨서(CSS 규칙), 제목이 5~6 mm 내려앉았다(2026-11-17) */
+body .pagebreak + *, body .pagebreak + .side + * { margin-top: 0 !important; }
 .columnbreak { break-before: column; }
 /* 문제 구간에서 ::columnbreak 바로 뒤 문항은 이미 새 단에서 시작하므로 한 번 더 넘기지 않음(빈 단 방지) */
 .problem-list > .columnbreak + .problem { break-before: auto; }
