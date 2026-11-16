@@ -481,6 +481,15 @@ const rc = (src, extra = {}) => renderChapter(src, { ...ctx0, ...extra });
   eq(count(blanksOf(r.html)[1] + "</span>", /class="slot"/g), 3, "Array.from 글자 분리");
 }
 {
+  // 굵게 전체가 빈칸 / 굵게 끝부분만 빈칸 — 뒤에 한글이 붙어도 ** 가 글자로 남지 않아야 한다
+  const r = rc("**:blank[알짜힘]**이란 가. 소비 전력은 **저항에 :blank[비례]**한다. **A 의 :blank[상대 속도]**라고 하고 **보통 굵게**는 그대로.");
+  ok(!r.html.includes("**"), "굵은 빈칸 뒤 한글: ** 가 남지 않음");
+  eq(count(r.html, /class="blank (answer|empty) strong"/g), 3, "굵은 빈칸 3개");
+  ok(r.html.includes("<strong>저항에</strong> ") && r.html.includes("<strong>A 의</strong> ") && r.html.includes("<strong>보통 굵게</strong>"), "앞부분은 굵게, 띄어쓰기 유지");
+  const k = rc("**가** 다 :blank[라]**마");
+  ok(k.html.includes("<strong>가</strong>"), "닫는 ** 에서 시작하지 않음");
+}
+{
   const r = rc("+++\n\n가\n\n::pagebreak\n");
   ok(!r.html.includes("+++") && r.html.includes("pagebreak"), "+++ 무시");
   ok(!r.html.includes('<section class="problems">'), "::problems 없으면 개념 구간만");

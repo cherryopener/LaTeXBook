@@ -51,8 +51,20 @@ function walk(list, fn, anc = []) {
  * "**:blank[알짜힘]**이란"처럼 굵은 빈칸 바로 뒤에 한글이 오면 마크다운 규칙상 굵게가 닫히지 않아 ** 가 그대로 찍힌다.
  * 그래서 "**:blank[…]**" 는 미리 ":blank[…]{.strong}" 으로 바꾸고, 빈칸이 스스로 굵게 그린다(줄 수는 그대로).
  */
+/*
+ * 굵게의 끝부분만 빈칸인 경우("**저항에 :blank[비례]**한다")도 같은 까닭으로 깨진다.
+ * 이때는 끝의 빈칸만 굵게 밖으로 빼서 스스로 굵게 그리게 하고, 앞부분은 "**저항에**" 로 닫는다.
+ * 사이의 띄어쓰기는 굵게 밖으로 옮긴다(보이는 글은 같다). 2026-11-16.
+ */
 export function boldBlanks(body) {
-  return String(body).replace(/\*\*(:blank\[[^\]\n]*\])\*\*/g, "$1{.strong}");
+  const whole = String(body).replace(/\*\*(:blank\[[^\]\n]*\])\*\*/g, "$1{.strong}");
+  return whole.replace(/\*\*([^*\n]+?)(\s*)(:blank\[[^\]\n]*\])\*\*/g, (m, pre, sp, blank, off, s) => {
+    // 이 ** 가 굵게를 여는 자리인지(같은 줄에서 앞의 ** 개수가 짝수인지) 확인
+    const lineStart = s.lastIndexOf("\n", off - 1) + 1;
+    const before = s.slice(lineStart, off).match(/\*\*/g)?.length ?? 0;
+    if (before % 2 || !pre.trim()) return m;
+    return `**${pre}**${sp}${blank}{.strong}`;
+  });
 }
 
 export function prepare(body, { print, partNo: P, chapterNo: C, chapterSeq, problemStart = 0, warn, lineOf }) {
