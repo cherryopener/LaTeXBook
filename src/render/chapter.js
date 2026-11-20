@@ -228,17 +228,37 @@ export function renderChapterImpl(source, ctx = {}) {
   }
   const unlabeled = (n) => (n.children ?? []).filter((c) => !c.data?.directiveLabel);
 
+  // :::tag 안의 글을 "#"로 나눈 태그 목록(앞뒤 빈칸 정리, 빈 것 뺌). 수식은 $…$ 글자 그대로
+  function tagList(n) {
+    const parts = [];
+    const walk = (x) => {
+      if (x.type === "text") parts.push(x.value);
+      else if (x.type === "inlineMath") parts.push("$" + x.value + "$");
+      else if (x.type === "break") parts.push(" ");
+      for (const c of x.children ?? []) walk(c);
+      if (x.type === "paragraph") parts.push(" ");
+    };
+    for (const c of unlabeled(n)) walk(c);
+    return parts.join("").split("#").map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+  }
+
   // 문항: 본문 + 교사용 정답(:::source, 문항 아래). 해설(:::solution)은 문제 쪽에 찍지 않고 meta.solutions로 모아
   // 책 맨 뒤 "A 정답과 해설" 장에 넣는다(두 판 모두). 2026-11-13 사용자 결정
   function problem(n, env) {
     const kids = unlabeled(n);
     const is = (name) => (c) => c.type === "containerDirective" && c.name === name;
-    const isSol = is("solution"), isSrc = is("source");
+    const isSol = is("solution"), isSrc = is("source"), isTag = is("tag");
     const inner = { ...env, inProblem: true };
     // 머리 줄: 왼쪽 문항 번호, 오른쪽 교사용 정답(:::source). 정답이 길면 머리 줄이 늘어나 본문을 아래로 민다(2026-11-13 사용자 결정)
     const head = [html(`<div class="problem-no">${esc(n._no ?? "")}</div>`)];
+    // 태그(:::tag, 2026-11-20 사용자 요청): 교사용에서만 머리 줄 바로 위에 파란 글씨로 "#등속 운동 #평균 속도".
+    // 테마가 절대 위치로 띄워 자리를 차지하지 않으므로 교사용·학생용의 쪽 배치가 같다
+    if (teacher) for (const g of kids.filter(isTag)) {
+      const tags = tagList(g);
+      if (tags.length) head.push(el("div", { className: ["problem-tags"], ...dl(g) }, tags.map((x) => el("span", { className: ["tag"] }, [{ type: "text", value: "#" + x }]))));
+    }
     if (teacher) for (const s of kids.filter(isSrc)) head.push(el("div", { className: ["source"], ...dl(s) }, txAll(unlabeled(s), inner)));
-    const out = [el("div", { className: ["problem-head"] }, head), el("div", { className: ["problem-body"] }, txAll(kids.filter((c) => !isSol(c) && !isSrc(c)), inner))];
+    const out = [el("div", { className: ["problem-head"] }, head), el("div", { className: ["problem-body"] }, txAll(kids.filter((c) => !isSol(c) && !isSrc(c) && !isTag(c)), inner))];
     const sols = kids.filter(isSol);
     if (sols.length) {
       const body = sols.map((s) => mdastToHtml(txAll(unlabeled(s), { ...inner, inAnswer: true }))).join("\n");
@@ -345,6 +365,9 @@ export function renderChapterImpl(source, ctx = {}) {
       // 학생용도 같은 자리를 차지하게 내보내고(테마가 글자를 숨김) 두 판의 쪽 위치를 맞춘다
       case "teacher": return box(teacher ? "teacher-only" : "teacher-only placeholder", txAll(unlabeled(n), env));
       case "source": return teacher ? box("source", txAll(unlabeled(n), env)) : null;
+      case "tag":
+        warn("tag-outside-problem", ":::tag는 문항(::::problem) 안에 씁니다. 문항 밖의 태그는 인쇄에서 뺐습니다.", n);
+        return null;
       case "solution":
         warn("solution-outside-problem", ":::solution은 문항(::::problem) 안에 씁니다. 문항 밖의 해설은 정답과 해설 장에 넣을 수 없어 뺐습니다.", n);
         return null;

@@ -14,6 +14,7 @@ export const WARNING_TEXT = {
   "source-overflow": "교사용 정답(:::source)이 단을 넘칩니다. 교사용과 학생용의 쪽 번호가 어긋날 수 있습니다.",
   "source-spill": "교사용 정답(:::source)이 칸을 넘쳐 다음 칸에 겹칩니다.",
   "solution-outside-problem": "해설(:::solution)은 문항(::::problem) 안에 씁니다.",
+  "tag-outside-problem": "태그(:::tag)는 문항(::::problem) 안에 씁니다.",
   "plot-error": "그래프의 식이나 범위에 오류가 있습니다.",
   "page-multiple": "전체 쪽수가 인쇄소 배수에 맞지 않습니다.",
   "toc-overflow": "책 첫 쪽 목차가 한 쪽에 다 들어가지 않습니다. print.tocDepth를 1로 줄여 보세요.",

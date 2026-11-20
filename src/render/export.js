@@ -6,7 +6,7 @@ import { prepare, labelsOf } from "./prepare.js";
 
 const UNWRAP = new Set(["columns", "figs", "def"]);
 const DROP_LEAF = new Set(["pagebreak", "columnbreak", "space"]);
-const DROP_BOX = new Set(["teacher", "source", "solution"]);
+const DROP_BOX = new Set(["teacher", "source", "solution", "tag"]);
 
 export function exportPhysiklarImpl(source, ctx = {}) {
   const { head, body } = splitFrontMatter(source);

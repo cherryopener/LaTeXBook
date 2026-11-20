@@ -50,6 +50,7 @@ const GROUPS = [
   { label: "문제", items: [
     { cmd: "problem", glyph: "Q", name: "문제 추가", desc: "문항 틀(정답·해설 포함)을 넣기. 문제 구간이 없으면 장 끝에 만듦" },
     { cmd: "source", glyph: "정", name: "정답(교사용)", desc: "문항 안에 교사용 정답·풀이 요약(:::source) 넣기. 교사용에서만 문항 아래에 보임" },
+    { cmd: "tag", glyph: "#", name: "태그(교사용)", desc: "문항 안에 태그(:::tag) 넣기. \"#등속 운동 #평균 속도\"처럼 #로 나눔. 교사용에서만 문항 번호 줄 위에 파란 글씨로 보임" },
     { cmd: "solution", glyph: "해", name: "해설", desc: "문항 안에 해설(:::solution) 넣기. 책 맨 뒤 \"A 정답과 해설\" 장에 모임(두 판 모두)" },
     { menu: "choices", glyph: "①", name: "선지", desc: "5지선다(:::choices). 한 줄에 하나씩 쓰면 ①②③④⑤가 차례로 붙음", options: [
       { cmd: "choices", arg: "plain", name: "보통 선지", hint: "한 줄에 하나: ①②③④⑤" },

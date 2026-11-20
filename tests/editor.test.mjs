@@ -110,7 +110,7 @@ const THEORY = "---\ntitle: 장\n---\n\n## 절\n\n본문 문장.";
   check("문제: 개념 구간에서 누르면 문제 구간 끝에 넣음", a.text.indexOf("::::problem", a.text.indexOf("끝")) > 0 && (a.text.match(/^::problems$/gm) || []).length === 1, a.text);
   const b = run("본문\n\n::problems\n\n|", "problem"); // ::problems 뒤 빈 줄
   eq("문제: ::problems 뒤 커서 자리에 넣음", b.text, "본문\n\n::problems\n\n::::problem\n문제 내용\n\n:::source\n정답\n:::\n\n:::solution\n해설\n:::\n::::");
-  eq("scanStructure", JSON.stringify(scanStructure(EditorState.create({ doc: withProblems }).doc)), '{"problemsLine":3,"blocks":[{"open":5,"close":10,"source":null,"solution":7}]}');
+  eq("scanStructure", JSON.stringify(scanStructure(EditorState.create({ doc: withProblems }).doc)), '{"problemsLine":3,"blocks":[{"open":5,"close":10,"tag":null,"source":null,"solution":7}]}');
   eq("scanStructure: 코드 울타리 안은 무시", scanStructure(EditorState.create({ doc: "```\n::problems\n```\n\n본문" }).doc).problemsLine, null);
   eq("선지 단추: 빈 상자 + 안쪽 첫 줄에 커서", run("::::problem\n물음?\n|\n::::", "choices").shown, "::::problem\n물음?\n\n:::choices\n|\n:::\n::::");
   eq("짝짓기 선지 틀", run("|", "choices", "pair").shown, ":::choices\n| (가) | (나)\n| | \n | \n | \n | \n | \n:::");
@@ -125,7 +125,8 @@ const THEORY = "---\ntitle: 장\n---\n\n## 절\n\n본문 문장.";
   eq("정답: 해설이 있으면 그 앞에 넣음", q.text, "::::problem\n본문\n\n:::source\n정답\n:::\n\n:::solution\n내용\n:::\n::::");
   const q2 = run("::::problem\n본문|\n\n:::source\n가\n:::\n::::", "source");
   check("정답: 이미 있으면 그리로 이동", q2.text === "::::problem\n본문\n\n:::source\n가\n:::\n::::" && q2.shown.includes("가|"), q2.shown);
-  eq("scanStructure: 정답 줄", JSON.stringify(scanStructure(EditorState.create({ doc: "::::problem\n가\n:::source\n나\n:::\n::::" }).doc).blocks), '[{"open":1,"close":6,"source":3,"solution":null}]');
+  eq("scanStructure: 정답 줄", JSON.stringify(scanStructure(EditorState.create({ doc: "::::problem\n가\n:::source\n나\n:::\n::::" }).doc).blocks), '[{"open":1,"close":6,"tag":null,"source":3,"solution":null}]');
+  eq("scanStructure: 태그 줄", JSON.stringify(scanStructure(EditorState.create({ doc: "::::problem\n가\n:::tag\n#가\n:::\n:::source\n나\n:::\n::::" }).doc).blocks), '[{"open":1,"close":9,"tag":3,"source":6,"solution":null}]');
   const s2 = run("::::problem\n본문|\n\n:::solution\n내용\n:::\n::::", "solution");
   check("해설: 이미 있으면 새로 넣지 않고 그리로 이동", s2.text === "::::problem\n본문\n\n:::solution\n내용\n:::\n::::" && s2.shown.includes("내용|"), s2.shown);
 }

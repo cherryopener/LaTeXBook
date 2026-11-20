@@ -533,5 +533,19 @@ console.log("exportPhysiklar");
   ok(e.includes(":::note[예제 · 지레]") && e.includes(":::note[예제]\n둘째.") && !e.includes("example"), "예제 → note[예제 · …]");
 }
 
+// 문항 태그 :::tag (2026-11-20)
+{
+  const src = "---\ntitle: t\n---\n::problems\n\n::::problem\n문제 글\n\n:::tag\n#등속 운동 #속도-시간 그래프  #평균 속도\n:::\n\n:::source\n**정답** 3\n:::\n::::\n\n:::tag\n#밖\n:::\n";
+  const T = renderChapter(src, { edition: "teacher", partNo: 1, chapterNo: 1 });
+  const S = renderChapter(src, { edition: "student", partNo: 1, chapterNo: 1 });
+  ok(/<div class="problem-tags"[^>]*><span class="tag">#등속 운동<\/span><span class="tag">#속도-시간 그래프<\/span><span class="tag">#평균 속도<\/span><\/div>/.test(T.html), "교사용 태그 3개(#로 나눔, 빈칸 정리)");
+  ok(T.html.indexOf("problem-tags") < T.html.indexOf('class="source"') && T.html.indexOf("problem-tags") > T.html.indexOf("problem-no"), "태그는 머리 줄 안, 번호 뒤·정답 앞");
+  ok(!/problem-tags|#등속/.test(S.html), "학생용에는 태그 없음");
+  ok(!/#등속/.test(T.html.split("problem-body")[1] ?? ""), "본문에 태그 글 없음");
+  ok(T.warnings.some((w) => w.code === "tag-outside-problem") && !T.html.includes("#밖"), "문항 밖 태그는 빼고 경고");
+  ok(!T.warnings.some((w) => w.code === "unknown-directive"), "태그: 모르는 상자 경고 없음");
+  ok(!exportPhysiklar(src, {}).source.includes("#등속"), "내보내기에서 태그 지움");
+}
+
 console.log(`\nrender 시험: ${pass}개 통과, ${fail}개 실패 (결과: out/render/)`);
 process.exit(fail ? 1 : 0);
