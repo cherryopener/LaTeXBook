@@ -347,6 +347,18 @@ export function createPreview(container, opts = {}) {
  * Vivliostyle printHTML은 iframe에 인라인 onload를 넣는데, 편집기의 보안 정책(CSP: 인라인 스크립트 금지)에 막힌다.
  * 그래서 만든 직후 iframe 문서에서 onload를 빼고, 같은 일을 load 이벤트로 한다.
  */
+/**
+ * 인쇄 틀 보정(2026-11-22). Vivliostyle 인쇄 CSS는 쪽 상자에 `max-height: 100vh`를 건다.
+ * Firefox 계열(Zen 등)은 인쇄할 때 vh를 쪽 높이와 다르게 잡는 경우가 있어(맥에서는 인쇄 가능 영역 기준으로 짧아짐)
+ * 쪽 아래가 잘렸다. 쪽 상자 높이는 Vivliostyle이 이미 쪽 크기로 정해 두므로 상한을 없애고, 넘친 것은 그 쪽 안에서 자른다.
+ */
+const PRINT_FIX_CSS = `@media print {
+  html[data-vivliostyle-paginated], html[data-vivliostyle-paginated] body,
+  html[data-vivliostyle-paginated] [data-vivliostyle-viewer-viewport] { height: auto !important; overflow: visible !important; }
+  [data-vivliostyle-outer-zoom-box], [data-vivliostyle-spread-container] { height: auto !important; }
+  [data-vivliostyle-spread-container] [data-vivliostyle-page-container] { max-height: none !important; overflow: hidden; break-inside: avoid; }
+}`;
+
 export function printPdf(docHtml, opts = {}) {
   return loadVivliostyle().then(({ printHTML }) => {
     printHTML(docHtml, {
@@ -359,7 +371,7 @@ export function printPdf(docHtml, opts = {}) {
     const inst = window.printInstance;
     const fr = inst?.iframe;
     if (!fr) return;
-    fr.srcdoc = fr.srcdoc.replace(/\sonload=(['"])[\s\S]*?\1/, "");
+    fr.srcdoc = fr.srcdoc.replace(/\sonload=(['"])[\s\S]*?\1/, "").replace("</head>", `<style>${PRINT_FIX_CSS}</style></head>`);
     fr.addEventListener("load", () => inst.runInIframe(fr.contentWindow), { once: true });
   });
 }
