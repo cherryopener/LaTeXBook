@@ -255,6 +255,10 @@ img, svg { max-width: 100%; }
 [data-chapter-start] .part-cover.big { break-before: left; }
 [data-chapter-start] .part-toc.titled { break-before: right; }
 [data-chapter-start="any"] .part-cover.big, [data-chapter-start="any"] .part-toc.titled { break-before: page; }
+/* 장 하나만 예외(장 머리 부분 start:, 2026-11-24): 책 규칙보다 앞서도록 html을 붙여 우선순위를 높임 */
+html .chapter[data-start="any"] { break-before: page; }
+html .chapter[data-start="right"] { break-before: right; }
+html .chapter[data-start="left"] { break-before: left; }
 .theory { page: theory; }
 [data-side="left"] .theory { page: theory-l; }
 

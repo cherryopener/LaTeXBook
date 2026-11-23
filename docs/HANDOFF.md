@@ -204,3 +204,9 @@
 - **docx 내보내기 도구** textbooks `guides/tools/md2docx.py`(pandoc: 수식은 Word 수식, 그림은 Chromium으로 PNG, 문제 → 맨 뒤 정답과 해설). 결과 `exports/exam.docx`. 이 컨테이너의 LibreOffice는 Word 수식을 화면에 그리지 못하므로 확인은 `pandoc x.docx -t markdown`으로 되읽어 한다.
 - **편집기 한계 → 고침(같은 날)**: 부 큰 표지(`part.json` `print.cover`)가 5개 이상이면 첫 쪽 목차가 5부부터 잘리던 것을 고침. 5개 이상이면 두 단에 차례로 담고 줄 수가 비슷해지는 큰 표지 한 곳에서만 단을 나눔(`src/render/index.js` `columnBreakCover`, `.toc-many`·`.toc-colbreak`). 한 쪽에 담을 수 없는 목차는 새 경고 `toc-overflow`(`src/layout/index.js` collectWarnings). 시험: render(단 나눔 위치), integration(8 Part 목차가 1쪽 안, 긴 목차 경고). exam 책은 그 전에 큰 표지를 빼 두었음(되돌릴지는 저자 판단).
 - 작업자 운용: 작업자에게 "작업 중 무엇을 생각했는지"를 묻는 요청은 안전 필터(reasoning_extraction)에 막혔다. 결과물(표·목록)만 요청한다. 시험용 문항은 검산 지시에 "그림을 재어 답이 나오면 안 된다"를 넣는다(3곳 고침).
+
+## 16. 2026-11-24 장 하나만 쪽 시작 예외(`start:`)
+
+- 저자 요청: 중등 1권 「수직항력 (심화)」 장 때문에 앞뒤로 빈 쪽이 2개 생김(개념 시작은 짝수 쪽 규칙). 이 장만 홀수 쪽에 넣고 싶다.
+- 장 머리 부분에 `start: any`(바로 다음 쪽) / `right`(홀수 쪽) / `left`(짝수 쪽). `src/render/chapter.js`가 `<section class="chapter" data-start="…">`, `themes/cyber/theme.css`가 `html .chapter[data-start=…]`로 책 규칙보다 앞서게. 문제 구간(`.problems`)의 짝수 쪽 규칙은 그대로. 모르는 값은 경고 `bad-start`(편집기 설명 `src/editor/warnings.js`, FORMAT.md 2-1·6절).
+- 시험: render(속성·경고·테마 규칙 순서). `npm test` 13개 통과. 실제 책: 중등 1권 131 → 129쪽(수직항력 67쪽 시작, 교사용·학생용 쪽 같음).

@@ -18,6 +18,7 @@ export const WARNING_TEXT = {
   "plot-error": "그래프의 식이나 범위에 오류가 있습니다.",
   "page-multiple": "전체 쪽수가 인쇄소 배수에 맞지 않습니다.",
   "toc-overflow": "책 첫 쪽 목차가 한 쪽에 다 들어가지 않습니다. print.tocDepth를 1로 줄여 보세요.",
+  "bad-start": "start: 에는 any(바로 다음 쪽), right(홀수 쪽), left(짝수 쪽) 중 하나를 씁니다.",
 };
 
 export const setWarningsEffect = StateEffect.define();

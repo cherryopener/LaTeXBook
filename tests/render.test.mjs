@@ -547,5 +547,17 @@ console.log("exportPhysiklar");
   ok(!exportPhysiklar(src, {}).source.includes("#등속"), "내보내기에서 태그 지움");
 }
 
+// 장 하나만 쪽 시작 규칙 예외: 머리 부분 start (2026-11-24)
+{
+  const mk = (v) => renderChapter(`---\ntitle: 수직항력\n${v === undefined ? "" : `start: ${v}\n`}---\n\n## 절\n\n글.\n`, { partNo: 5, chapterNo: 2 });
+  ok(mk("any").html.startsWith('<section class="chapter" id="ch-5-2" data-palette="teal" data-part="5" data-chapter="2" data-edition="student" data-start="any">'), "start: any → data-start");
+  ok(mk("right").html.includes('data-start="right"') && mk("left").html.includes('data-start="left"'), "start: right·left");
+  ok(!mk().html.includes("data-start") && !mk().warnings.length, "start 없으면 속성·경고 없음");
+  const bad = mk("odd");
+  ok(!bad.html.includes("data-start") && bad.warnings.some((w) => w.code === "bad-start"), "모르는 값은 속성 없이 경고");
+  const css = fs.readFileSync(path.join(ROOT, "themes/cyber/theme.css"), "utf8");
+  ok(/html \.chapter\[data-start="any"\] \{ break-before: page; \}/.test(css) && css.indexOf('html .chapter[data-start="any"]') > css.indexOf('[data-chapter-start="any"] .chapter'), "테마: 예외 규칙이 책 규칙 뒤, 더 높은 우선순위");
+}
+
 console.log(`\nrender 시험: ${pass}개 통과, ${fail}개 실패 (결과: out/render/)`);
 process.exit(fail ? 1 : 0);
