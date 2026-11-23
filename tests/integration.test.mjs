@@ -153,6 +153,33 @@ check(!wcodes("book-student-a4").includes("source-overflow"), "학생용에는 s
 }
 check(!wcodes("book-teacher-a4").includes("toc-overflow"), "견본 책: toc-overflow 경고 없음");
 
+// 그림 속 clip-path·gradient 참조(2026-11-24): Vivliostyle이 url(#이름)을 url(#viv-id-…)로 바꿔 잘라 내기가 무시되던 것.
+// 조판 뒤 참조가 쪽 안의 실제 요소를 가리키고, 잘린 원이 칸 밖으로 나가지 않아야 한다.
+{
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><defs><clipPath id="box"><rect x="0" y="0" width="100" height="100"/></clipPath>'
+    + '<linearGradient id="g"><stop offset="0" stop-color="#f00"/><stop offset="1" stop-color="#00f"/></linearGradient></defs>'
+    + '<g clip-path="url(#box)"><circle id="big" cx="100" cy="50" r="90" fill="url(#g)"/></g></svg>';
+  const b = { id: "clip", config: { title: "clip" }, print: { ...book.print },
+    parts: [{ dir: "p1", palette: "teal", config: { title: "부" }, chapters: [{ path: "p1/1.md", source: "---\ntitle: 그림\n---\n\n## 절\n\n::fig[잘라 내기]{src=images/c.svg w=60}\n" }] }] };
+  const r = renderBook(b, { edition: "student", readSvg: () => svg, resolveAsset: () => "x" });
+  const doc = buildDocument(r.html, { paper: "a4", edition: "student", theme: b.print.theme, print: { ...b.print, paper: "a4" }, title: "clip", baseUrl: `http://localhost:${PORT}/` });
+  fs.writeFileSync(path.join(OUT, "svg-clip.html"), doc);
+  const page = await t.page(`/tests/pages/integration.html?doc=/out/integration/svg-clip.html`);
+  await page.waitForFunction(() => window.__result, null, { timeout: 180000 });
+  const res = await page.evaluate(() => {
+    const g = [...document.querySelectorAll("[data-vivliostyle-page-container] g[clip-path]")][0];
+    const c = g?.querySelector("circle");
+    const ref = (v) => (/url\(["']?#([^"')]+)/.exec(v ?? "") ?? [])[1];
+    return { clip: g?.getAttribute("clip-path"), fill: c?.getAttribute("fill"),
+      // 참조 대상이 같은 이름의 다른 요소(Vivliostyle이 만든 viv-id 표식)가 아니라 실제 clipPath·linearGradient여야 한다
+      clipOk: document.getElementById(ref(g?.getAttribute("clip-path")))?.tagName === "clipPath",
+      fillOk: document.getElementById(ref(c?.getAttribute("fill")))?.tagName === "linearGradient",
+      error: window.__result.error };
+  });
+  await page.close();
+  check(!res.error && res.clipOk && res.fillOk, `그림 속 참조가 쪽 안의 요소를 가리킴: clip-path ${res.clip}, fill ${res.fill} ${res.error ?? ""}`);
+}
+
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, null, 1));
 await t.close();
 console.log(`\n통합 시험: ${fails.length ? `${fails.length}개 실패` : "모두 통과"} (결과: out/integration/)`);

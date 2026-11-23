@@ -146,6 +146,36 @@ ${body}
 `;
 }
 
+/**
+ * 그림(SVG) 속 참조 되돌리기(2026-11-24). Vivliostyle은 문서 속 url(#이름) 참조를 url(#viv-id-<문서 주소>:0023이름)으로
+ * 바꾸지만 SVG 요소의 id는 그대로 둔다. 그래서 clip-path·mask·gradient·marker 등이 대상을 못 찾아 잘라 내기가 통째로
+ * 무시되었다(중등 2권 빛의 삼원색·원형 도선 그림). 조판이 끝난 쪽에서 참조를 원래 이름으로 되돌린다.
+ * 대상 id가 쪽 안에 있을 때만 바꾼다(링크·목차의 viv-id는 건드리지 않음). 바꾼 개수를 돌려준다.
+ */
+const SVG_REF_ATTRS = ["clip-path", "mask", "filter", "fill", "stroke", "marker-start", "marker-mid", "marker-end", "href", "xlink:href", "style"];
+function restoreSvgRefs(pageEls) {
+  let fixed = 0;
+  const unescape = (s) => s.replace(/:([0-9a-f]{4})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
+  for (const pg of pageEls) {
+    for (const svg of pg.querySelectorAll("svg")) {
+      for (const el of [svg, ...svg.querySelectorAll("*")]) {
+        for (const a of SVG_REF_ATTRS) {
+          const v = el.getAttribute(a);
+          if (!v || !v.includes("#viv-id-")) continue;
+          const nv = v.replace(/#viv-id-[^"')\s]+/g, (m) => {
+            const i = m.lastIndexOf(":0023");
+            if (i < 0) return m;
+            const id = unescape(m.slice(i + 5));
+            return pg.ownerDocument.getElementById(id) ? `#${id}` : m;
+          });
+          if (nv !== v) { el.setAttribute(a, nv); fixed++; }
+        }
+      }
+    }
+  }
+  return fixed;
+}
+
 /** 렌더된 쪽들에서 경고를 찾는다(교사용 정답 넘침, 쪽수 배수) */
 function collectWarnings(pageEls) {
   const warnings = [];
@@ -274,6 +304,7 @@ export function createPreview(container, opts = {}) {
       await done;
       if (old) URL.revokeObjectURL(old);
       const pages = pageEls();
+      restoreSvgRefs(pages);
       // data-line → 쪽 번호(처음 나오는 쪽)
       const first = new Map();
       pages.forEach((pg, i) => {
@@ -363,7 +394,8 @@ export function printPdf(docHtml, opts = {}) {
   return loadVivliostyle().then(({ printHTML }) => {
     printHTML(docHtml, {
       title: opts.title ?? "",
-      printCallback: (w) => w.print(),
+      // 인쇄 전에 그림 속 참조를 되돌린다(restoreSvgRefs 설명)
+      printCallback: (w) => { restoreSvgRefs([...w.document.querySelectorAll("[data-vivliostyle-page-container]")]); w.print(); },
       errorCallback: (m) => console.error("printPdf:", m),
       hideIframe: true,
       removeIframe: true,

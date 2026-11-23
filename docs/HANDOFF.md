@@ -210,3 +210,11 @@
 - 저자 요청: 중등 1권 「수직항력 (심화)」 장 때문에 앞뒤로 빈 쪽이 2개 생김(개념 시작은 짝수 쪽 규칙). 이 장만 홀수 쪽에 넣고 싶다.
 - 장 머리 부분에 `start: any`(바로 다음 쪽) / `right`(홀수 쪽) / `left`(짝수 쪽). `src/render/chapter.js`가 `<section class="chapter" data-start="…">`, `themes/cyber/theme.css`가 `html .chapter[data-start=…]`로 책 규칙보다 앞서게. 문제 구간(`.problems`)의 짝수 쪽 규칙은 그대로. 모르는 값은 경고 `bad-start`(편집기 설명 `src/editor/warnings.js`, FORMAT.md 2-1·6절).
 - 시험: render(속성·경고·테마 규칙 순서). `npm test` 13개 통과. 실제 책: 중등 1권 131 → 129쪽(수직항력 67쪽 시작, 교사용·학생용 쪽 같음).
+
+## 17. 2026-11-24 그림 속 clip-path·gradient 참조가 끊기던 것 고침
+
+- 증상(저자 발견): 중등 2권 「빛의 삼원색의 합성」 그림이 PDF에서 파란 원이 비고 겹친 곳 색이 틀림. 같은 원인으로 「원형 도선 주위의 자기장」 단면 그림의 자기력선이 칸 밖으로 넘쳐 옆 그림·설명을 덮음.
+- 원인: Vivliostyle이 문서 속 `url(#이름)` 참조를 `url(#viv-id-<문서 주소>:0023이름)`으로 바꾸는데, SVG 요소의 id는 그대로 둠(같은 이름의 표식 요소만 따로 만듦). 그래서 clipPath·mask·gradient·marker가 대상을 못 찾음.
+- 고침: `src/layout/index.js` `restoreSvgRefs()` — 조판이 끝난 쪽(`show()`)과 PDF 저장(`printPdf`의 printCallback) 직전에 SVG 속성(clip-path, mask, filter, fill, stroke, marker-*, href, style)의 `#viv-id-…:0023이름`을 `#이름`으로 되돌림(그 id가 문서에 있을 때만).
+- 시험: integration에 clipPath + linearGradient 그림 한 장 — 조판 뒤 참조 대상이 실제 clipPath·linearGradient인지. 고치기 전에는 실패, 고친 뒤 통과 확인.
+- 영향: clipPath를 쓰는 기존 그림(중등 2권 원형 도선·구면 거울 4장, 물리학 5-02 원형 도선)도 다시 조판하면 바르게 나옴. 「빛의 삼원색」 그림은 clipPath 없이 영역을 직접 칠하게 다시 그림(textbooks).
