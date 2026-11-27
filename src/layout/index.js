@@ -240,7 +240,7 @@ function collectWarnings(pageEls) {
 /**
  * 미리보기. container 안에 Vivliostyle 화면을 만든다.
  * @param {HTMLElement} container
- * @param {{spread?:boolean, zoom?:number}} [opts]  spread: 펼친 쪽으로 보기
+ * @param {{spread?:boolean, zoom?:number, pixelRatio?:number}} [opts]  spread: 펼친 쪽으로 보기. pixelRatio: 0이면 8배 그리기를 끔(Safari용)
  */
 export function createPreview(container, opts = {}) {
   const doc = container.ownerDocument;
@@ -273,6 +273,9 @@ export function createPreview(container, opts = {}) {
     viewer = new CoreViewer({ viewportElement: vp, window: win }, {
       renderAllPages: true, autoResize: false, zoom, // 창 크기가 바뀌면 app이 setZoom으로 배율만 바꾼다
       pageViewMode: opts.spread ? "spread" : "singlePage",
+      // Vivliostyle은 기본으로 쪽을 8배로 그린 뒤 줄여 보여 준다(pixelRatio 8). Safari에서는 이 배율이 어긋나
+      // 단 너비가 틀어지므로, 부르는 쪽이 0(끔)을 줄 수 있게 한다. 주지 않으면 기본값 그대로
+      ...(opts.pixelRatio == null ? {} : { pixelRatio: opts.pixelRatio }),
     });
     viewer.addListener("readystatechange", () => {
       if (viewer.readyState === ReadyState.COMPLETE && pending) { const p = pending; pending = null; p.ok(); }
